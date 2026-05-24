@@ -1,0 +1,2 @@
+filename,duration_s,epsilon,prr,mel_distance,pesq,stoi,snr_db,mel_dist_after_purify,speaker_similarity,processing_time_s,output_path
+sample_001.wav,3.0,0.05,0.999871,0.017312,1.968423,0.69899,47.11573,0.018783,0.974016,9.13,results_pgd_fixed/sample_001_protected.wav

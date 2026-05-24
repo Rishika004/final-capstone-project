@@ -1,0 +1,6 @@
+filename,duration_s,epsilon,prr,mel_distance,pesq,stoi,snr_db,mel_dist_after_purify,speaker_similarity,processing_time_s,output_path
+sample_001.wav,3.0,0.01,0.997961,0.00401,3.92344,0.725669,59.82045,0.112114,-0.344532,82.43,results_real_diffpure/sample_001_protected.wav
+sample_002.wav,3.0,0.01,0.999362,0.00307,3.803057,0.847953,61.730131,0.077164,-0.105873,118.31,results_real_diffpure/sample_002_protected.wav
+sample_003.wav,3.0,0.01,0.999479,0.003279,4.019096,0.803967,60.597631,0.078909,-0.036546,77.2,results_real_diffpure/sample_003_protected.wav
+sample_004.wav,3.0,0.01,0.998948,0.003265,,0.703712,60.930476,0.072777,-0.377254,59.93,results_real_diffpure/sample_004_protected.wav
+sample_005.wav,3.0,0.01,0.999555,0.003221,3.559765,0.845682,62.120942,0.082725,-0.075037,52.55,results_real_diffpure/sample_005_protected.wav
