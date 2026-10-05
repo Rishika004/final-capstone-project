@@ -73,6 +73,14 @@ craft_chunk() {
   say "done  $tag chunk@$off (exit $?)"
 }
 
+# DC5_STAGE=craft|eval|all (default all). `eval` exists because the crafting
+# stage is one-shot: once its chunks are on disk, re-entering it meets the
+# skip-guard comparing their stored code_sha to the current one, and prereg
+# section 7.5 forbids SKIPGUARD_FORCE_SKIP here. Separable stages beat a choice
+# between re-crafting 2.3 GPU-h and overriding a guard.
+STAGE=${DC5_STAGE:-all}
+if [ "$STAGE" = "eval" ]; then say "DC5_STAGE=eval -- skipping crafting"; fi
+if [ "$STAGE" != "eval" ]; then
 for OFF_N in "0 8" "8 8" "16 8" "24 7"; do
   set -- $OFF_N
   craft_chunk full_dc_m30_seg_bpda    "$1" "$2" --variant full --vocoder phase \
@@ -83,11 +91,14 @@ for OFF_N in "0 8" "8 8" "16 8" "24 7"; do
   craft_chunk fullnsT_dc_m30_seg_bpda "$1" "$2" --variant full --vocoder phase \
     --margin-db 30 --snr-floor 15 --lam-null 10 --null-t 200
 done
+fi
+if [ "$STAGE" = "craft" ]; then say "DC5_STAGE=craft -- stopping here"; exit 0; fi
 
 # --------------------------------------------------------------- 2. assemble
 # The union check that gates everything downstream (prereg section 9).
 say "assembling chunks and checking the speaker union"
-python experiments/assemble_devclean.py || { say "FATAL: union check failed"; exit 1; }
+python experiments/assemble_devclean.py ${DC5_ASSEMBLE_ARGS:-} \
+  || { say "FATAL: union check failed"; exit 1; }
 
 # --------------------------------------------- 3. the 12 cells: block (c)
 # Mismatched purifier, evaluation only. Thresholds are the TEST-CLEAN foreign
