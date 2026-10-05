@@ -177,6 +177,53 @@ def cs(a, b):
 
 
 # ----------------------------------------------------------------------------
+# Ensemble aggregation and ship-iterate selection.
+#
+# Extracted from craft()'s closures so they can be golden-tested (see
+# tests/test_selection.py). Extraction is behaviour-preserving: with
+# scales=None and legacy=True these compute exactly what the closures computed
+# for every arm crafted up to tag recipe-v1.
+#
+# The two defects they now also implement fixes for, both OFF by default:
+#
+#   2.1 / PLAN_V3 2a  the ship-iterate was chosen by RAW COSINE, not by margin
+#        to threshold, although thresholds span 0.59 across encoders
+#        (ECAPA 0.336, d-vector 0.703, WavLM-SV 0.893). Raw-cosine selection can
+#        prefer an iterate with a worse d-vector margin.
+#
+#   2e / RESULTS 35    the LSE smooth-maxes RAW margins, which are not
+#        commensurable across encoders: the identity of the binding encoder
+#        changes for 4 of 29 speakers once margins are divided by each encoder's
+#        impostor SD. Dividing first makes any tau_lse discussion mean what it
+#        says.
+#
+# RESULTS 36d is why they are off: applying either changes v1, and PLAN_V3
+# freezes the base. They ship as the §36c disclosure paragraph and are the
+# candidates for the W6 --n-eot 5 parity ablation.
+# ----------------------------------------------------------------------------
+def agg_lse(c, thr_t, w, tau_lse, scales=None):
+    """Weighted smooth-max of the threshold margins. scales=None -> legacy."""
+    m = c - thr_t
+    if scales is not None:
+        m = m / scales
+    return torch.logsumexp(m * w * tau_lse, dim=0) / tau_lse
+
+
+def ship_score(c, thr_t, scales=None, legacy=True):
+    """The scalar the ship-iterate is selected on. Lower is better.
+
+    legacy=True reproduces `c.max().item()` exactly, including its blindness to
+    the per-encoder threshold.
+    """
+    if legacy:
+        return float(c.max().item())
+    m = c - thr_t
+    if scales is not None:
+        m = m / scales
+    return float(m.max().item())
+
+
+# ----------------------------------------------------------------------------
 # Differentiable DiffPure (full DDPM loop, gradient-checkpointed)
 # ----------------------------------------------------------------------------
 def diffpure_grad(dp, x_mel, gen, stride=1):
@@ -271,7 +318,8 @@ def craft(wav_o, encoders, weights, masker, cap, diffpure, variant, n_steps, lr,
           bandlimit_hz, lam_before, n_eot, tau_lse=4.0, seed=42, log_every=20,
           vocoder="phase", gl_iters=8, thr=None, lam_null=0.0, null_t=0,
           null_mode="full", seg_partials=False, craft_stride=1,
-          grad_estimator="exact"):
+          grad_estimator="exact", seg_tau=8.0, legacy_selection=True,
+          enc_scales=None, sel_window=10):
     device = wav_o.device
     orig = [e.embed(wav_o).detach() for e in encoders]
     w = torch.tensor(weights, device=device)
@@ -281,6 +329,12 @@ def craft(wav_o, encoders, weights, masker, cap, diffpure, variant, n_steps, lr,
     # 0.32 while WavLM-SV needs 0.89). thr=None -> raw cosines (legacy).
     thr_t = (torch.tensor(thr, device=device) if thr is not None
              else torch.zeros(len(encoders), device=device))
+    # 2e. Per-encoder score scale, so the LSE and the selection statistic
+    # compare margins in commensurable units. None -> legacy raw margins.
+    scales_t = None
+    if enc_scales is not None and not legacy_selection:
+        scales_t = torch.tensor([float(enc_scales[e.name]) for e in encoders],
+                                device=device)
 
     inv_mel_scale, phase_orig, win, wav_len, T_frames = _build_mel_to_wav(
         n_fft=N_FFT, hop_length=HOP_LENGTH, n_mels=N_MELS,
@@ -314,7 +368,7 @@ def craft(wav_o, encoders, weights, masker, cap, diffpure, variant, n_steps, lr,
     # then works on the partial that still matches the speaker best -- the weak
     # link the verifier would find -- rather than being satisfied by a good mean.
     # seg_tau controls the softness; the limit seg_tau -> inf is a hard max.
-    def ens_cos(wav, seg_tau=8.0):
+    def ens_cos(wav, seg_tau=seg_tau):
         out = []
         for e, o in zip(encoders, orig):
             if seg_partials and hasattr(e, "embed_partials"):
@@ -326,7 +380,7 @@ def craft(wav_o, encoders, weights, masker, cap, diffpure, variant, n_steps, lr,
         return torch.stack(out)
 
     def lse(c):
-        return torch.logsumexp((c - thr_t) * w * tau_lse, dim=0) / tau_lse
+        return agg_lse(c, thr_t, w, tau_lse, scales_t)
 
     gen = torch.Generator(device=device)
     gen.manual_seed(seed + 1000)
@@ -334,6 +388,7 @@ def craft(wav_o, encoders, weights, masker, cap, diffpure, variant, n_steps, lr,
     delta = ((torch.rand_like(wav_o) * 2 - 1) * 2e-3).detach().requires_grad_(True)
     opt = torch.optim.Adam([delta], lr=lr)
     best_score, best_delta = float("inf"), delta.detach().clone()
+    sel_hist = []          # trailing window of scores, for the 2d selection fix
     t0 = time.time()
 
     # Null-space (purification-invariance) regulariser: first-order surrogate
@@ -391,7 +446,7 @@ def craft(wav_o, encoders, weights, masker, cap, diffpure, variant, n_steps, lr,
                 reg = ((diffpure.denoiser(mel_pn) - mel_pn) - c_o).pow(2).sum() / (dmel.pow(2).sum() + 1e-8)
         if variant == "plain":
             loss = lse(c_before) + lam_null * reg
-            score = c_before.max().item()
+            score = ship_score(c_before, thr_t, scales_t, legacy_selection)
         else:
             mel_p = torch.log(mel_tf(wav_p) + 1e-9)
             c_after_acc = 0.0
@@ -410,13 +465,33 @@ def craft(wav_o, encoders, weights, masker, cap, diffpure, variant, n_steps, lr,
                                              stride=craft_stride)
                 c_after = ens_cos(to_wav(mel_pure))
                 c_after_acc = c_after_acc + lse(c_after) / n_eot
-                score_acc += c_after.max().item() / n_eot
+                score_acc += ship_score(c_after, thr_t, scales_t,
+                                        legacy_selection) / n_eot
             loss = c_after_acc + lam_before * lse(c_before) + lam_null * reg
             score = score_acc
         loss.backward()
         with torch.no_grad():
-            if score < best_score:
-                best_score, best_delta = score, delta.detach().clone()
+            # 2d / RESULTS 36. `score` is a SINGLE purification draw at n_eot=1
+            # (diffpure_grad draws fresh eps each call), so argmin over 200 steps
+            # ships the iterate whose one draw was luckiest -- a winner's curse,
+            # against an attacker who selects best-of-5 (§28c: worth
+            # +0.020-0.037 to them). Selecting on a trailing mean estimates the
+            # quality of the TRAJECTORY instead of the luck of one draw, and
+            # costs no extra purifier passes.
+            #
+            # Legacy keeps the single-draw argmin, because that is what crafted
+            # every arm up to recipe-v1.
+            if legacy_selection:
+                if score < best_score:
+                    best_score, best_delta = score, delta.detach().clone()
+            else:
+                sel_hist.append(score)
+                if len(sel_hist) > sel_window:
+                    sel_hist.pop(0)
+                if len(sel_hist) == sel_window:
+                    sma = sum(sel_hist) / len(sel_hist)
+                    if sma < best_score:
+                        best_score, best_delta = sma, delta.detach().clone()
         opt.step()
         with torch.no_grad():
             delta.data.copy_(project_delta_to_masking(
@@ -695,6 +770,36 @@ def main():
                          "result a transfer result (see module docstring).")
     ap.add_argument("--thr-aware", action="store_true", dest="thr_aware",
                     help="ensemble loss on (cos - threshold) per encoder")
+    # 2.3. Both sharpness knobs were hard-coded (tau_lse in craft()'s signature,
+    # seg_tau in an inner closure's default). Defaults are unchanged, so no
+    # existing arm moves; they are exposed because §23c/§27a showed that
+    # changing where the budget concentrates reallocates protection ACROSS
+    # encoders, which makes them ablation knobs rather than constants.
+    ap.add_argument("--tau-lse", type=float, default=4.0, dest="tau_lse",
+                    help="sharpness of the cross-encoder smooth-max (default 4.0, "
+                         "the value every arm up to recipe-v1 used)")
+    ap.add_argument("--seg-tau", type=float, default=8.0, dest="seg_tau",
+                    help="sharpness of the per-partial smooth-max used by "
+                         "--seg-partials (default 8.0, as crafted)")
+    # 2.1 / 2d / 2e, all three off by default. RESULTS 36d: applying any of them
+    # changes v1, and the base never moves. --no-legacy-selection turns on
+    # margin-based selection, the per-encoder margin scale, and selection on a
+    # trailing mean instead of one purification draw.
+    ap.add_argument("--legacy-selection", action=argparse.BooleanOptionalAction,
+                    default=True, dest="legacy_selection",
+                    help="keep v1's ship-iterate selection: argmin over steps of "
+                         "the single-draw MAX RAW COSINE. --no-legacy-selection "
+                         "applies the 2.1/2d/2e fixes together (margin scale, "
+                         "per-encoder units, trailing-mean selection).")
+    ap.add_argument("--sel-window", type=int, default=10, dest="sel_window",
+                    help="trailing window of steps the non-legacy selection "
+                         "averages over before comparing (2d)")
+    ap.add_argument("--scale-channel", default="diffpure_gl_ddim_v7_xsess_tc",
+                    dest="scale_channel",
+                    help="channel whose calibration supplies the 2e per-encoder "
+                         "margin scales (only read with --no-legacy-selection)")
+    ap.add_argument("--scale-t", type=int, default=50, dest="scale_t",
+                    help="timestep of that calibration (2e)")
     ap.add_argument("--vocoder", default="phase", choices=["phase", "gl"],
                     help="differentiable mel->wav used INSIDE crafting")
     ap.add_argument("--gl-iters", type=int, default=8, dest="gl_iters")
@@ -742,6 +847,36 @@ def main():
     if args.thresholds:
         for e, v in zip(encoders, args.thresholds.split(",")):
             thresholds[e.name] = float(v)
+    elif args.thr_aware:
+        # 2.2. The per-encoder `threshold` class attributes in multi_encoders.py
+        # are MODEL-CARD PLACEHOLDERS (0.86 / 0.25 / 0.75), not calibrations of
+        # this channel or this speaker population; the calibrated cross-session
+        # values are 0.893 / 0.336 / 0.703. A threshold-aware loss built on the
+        # placeholders optimises against the wrong accept region -- 0.047 of
+        # false slack on the d-vector, twice any effect this paper reports --
+        # and it would do so silently. Every run script already passes
+        # --thresholds, so this refuses a mistake rather than changing a result.
+        raise SystemExit(
+            "[PA] --thr-aware without --thresholds: the ensemble loss would use "
+            "the model-card placeholder thresholds in multi_encoders.py, not a "
+            "calibration of this channel. Pass --thresholds (see "
+            "experiments/_thr_triple.py and utils/thresholds.py), or drop "
+            "--thr-aware.")
+    # 2e. Per-encoder impostor SD, the divisor that makes cross-encoder margins
+    # commensurable. Only consulted when --no-legacy-selection is passed; when
+    # the calibration file carries no SD columns utils.thresholds falls back to
+    # inferring sigma from the EER and says so.
+    enc_scales = None
+    if not args.legacy_selection:
+        from utils.thresholds import encoder_scales
+        enc_scales, how = encoder_scales(args.scale_channel, args.scale_t)
+        print(f"[PA] 2e per-encoder margin scales ({how}, "
+              f"channel={args.scale_channel} t={args.scale_t}): "
+              + ", ".join(f"{k}={v:.4f}" for k, v in enc_scales.items()))
+        missing = [e.name for e in encoders if e.name not in enc_scales]
+        if missing:
+            raise SystemExit(f"[PA] no 2e scale for {missing} on channel "
+                             f"{args.scale_channel}; calibrate it first")
     craft_encs, craft_idx = select_craft(encoders, args.craft_encoders)
     held_out = [e.name for i, e in enumerate(encoders) if i not in craft_idx]
     weights = [float(v) for v in args.weights.split(",")]
@@ -776,7 +911,10 @@ def main():
                       lam_null=args.lam_null, null_t=args.null_t,
                       null_mode=args.null_mode, seg_partials=args.seg_partials,
                       craft_stride=args.craft_stride,
-                      grad_estimator=args.grad_estimator, seed=args.craft_seed)
+                      grad_estimator=args.grad_estimator, seed=args.craft_seed,
+                      tau_lse=args.tau_lse, seg_tau=args.seg_tau,
+                      legacy_selection=args.legacy_selection,
+                      enc_scales=enc_scales, sel_window=args.sel_window)
         craft_s = time.time() - t0
         wav_p = (wav_o + delta).clamp(-1.0, 1.0)
         save_wav(wav_p.cpu(), os.path.join(WAV_DIR, f"{name}_{tag}.wav"))
