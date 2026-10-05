@@ -19,6 +19,17 @@ Here we estimate pass-through directions properly, by optimisation:
       d_range = argmax  ...                  (same constraint)
 and compare with a random d of the same norm and the LINEAR jvp ||J_C d||/||d||.
 
+MATCHED CONTROLS (council #3, PLAN_V3 W1). The plain `random` kind is isotropic
+white noise, which is what this purifier was trained to remove -- so "the
+optimised direction survives better than random" may be no more than "its
+spectral envelope is not white". Two further kinds answer that:
+  band_matched:<kind>  white noise carrying that optimised direction's own
+                       per-mel-band power profile, same norm.
+  pca_span             confined to the span of the top-k clean log-mel principal
+                       components, built from a subset disjoint from the eval
+                       speakers.
+See core/matched_random.py for the pre-registered reading of each branch.
+
 Survival through the real purifier (residual UNet v2, fixed loop), seeds x t:
       PSR     = ||P(x+d) - P(x)|| / ||d||          (1 = fully survives)
       dir_cos = cos( P(x+d) - P(x), d )            (1 = same direction)
@@ -46,6 +57,8 @@ from torch.autograd.functional import jvp
 from models.real_diffpure import load_real_diffpure, MelDiffPure
 from evaluation.evaluate import wav_to_logmel
 from experiments.librispeech import list_librispeech, per_speaker, load_flac, EVAL_SUBSET
+from core.matched_random import clean_mel_basis, controls_for, DEFAULT_K
+from utils.provenance import provenance, add_prereg_arg
 
 OUT = os.path.join(PROJ, "experiments", "results", "nullspace_survival.csv")
 
@@ -152,7 +165,18 @@ def main():
     ap.add_argument("--out", default=OUT)
     ap.add_argument("--null-t", default="", dest="null_t",
                     help="comma list of noise levels for NOISE-MATCHED pass-through directions")
+    ap.add_argument("--pca-k", type=int, default=DEFAULT_K, dest="pca_k",
+                    help="components the pca_span control is confined to")
+    ap.add_argument("--pca-subset", default="dev-clean", dest="pca_subset",
+                    help="corpus for the clean-mel PCA basis; MUST be disjoint "
+                         "from the evaluation subset")
+    ap.add_argument("--no-controls", action="store_true", dest="no_controls",
+                    help="omit the council #3 matched controls, reproducing the "
+                         "pre-2026-10-05 runs exactly")
+    add_prereg_arg(ap)
     args = ap.parse_args()
+    PROV = provenance(args.prereg)
+    print(f"[E1] code_sha={PROV['code_sha']} prereg_sha={PROV['prereg_sha'] or '-'}")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ts = [int(v) for v in args.t.split(",")]
     seeds = [int(v) for v in args.seeds.split(",")]
@@ -192,6 +216,24 @@ def main():
     else:
         ps = per_speaker(items, n_utt=args.utt_index + 1)
         spks = sorted(ps)[args.spk_offset:args.spk_offset + args.n_files]
+    # Matched controls (council #3). The basis is a corpus property, built once.
+    basis = None
+    if not args.no_controls:
+        eval_subset = args.subset or EVAL_SUBSET
+        if args.pca_subset == eval_subset:
+            raise SystemExit(
+                f"[E1] --pca-subset == evaluation subset ({eval_subset}): the "
+                "clean-PCA control would be built from the speakers it controls "
+                "for. Pass a disjoint subset.")
+        basis, pca_info = clean_mel_basis(k=args.pca_k, subset=args.pca_subset,
+                                          device=device)
+        print(f"[E1] matched controls ON: band_matched per optimised direction + "
+              f"pca_span (k={args.pca_k} from {args.pca_subset}, "
+              f"{pca_info['var_explained']:.1%} of clean log-mel variance)")
+    else:
+        print("[E1] matched controls DISABLED (--no-controls): white noise is the "
+              "only baseline, which is council defect #3.")
+
     rows = []
     for spk in spks:
         it = ps[spk][args.utt_index]
@@ -207,6 +249,17 @@ def main():
             abt = dp50.alpha_bar[nt - 1]
             kinds.append((f"null_t{nt}", find_direction(model, x, d_rand, args.steps, args.lr, +1, ab_t=abt)))
         t_opt = time.time() - t0
+
+        # One band-matched control per OPTIMISED direction (each carries its own
+        # envelope), plus a single pca_span control -- all directions here share
+        # the same norm, so one norm-matched span draw serves them all.
+        if basis is not None:
+            opt_kinds = [(k, d) for k, d in kinds if k.startswith("null")]
+            extra = [(f"band_matched:{k}", controls_for(d, None, seed=spk)["band_matched"])
+                     for k, d in opt_kinds]
+            extra.append(("pca_span",
+                          controls_for(opt_kinds[0][1], basis, seed=spk)["pca_span"]))
+            kinds.extend(extra)
         for name, d in kinds:
             # linear (jvp) response of the correction network
             _, jd = jvp(lambda z: correction(model, z), (x,), (d,))
@@ -216,7 +269,11 @@ def main():
             r = dict(speaker=spk, kind=name, rms=args.rms, lin_gain=round(lin, 4),
                      single_pass_psr=round(single, 4), opt_s=round(t_opt, 1),
                      dirs_from=os.path.basename(args.purifier_ckpt),
-                     eval_through=os.path.basename(args.eval_ckpt or args.purifier_ckpt))
+                     eval_through=os.path.basename(args.eval_ckpt or args.purifier_ckpt),
+                     is_control=name.startswith(("band_matched", "pca_span")),
+                     controls_for=(name.split(":", 1)[1]
+                                   if name.startswith("band_matched:") else ""),
+                     **PROV)
             if eval_model is not model:
                 # The transfer question is asked at the Jacobian level too, not only
                 # at the loop level: a direction that is pass-through for the source
