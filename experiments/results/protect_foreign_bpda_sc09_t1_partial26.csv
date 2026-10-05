@@ -1,0 +1,166 @@
+variant,file,eval_t,encoder,threshold,mel_psr,mel_dircos,cos_before,cos_after_purify,cos_ctrl_unprot,cos_after_max,clone_fails_after,ctrl_identity_kept,fails_all_seeds,defence_valid,n_seeds
+full_tc_m30_seg_bpda,spk61_70968_0000,1,WavLM-SV,0.8869,1.0266,0.854,-0.0068,0.6575,0.9933,0.6592,True,True,True,True,2
+full_tc_m30_seg_bpda,spk61_70968_0000,1,ECAPA-TDNN,0.3008,1.0266,0.854,-0.7277,-0.0215,0.9323,0.0041,True,True,True,True,2
+full_tc_m30_seg_bpda,spk61_70968_0000,1,Resemblyzer d-vector,0.7052,1.0266,0.854,0.3148,0.3964,0.9914,0.4003,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk61_70968_0000,1,WavLM-SV,0.8869,1.1686,0.9297,0.4209,0.5944,0.9933,0.6073,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk61_70968_0000,1,ECAPA-TDNN,0.3008,1.1686,0.9297,-0.2837,-0.0322,0.9323,-0.0266,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk61_70968_0000,1,Resemblyzer d-vector,0.7052,1.1686,0.9297,0.4528,0.4853,0.9914,0.4856,True,True,True,True,2
+full_tc_m30_seg_bpda,spk121_127105_0000,1,WavLM-SV,0.8869,0.7631,0.7226,0.1346,0.6971,0.9956,0.7214,True,True,True,True,2
+full_tc_m30_seg_bpda,spk121_127105_0000,1,ECAPA-TDNN,0.3008,0.7631,0.7226,-0.4486,-0.0138,0.8217,-0.0057,True,True,True,True,2
+full_tc_m30_seg_bpda,spk121_127105_0000,1,Resemblyzer d-vector,0.7052,0.7631,0.7226,0.4996,0.5918,0.9934,0.5955,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk121_127105_0000,1,WavLM-SV,0.8869,0.8217,0.7904,0.2078,0.5204,0.9956,0.5275,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk121_127105_0000,1,ECAPA-TDNN,0.3008,0.8217,0.7904,-0.1896,-0.0242,0.8217,-0.0161,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk121_127105_0000,1,Resemblyzer d-vector,0.7052,0.8217,0.7904,0.5473,0.6049,0.9934,0.6095,True,True,True,True,2
+full_tc_m30_seg_bpda,spk237_126133_0000,1,WavLM-SV,0.8869,0.8808,0.7861,0.1536,0.786,0.9905,0.8031,True,True,True,True,2
+full_tc_m30_seg_bpda,spk237_126133_0000,1,ECAPA-TDNN,0.3008,0.8808,0.7861,-0.541,0.0721,0.894,0.127,True,True,True,True,2
+full_tc_m30_seg_bpda,spk237_126133_0000,1,Resemblyzer d-vector,0.7052,0.8808,0.7861,0.524,0.6706,0.9876,0.6781,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk237_126133_0000,1,WavLM-SV,0.8869,1.004,0.8855,0.4614,0.8135,0.9905,0.8244,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk237_126133_0000,1,ECAPA-TDNN,0.3008,1.004,0.8855,-0.1306,0.1657,0.894,0.2104,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk237_126133_0000,1,Resemblyzer d-vector,0.7052,1.004,0.8855,0.6773,0.7493,0.9876,0.7536,False,True,False,False,2
+full_tc_m30_seg_bpda,spk260_123286_0000,1,WavLM-SV,0.8869,0.7419,0.6561,0.1171,0.8498,0.9818,0.8823,True,True,True,True,2
+full_tc_m30_seg_bpda,spk260_123286_0000,1,ECAPA-TDNN,0.3008,0.7419,0.6561,-0.6626,0.0922,0.8557,0.1087,True,True,True,True,2
+full_tc_m30_seg_bpda,spk260_123286_0000,1,Resemblyzer d-vector,0.7052,0.7419,0.6561,0.3692,0.404,0.9838,0.4058,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk260_123286_0000,1,WavLM-SV,0.8869,0.7523,0.6973,0.259,0.7662,0.9818,0.7679,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk260_123286_0000,1,ECAPA-TDNN,0.3008,0.7523,0.6973,-0.2941,-0.0074,0.8557,0.0043,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk260_123286_0000,1,Resemblyzer d-vector,0.7052,0.7523,0.6973,0.5269,0.5309,0.9838,0.5326,True,True,True,True,2
+full_tc_m30_seg_bpda,spk908_157963_0000,1,WavLM-SV,0.8869,0.9092,0.7664,0.0067,0.7047,0.9819,0.7303,True,True,True,True,2
+full_tc_m30_seg_bpda,spk908_157963_0000,1,ECAPA-TDNN,0.3008,0.9092,0.7664,-0.7836,0.0241,0.8346,0.0272,True,True,True,True,2
+full_tc_m30_seg_bpda,spk908_157963_0000,1,Resemblyzer d-vector,0.7052,0.9092,0.7664,0.3264,0.4663,0.9911,0.4935,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk908_157963_0000,1,WavLM-SV,0.8869,1.0511,0.8691,0.1789,0.6086,0.9819,0.6204,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk908_157963_0000,1,ECAPA-TDNN,0.3008,1.0511,0.8691,-0.3859,-0.0427,0.8346,-0.003,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk908_157963_0000,1,Resemblyzer d-vector,0.7052,1.0511,0.8691,0.3798,0.5066,0.9911,0.5281,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1089_134686_0000,1,WavLM-SV,0.8869,0.7155,0.6005,0.0648,0.7144,0.9873,0.7339,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1089_134686_0000,1,ECAPA-TDNN,0.3008,0.7155,0.6005,-0.5783,0.1582,0.8111,0.1586,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1089_134686_0000,1,Resemblyzer d-vector,0.7052,0.7155,0.6005,0.4147,0.6002,0.9899,0.606,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1089_134686_0000,1,WavLM-SV,0.8869,0.7838,0.6785,0.4015,0.6254,0.9873,0.6516,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1089_134686_0000,1,ECAPA-TDNN,0.3008,0.7838,0.6785,-0.2238,0.0916,0.8111,0.1076,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1089_134686_0000,1,Resemblyzer d-vector,0.7052,0.7838,0.6785,0.503,0.6237,0.9899,0.6276,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1221_135767_0000,1,WavLM-SV,0.8869,1.0193,0.8006,0.1751,0.5291,0.9897,0.5537,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1221_135767_0000,1,ECAPA-TDNN,0.3008,1.0193,0.8006,-0.5762,-0.0471,0.9092,-0.0246,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1221_135767_0000,1,Resemblyzer d-vector,0.7052,1.0193,0.8006,0.458,0.5295,0.9781,0.5417,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1221_135767_0000,1,WavLM-SV,0.8869,1.1955,0.9198,0.3494,0.5498,0.9897,0.559,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1221_135767_0000,1,ECAPA-TDNN,0.3008,1.1955,0.9198,-0.1433,-0.0497,0.9092,-0.0466,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1221_135767_0000,1,Resemblyzer d-vector,0.7052,1.1955,0.9198,0.6409,0.6428,0.9781,0.6432,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1284_1180_0000,1,WavLM-SV,0.8869,0.8724,0.7872,0.0093,0.8515,0.9826,0.8562,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1284_1180_0000,1,ECAPA-TDNN,0.3008,0.8724,0.7872,-0.8356,0.2764,0.8391,0.2869,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1284_1180_0000,1,Resemblyzer d-vector,0.7052,0.8724,0.7872,0.4169,0.5683,0.988,0.5764,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1284_1180_0000,1,WavLM-SV,0.8869,0.9466,0.8164,0.1553,0.735,0.9826,0.7401,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1284_1180_0000,1,ECAPA-TDNN,0.3008,0.9466,0.8164,-0.4368,0.1642,0.8391,0.1885,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1284_1180_0000,1,Resemblyzer d-vector,0.7052,0.9466,0.8164,0.5116,0.627,0.988,0.629,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1320_122617_0000,1,WavLM-SV,0.8869,0.9879,0.8271,0.031,0.684,0.986,0.6957,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1320_122617_0000,1,ECAPA-TDNN,0.3008,0.9879,0.8271,-0.7448,-0.1002,0.8197,-0.0693,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1320_122617_0000,1,Resemblyzer d-vector,0.7052,0.9879,0.8271,0.2834,0.3585,0.9701,0.361,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1320_122617_0000,1,WavLM-SV,0.8869,1.0741,0.8802,0.392,0.6788,0.986,0.6882,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1320_122617_0000,1,ECAPA-TDNN,0.3008,1.0741,0.8802,-0.3543,-0.0935,0.8197,-0.0844,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1320_122617_0000,1,Resemblyzer d-vector,0.7052,1.0741,0.8802,0.3831,0.4828,0.9701,0.4853,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1580_141083_0000,1,WavLM-SV,0.8869,0.8706,0.7972,0.2428,0.7232,0.9935,0.7335,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1580_141083_0000,1,ECAPA-TDNN,0.3008,0.8706,0.7972,-0.5037,0.1912,0.9012,0.225,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1580_141083_0000,1,Resemblyzer d-vector,0.7052,0.8706,0.7972,0.4399,0.6077,0.9857,0.6216,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1580_141083_0000,1,WavLM-SV,0.8869,0.9942,0.882,0.3224,0.698,0.9935,0.6993,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1580_141083_0000,1,ECAPA-TDNN,0.3008,0.9942,0.882,-0.2146,0.2097,0.9012,0.2142,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1580_141083_0000,1,Resemblyzer d-vector,0.7052,0.9942,0.882,0.4902,0.6036,0.9857,0.6106,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1995_1826_0000,1,WavLM-SV,0.8869,1.1329,0.8621,-0.0344,0.8991,0.9847,0.9009,False,True,False,False,2
+full_tc_m30_seg_bpda,spk1995_1826_0000,1,ECAPA-TDNN,0.3008,1.1329,0.8621,-0.7828,0.0402,0.8083,0.0442,True,True,True,True,2
+full_tc_m30_seg_bpda,spk1995_1826_0000,1,Resemblyzer d-vector,0.7052,1.1329,0.8621,0.2571,0.3473,0.966,0.3542,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1995_1826_0000,1,WavLM-SV,0.8869,1.2682,0.9216,0.1798,0.7882,0.9847,0.8116,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1995_1826_0000,1,ECAPA-TDNN,0.3008,1.2682,0.9216,-0.3704,0.0505,0.8083,0.0509,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk1995_1826_0000,1,Resemblyzer d-vector,0.7052,1.2682,0.9216,0.379,0.4373,0.966,0.4432,True,True,True,True,2
+full_tc_m30_seg_bpda,spk2830_3980_0005,1,WavLM-SV,0.8869,1.0239,0.8049,0.0258,0.7289,0.9923,0.737,True,True,True,True,2
+full_tc_m30_seg_bpda,spk2830_3980_0005,1,ECAPA-TDNN,0.3008,1.0239,0.8049,-0.7861,-0.0325,0.8966,-0.0134,True,True,True,True,2
+full_tc_m30_seg_bpda,spk2830_3980_0005,1,Resemblyzer d-vector,0.7052,1.0239,0.8049,0.2911,0.3675,0.9846,0.3685,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk2830_3980_0005,1,WavLM-SV,0.8869,1.1145,0.8478,0.2431,0.5715,0.9923,0.5861,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk2830_3980_0005,1,ECAPA-TDNN,0.3008,1.1145,0.8478,-0.4617,-0.0785,0.8966,-0.0563,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk2830_3980_0005,1,Resemblyzer d-vector,0.7052,1.1145,0.8478,0.3955,0.4327,0.9846,0.4381,True,True,True,True,2
+full_tc_m30_seg_bpda,spk2961_960_0000,1,WavLM-SV,0.8869,0.9879,0.8019,0.0397,0.8267,0.9883,0.9061,True,True,False,True,2
+full_tc_m30_seg_bpda,spk2961_960_0000,1,ECAPA-TDNN,0.3008,0.9879,0.8019,-0.6627,0.2806,0.8653,0.3186,True,True,False,True,2
+full_tc_m30_seg_bpda,spk2961_960_0000,1,Resemblyzer d-vector,0.7052,0.9879,0.8019,0.4648,0.6521,0.9644,0.6533,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk2961_960_0000,1,WavLM-SV,0.8869,1.1227,0.8892,0.2322,0.6462,0.9883,0.6756,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk2961_960_0000,1,ECAPA-TDNN,0.3008,1.1227,0.8892,-0.2066,0.0988,0.8653,0.1217,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk2961_960_0000,1,Resemblyzer d-vector,0.7052,1.1227,0.8892,0.5938,0.6974,0.9644,0.7031,True,True,True,True,2
+full_tc_m30_seg_bpda,spk3570_5694_0000,1,WavLM-SV,0.8869,0.8534,0.8041,-0.0415,0.6682,0.9922,0.7261,True,True,True,True,2
+full_tc_m30_seg_bpda,spk3570_5694_0000,1,ECAPA-TDNN,0.3008,0.8534,0.8041,-0.7218,-0.1292,0.853,-0.1111,True,True,True,True,2
+full_tc_m30_seg_bpda,spk3570_5694_0000,1,Resemblyzer d-vector,0.7052,0.8534,0.8041,0.2425,0.3039,0.9868,0.3044,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk3570_5694_0000,1,WavLM-SV,0.8869,0.9088,0.8603,0.0907,0.6177,0.9922,0.6358,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk3570_5694_0000,1,ECAPA-TDNN,0.3008,0.9088,0.8603,-0.4352,-0.1185,0.853,-0.1067,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk3570_5694_0000,1,Resemblyzer d-vector,0.7052,0.9088,0.8603,0.3275,0.3499,0.9868,0.353,True,True,True,True,2
+full_tc_m30_seg_bpda,spk4077_13751_0000,1,WavLM-SV,0.8869,0.8504,0.7441,-0.0641,0.7101,0.9894,0.7589,True,True,True,True,2
+full_tc_m30_seg_bpda,spk4077_13751_0000,1,ECAPA-TDNN,0.3008,0.8504,0.7441,-0.7801,0.1612,0.8603,0.1853,True,True,True,True,2
+full_tc_m30_seg_bpda,spk4077_13751_0000,1,Resemblyzer d-vector,0.7052,0.8504,0.7441,0.3699,0.5814,0.9919,0.5993,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4077_13751_0000,1,WavLM-SV,0.8869,0.8951,0.8357,0.0557,0.6361,0.9894,0.6788,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4077_13751_0000,1,ECAPA-TDNN,0.3008,0.8951,0.8357,-0.4424,0.0923,0.8603,0.1366,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4077_13751_0000,1,Resemblyzer d-vector,0.7052,0.8951,0.8357,0.4435,0.5944,0.9919,0.5955,True,True,True,True,2
+full_tc_m30_seg_bpda,spk4446_2275_0000,1,WavLM-SV,0.8869,0.8321,0.7972,0.3149,0.7747,0.991,0.7842,True,True,True,True,2
+full_tc_m30_seg_bpda,spk4446_2275_0000,1,ECAPA-TDNN,0.3008,0.8321,0.7972,-0.4203,0.1572,0.925,0.1647,True,True,True,True,2
+full_tc_m30_seg_bpda,spk4446_2275_0000,1,Resemblyzer d-vector,0.7052,0.8321,0.7972,0.5438,0.6401,0.9951,0.6432,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4446_2275_0000,1,WavLM-SV,0.8869,0.8832,0.8518,0.3992,0.7522,0.991,0.758,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4446_2275_0000,1,ECAPA-TDNN,0.3008,0.8832,0.8518,-0.2016,0.1112,0.925,0.1213,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4446_2275_0000,1,Resemblyzer d-vector,0.7052,0.8832,0.8518,0.6127,0.6798,0.9951,0.6822,True,True,True,True,2
+full_tc_m30_seg_bpda,spk4970_29095_0001,1,WavLM-SV,0.8869,0.8647,0.7021,0.2467,0.8743,0.9749,0.8807,True,True,True,True,2
+full_tc_m30_seg_bpda,spk4970_29095_0001,1,ECAPA-TDNN,0.3008,0.8647,0.7021,-0.4767,0.146,0.883,0.1794,True,True,True,True,2
+full_tc_m30_seg_bpda,spk4970_29095_0001,1,Resemblyzer d-vector,0.7052,0.8647,0.7021,0.497,0.6831,0.9909,0.698,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4970_29095_0001,1,WavLM-SV,0.8869,0.8887,0.745,0.3448,0.8224,0.9749,0.8645,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4970_29095_0001,1,ECAPA-TDNN,0.3008,0.8887,0.745,-0.2671,0.0809,0.883,0.1253,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4970_29095_0001,1,Resemblyzer d-vector,0.7052,0.8887,0.745,0.6171,0.7262,0.9909,0.7289,False,True,False,False,2
+full_tc_m30_seg_bpda,spk4992_41797_0000,1,WavLM-SV,0.8869,0.7891,0.7492,0.1579,0.823,0.9837,0.8393,True,True,True,True,2
+full_tc_m30_seg_bpda,spk4992_41797_0000,1,ECAPA-TDNN,0.3008,0.7891,0.7492,-0.6964,0.4224,0.824,0.4467,False,True,False,False,2
+full_tc_m30_seg_bpda,spk4992_41797_0000,1,Resemblyzer d-vector,0.7052,0.7891,0.7492,0.4434,0.592,0.9851,0.594,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4992_41797_0000,1,WavLM-SV,0.8869,0.7834,0.7891,0.3259,0.6202,0.9837,0.6378,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4992_41797_0000,1,ECAPA-TDNN,0.3008,0.7834,0.7891,-0.2602,0.2586,0.824,0.273,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk4992_41797_0000,1,Resemblyzer d-vector,0.7052,0.7834,0.7891,0.5856,0.696,0.9851,0.6976,True,True,True,True,2
+full_tc_m30_seg_bpda,spk5105_28240_0000,1,WavLM-SV,0.8869,0.8191,0.7179,0.1796,0.8036,0.9792,0.8179,True,True,True,True,2
+full_tc_m30_seg_bpda,spk5105_28240_0000,1,ECAPA-TDNN,0.3008,0.8191,0.7179,-0.5179,0.1808,0.8295,0.1835,True,True,True,True,2
+full_tc_m30_seg_bpda,spk5105_28240_0000,1,Resemblyzer d-vector,0.7052,0.8191,0.7179,0.5841,0.7177,0.9885,0.7308,False,True,False,False,2
+fullnsT_tc_m30_seg_bpda,spk5105_28240_0000,1,WavLM-SV,0.8869,0.9535,0.834,0.3345,0.8444,0.9792,0.8483,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk5105_28240_0000,1,ECAPA-TDNN,0.3008,0.9535,0.834,-0.1658,0.1631,0.8295,0.1743,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk5105_28240_0000,1,Resemblyzer d-vector,0.7052,0.9535,0.834,0.6282,0.7801,0.9885,0.8097,False,True,False,False,2
+full_tc_m30_seg_bpda,spk5142_33396_0001,1,WavLM-SV,0.8869,0.6554,0.7124,0.3111,0.8312,0.9924,0.8389,True,True,True,True,2
+full_tc_m30_seg_bpda,spk5142_33396_0001,1,ECAPA-TDNN,0.3008,0.6554,0.7124,-0.3848,0.1649,0.8562,0.1765,True,True,True,True,2
+full_tc_m30_seg_bpda,spk5142_33396_0001,1,Resemblyzer d-vector,0.7052,0.6554,0.7124,0.6156,0.7183,0.9943,0.7263,False,True,False,False,2
+fullnsT_tc_m30_seg_bpda,spk5142_33396_0001,1,WavLM-SV,0.8869,0.6991,0.7964,0.4735,0.8928,0.9924,0.8993,False,True,False,False,2
+fullnsT_tc_m30_seg_bpda,spk5142_33396_0001,1,ECAPA-TDNN,0.3008,0.6991,0.7964,-0.0327,0.3121,0.8562,0.3288,False,True,False,False,2
+fullnsT_tc_m30_seg_bpda,spk5142_33396_0001,1,Resemblyzer d-vector,0.7052,0.6991,0.7964,0.7882,0.844,0.9943,0.845,False,True,False,False,2
+full_tc_m30_seg_bpda,spk5683_32879_0000,1,WavLM-SV,0.8869,0.9423,0.7846,0.0533,0.7718,0.992,0.7995,True,True,True,True,2
+full_tc_m30_seg_bpda,spk5683_32879_0000,1,ECAPA-TDNN,0.3008,0.9423,0.7846,-0.6881,0.1253,0.8427,0.1475,True,True,True,True,2
+full_tc_m30_seg_bpda,spk5683_32879_0000,1,Resemblyzer d-vector,0.7052,0.9423,0.7846,0.4475,0.5853,0.9856,0.587,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk5683_32879_0000,1,WavLM-SV,0.8869,1.0086,0.8605,0.3199,0.7068,0.992,0.7087,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk5683_32879_0000,1,ECAPA-TDNN,0.3008,1.0086,0.8605,-0.2639,0.1098,0.8427,0.1105,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk5683_32879_0000,1,Resemblyzer d-vector,0.7052,1.0086,0.8605,0.6124,0.7027,0.9856,0.7143,True,True,False,True,2
+full_tc_m30_seg_bpda,spk6829_68769_0000,1,WavLM-SV,0.8869,0.9737,0.8485,0.2141,0.6694,0.9901,0.684,True,True,True,True,2
+full_tc_m30_seg_bpda,spk6829_68769_0000,1,ECAPA-TDNN,0.3008,0.9737,0.8485,-0.6867,0.0653,0.9014,0.0731,True,True,True,True,2
+full_tc_m30_seg_bpda,spk6829_68769_0000,1,Resemblyzer d-vector,0.7052,0.9737,0.8485,0.3998,0.4755,0.9921,0.4766,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk6829_68769_0000,1,WavLM-SV,0.8869,1.0939,0.9215,0.3025,0.6338,0.9901,0.6339,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk6829_68769_0000,1,ECAPA-TDNN,0.3008,1.0939,0.9215,-0.3836,0.0979,0.9014,0.1155,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk6829_68769_0000,1,Resemblyzer d-vector,0.7052,1.0939,0.9215,0.5293,0.5692,0.9921,0.5696,True,True,True,True,2
+full_tc_m30_seg_bpda,spk6930_76324_0002,1,WavLM-SV,0.8869,0.7574,0.7139,0.2633,0.8114,0.9909,0.8119,True,True,True,True,2
+full_tc_m30_seg_bpda,spk6930_76324_0002,1,ECAPA-TDNN,0.3008,0.7574,0.7139,-0.4979,0.4857,0.8987,0.5018,False,True,False,False,2
+full_tc_m30_seg_bpda,spk6930_76324_0002,1,Resemblyzer d-vector,0.7052,0.7574,0.7139,0.6636,0.7941,0.9924,0.8046,False,True,False,False,2
+fullnsT_tc_m30_seg_bpda,spk6930_76324_0002,1,WavLM-SV,0.8869,0.7597,0.8229,0.4108,0.7584,0.9909,0.7607,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk6930_76324_0002,1,ECAPA-TDNN,0.3008,0.7597,0.8229,-0.2123,0.376,0.8987,0.3769,False,True,False,False,2
+fullnsT_tc_m30_seg_bpda,spk6930_76324_0002,1,Resemblyzer d-vector,0.7052,0.7597,0.8229,0.7178,0.8181,0.9924,0.82,False,True,False,False,2
+full_tc_m30_seg_bpda,spk7021_85628_0001,1,WavLM-SV,0.8869,0.9391,0.7729,-0.0361,0.7904,0.9815,0.8031,True,True,True,True,2
+full_tc_m30_seg_bpda,spk7021_85628_0001,1,ECAPA-TDNN,0.3008,0.9391,0.7729,-0.7404,0.1748,0.8679,0.1805,True,True,True,True,2
+full_tc_m30_seg_bpda,spk7021_85628_0001,1,Resemblyzer d-vector,0.7052,0.9391,0.7729,0.3826,0.4283,0.9891,0.4322,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk7021_85628_0001,1,WavLM-SV,0.8869,0.9653,0.8078,0.1045,0.4578,0.9815,0.4621,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk7021_85628_0001,1,ECAPA-TDNN,0.3008,0.9653,0.8078,-0.4134,0.0257,0.8679,0.0311,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk7021_85628_0001,1,Resemblyzer d-vector,0.7052,0.9653,0.8078,0.4794,0.5101,0.9891,0.5142,True,True,True,True,2
+full_tc_m30_seg_bpda,spk7127_75947_0000,1,WavLM-SV,0.8869,0.9101,0.8401,0.3133,0.9221,0.9965,0.9242,False,True,False,False,2
+full_tc_m30_seg_bpda,spk7127_75947_0000,1,ECAPA-TDNN,0.3008,0.9101,0.8401,-0.4326,0.2371,0.9274,0.2804,True,True,True,True,2
+full_tc_m30_seg_bpda,spk7127_75947_0000,1,Resemblyzer d-vector,0.7052,0.9101,0.8401,0.5404,0.605,0.9971,0.6071,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk7127_75947_0000,1,WavLM-SV,0.8869,1.0076,0.91,0.7587,0.8599,0.9965,0.865,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk7127_75947_0000,1,ECAPA-TDNN,0.3008,1.0076,0.91,0.0582,0.2812,0.9274,0.2828,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk7127_75947_0000,1,Resemblyzer d-vector,0.7052,1.0076,0.91,0.755,0.7747,0.9971,0.7752,False,True,False,False,2
+full_tc_m30_seg_bpda,spk7176_92135_0000,1,WavLM-SV,0.8869,0.967,0.8485,-0.0628,0.7356,0.9652,0.7727,True,True,True,True,2
+full_tc_m30_seg_bpda,spk7176_92135_0000,1,ECAPA-TDNN,0.3008,0.967,0.8485,-0.8149,-0.0916,0.8231,-0.0894,True,True,True,True,2
+full_tc_m30_seg_bpda,spk7176_92135_0000,1,Resemblyzer d-vector,0.7052,0.967,0.8485,0.2694,0.3646,0.9918,0.3707,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk7176_92135_0000,1,WavLM-SV,0.8869,1.0478,0.8908,0.096,0.6792,0.9652,0.6828,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk7176_92135_0000,1,ECAPA-TDNN,0.3008,1.0478,0.8908,-0.443,-0.0741,0.8231,-0.0554,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk7176_92135_0000,1,Resemblyzer d-vector,0.7052,1.0478,0.8908,0.4739,0.544,0.9918,0.5513,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk8224_274381_0000,1,WavLM-SV,0.8869,0.8071,0.8269,0.1529,0.6807,0.9903,0.6887,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk8224_274381_0000,1,ECAPA-TDNN,0.3008,0.8071,0.8269,-0.4987,0.0442,0.8728,0.0639,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk8224_274381_0000,1,Resemblyzer d-vector,0.7052,0.8071,0.8269,0.3096,0.3724,0.9943,0.3744,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk8463_294828_0001,1,WavLM-SV,0.8869,1.1064,0.9254,0.3802,0.685,0.9963,0.6897,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk8463_294828_0001,1,ECAPA-TDNN,0.3008,1.1064,0.9254,-0.1221,0.1736,0.93,0.1882,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk8463_294828_0001,1,Resemblyzer d-vector,0.7052,1.1064,0.9254,0.6476,0.7095,0.9898,0.7166,False,True,False,False,2
+fullnsT_tc_m30_seg_bpda,spk8555_284447_0000,1,WavLM-SV,0.8869,1.0753,0.893,0.2947,0.5943,0.9938,0.6096,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk8555_284447_0000,1,ECAPA-TDNN,0.3008,1.0753,0.893,-0.3083,0.0268,0.8892,0.0391,True,True,True,True,2
+fullnsT_tc_m30_seg_bpda,spk8555_284447_0000,1,Resemblyzer d-vector,0.7052,1.0753,0.893,0.5139,0.5677,0.9918,0.5697,True,True,True,True,2

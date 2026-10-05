@@ -39,7 +39,10 @@ from typing import Optional, Tuple
 
 import torch
 import torch.nn as nn
-import torchaudio.transforms as T
+try:
+    import torchaudio.transforms as T
+except Exception:   # Smart App Control blocks libtorchaudio.pyd (2026-09-15)
+    from utils import tacompat as T
 
 from core.jacobian import estimate_jacobian_randomized
 from core.nullspace import compute_null_space_factored, project_onto_null_space

@@ -1,0 +1,16 @@
+file,method,speaker_cos_sim,range_energy_frac,prr,snr_db,mel_dist
+sample_001.wav,1. Unprotected,1.0,0.0,1.0,inf,0.0
+sample_001.wav,"2. Random, no null-proj",,0.0036,1.0007,56.62,0.005798
+sample_001.wav,"3. Random, null-proj",,0.0,0.9976,56.64,0.005783
+sample_001.wav,"4. PGD, no null-proj (AntiFake-style)",-0.366,0.0025,1.0,60.51,0.003705
+sample_001.wav,"5. PGD, null-proj (OURS)",-0.366,0.0,0.998,60.52,0.0037
+sample_002.wav,1. Unprotected,1.0,0.0,1.0,inf,0.0
+sample_002.wav,"2. Random, no null-proj",,0.0036,1.0007,56.21,0.005798
+sample_002.wav,"3. Random, null-proj",,0.0,0.9999,56.23,0.005783
+sample_002.wav,"4. PGD, no null-proj (AntiFake-style)",-0.1145,0.003,0.9994,62.19,0.002911
+sample_002.wav,"5. PGD, null-proj (OURS)",-0.1145,0.0,0.9994,62.2,0.002907
+sample_003.wav,1. Unprotected,1.0,0.0,1.0,inf,0.0
+sample_003.wav,"2. Random, no null-proj",,0.0036,1.0006,55.65,0.005798
+sample_003.wav,"3. Random, null-proj",,0.0,0.9988,55.67,0.005783
+sample_003.wav,"4. PGD, no null-proj (AntiFake-style)",-0.2858,0.0032,0.9991,60.39,0.00336
+sample_003.wav,"5. PGD, null-proj (OURS)",-0.2858,0.0,0.9995,60.4,0.003355

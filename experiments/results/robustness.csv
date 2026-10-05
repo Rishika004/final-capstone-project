@@ -1,0 +1,19 @@
+file,transform,cos_sim_after,prr,cloning_still_fails
+sample_001.wav,none (baseline),-0.4113,0.8452,YES
+sample_001.wav,gaussian sigma=0.005,-0.3957,0.8385,YES
+sample_001.wav,gaussian sigma=0.01,0.365,0.8347,YES
+sample_001.wav,resample 16k-8k-16k,0.4543,1.3734,YES
+sample_001.wav,quantize 8-bit,-0.4155,0.8433,YES
+sample_001.wav,lowpass 4kHz,-0.0333,0.9627,YES
+sample_002.wav,none (baseline),-0.2072,0.8602,YES
+sample_002.wav,gaussian sigma=0.005,-0.1598,0.8566,YES
+sample_002.wav,gaussian sigma=0.01,0.3574,0.8457,YES
+sample_002.wav,resample 16k-8k-16k,0.8238,1.2428,NO
+sample_002.wav,quantize 8-bit,-0.2044,0.8592,YES
+sample_002.wav,lowpass 4kHz,0.6152,0.913,NO
+sample_003.wav,none (baseline),-0.2892,0.8403,YES
+sample_003.wav,gaussian sigma=0.005,-0.274,0.825,YES
+sample_003.wav,gaussian sigma=0.01,0.483,0.7979,YES
+sample_003.wav,resample 16k-8k-16k,0.7837,1.4012,NO
+sample_003.wav,quantize 8-bit,-0.2975,0.8359,YES
+sample_003.wav,lowpass 4kHz,0.5632,1.0104,NO

@@ -76,11 +76,19 @@ class MelDiffPure(nn.Module):
         denoiser: nn.Module,
         n_steps: int = 1000,
         t_diffuse: int = 100,
+        sampler: str = "ddpm",
     ):
         super().__init__()
         self.denoiser  = denoiser
         self.n_steps   = n_steps
         self.t_diffuse = t_diffuse
+        # "ddpm": ancestral sampling (posterior mean + injected noise), as in
+        #         the original DiffPure SDE formulation;
+        # "ddim": deterministic reverse (eta=0). With an imperfect x0-predictor
+        #         the injected DDPM noise accumulates (loop gain < 0 at small
+        #         t, measured 2026-09-11); DDIM is the stronger purifier.
+        assert sampler in ("ddpm", "ddim")
+        self.sampler = sampler
 
         # ---------- DDPM linear beta schedule (Ho et al., 2020) ----------
         betas     = torch.linspace(1e-4, 0.02, n_steps)   # β_1 … β_T
@@ -95,7 +103,7 @@ class MelDiffPure(nn.Module):
             "MelDiffPure | n_steps=%d | t_diffuse=%d | "
             "noise_level_at_t*=%.3f (sqrt(1-alpha_bar_t*))",
             n_steps, t_diffuse,
-            float((1.0 - alpha_bar[t_diffuse]).sqrt()),
+            float((1.0 - alpha_bar[t_diffuse - 1]).sqrt()),
         )
 
     # ------------------------------------------------------------------
@@ -120,7 +128,13 @@ class MelDiffPure(nn.Module):
             torch.manual_seed(seed)
 
         t   = self.t_diffuse
-        abt = self.alpha_bar[t]          # scalar ᾱ_{t*}
+        # Schedule indexing: betas[k] is β_{k+1} (paper index k+1), so
+        # ᾱ_t = alpha_bar[t-1]. The previous code used alpha_bar[t] and
+        # betas[i] with ab_prev=1 at i=1, which made the final posterior
+        # coefficient β_2/(1-ᾱ_2) ≈ 0.55 instead of 1 and SCALED THE OUTPUT
+        # LOG-MEL BY ~0.55 (verified 2026-09-11 with an oracle denoiser:
+        # 1.75 nats error at any t). Fixed to the standard DDPM indexing.
+        abt = self.alpha_bar[t - 1]      # scalar ᾱ_{t*}
 
         # ---- Step 1: Forward — add noise up to timestep t* -------------
         eps   = torch.randn_like(x_mel)
@@ -137,9 +151,10 @@ class MelDiffPure(nn.Module):
         # Jacobian for null-space computation.  Callers that want pure
         # inference should wrap the entire forward() call in torch.no_grad().
         for i in reversed(range(1, t + 1)):
-            ab_i    = self.alpha_bar[i]
-            ab_prev = self.alpha_bar[i - 1] if i > 1 else torch.ones(1, device=x.device)
-            beta_i  = self.betas[i]
+            ab_i    = self.alpha_bar[i - 1]                      # ᾱ_i
+            ab_prev = (self.alpha_bar[i - 2] if i > 1              # ᾱ_{i-1}, ᾱ_0 = 1
+                       else torch.ones((), device=x.device))
+            beta_i  = self.betas[i - 1]                          # β_i
 
             # ---- Predict x_0 from current x_i ----
             # Our denoiser was trained to output x_0 directly (not eps).
@@ -148,6 +163,12 @@ class MelDiffPure(nn.Module):
 
             # ---- DDPM posterior mean (Eq. 7 in Ho et al.) ----------
             # mu_q(x_t, x_0) = coef1 * x_0 + coef2 * x_t
+            if self.sampler == "ddim":
+                # eps implied by the x0 prediction, then deterministic step
+                eps_pred = (x - ab_i.sqrt() * x0_pred) / (1.0 - ab_i).sqrt()
+                x = ab_prev.sqrt() * x0_pred + (1.0 - ab_prev).sqrt() * eps_pred
+                continue
+
             coef1 = (ab_prev.sqrt() * beta_i) / (1.0 - ab_i)
             coef2 = ((1.0 - ab_prev) * (1.0 - beta_i).sqrt()) / (1.0 - ab_i)
             mean  = coef1 * x0_pred + coef2 * x
@@ -172,6 +193,7 @@ def load_real_diffpure(
     t_diffuse: int = 100,
     n_steps: int = 1000,
     device: Optional[torch.device] = None,
+    sampler: str = "ddpm",
 ) -> MelDiffPure:
     """
     Load the trained MelUNetPurifier and wrap it as a real DiffPure purifier.
@@ -191,13 +213,24 @@ def load_real_diffpure(
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    from models.purifier import MelUNetPurifier
+    from models.purifier import MelUNetPurifier, MelUNet2D
 
     # Load denoiser backbone (same weights as surrogate purifier)
-    denoiser = MelUNetPurifier(n_mels=80, base_channels=64).to(device)
-
+    residual = False
+    ckpt = None
+    arch, base = "unet1d", 64
     if os.path.isfile(checkpoint_path):
-        ckpt  = torch.load(checkpoint_path, map_location="cpu")
+        ckpt = torch.load(checkpoint_path, map_location="cpu")
+        if isinstance(ckpt, dict):
+            residual = bool(ckpt.get("residual", False))
+            arch = ckpt.get("arch", "unet1d")
+            base = int(ckpt.get("base_channels", 64))
+    if arch == "unet2d":
+        denoiser = MelUNet2D(n_mels=80, base_channels=base, residual=residual).to(device)
+    else:
+        denoiser = MelUNetPurifier(n_mels=80, base_channels=base, residual=residual).to(device)
+
+    if ckpt is not None:
         state = ckpt.get("model_state_dict", ckpt)
         denoiser.load_state_dict(state)
         print(f"[RealDiffPure] Loaded denoiser from: {checkpoint_path}")
@@ -206,11 +239,11 @@ def load_real_diffpure(
         print("  Using randomly initialised denoiser — train first with --mode train")
 
     denoiser.eval()
-    model = MelDiffPure(denoiser=denoiser, n_steps=n_steps, t_diffuse=t_diffuse)
+    model = MelDiffPure(denoiser=denoiser, n_steps=n_steps, t_diffuse=t_diffuse, sampler=sampler)
     model = model.to(device)
     model.eval()
 
-    noise_level = float((1.0 - model.alpha_bar[t_diffuse]).sqrt())
+    noise_level = float((1.0 - model.alpha_bar[t_diffuse - 1]).sqrt())
     print(
         f"[RealDiffPure] Ready | t_diffuse={t_diffuse} | "
         f"forward_noise_level={noise_level:.3f} | device={device}"

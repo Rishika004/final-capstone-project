@@ -1,0 +1,16 @@
+file,encoder,threshold,cos_before,cos_after_purify,cos_ctrl_unprot,clone_fails_after,ctrl_identity_kept,defence_valid,pesq,stoi,snr_db
+sample_001.wav,WavLM (target),0.5,-0.4621,0.6386,0.7163,False,True,False,3.303,0.6894,18.14
+sample_001.wav,ECAPA-TDNN,0.25,-0.8247,0.3452,0.3289,False,True,False,3.303,0.6894,18.14
+sample_001.wav,Resemblyzer d-vector,0.75,0.5642,0.553,0.5801,True,False,False,3.303,0.6894,18.14
+sample_002.wav,WavLM (target),0.5,-0.2728,0.8672,0.8063,False,True,False,2.605,0.716,14.96
+sample_002.wav,ECAPA-TDNN,0.25,-0.9038,0.2463,0.4433,True,True,True,2.605,0.716,14.96
+sample_002.wav,Resemblyzer d-vector,0.75,0.7226,0.4425,0.5199,True,False,False,2.605,0.716,14.96
+sample_003.wav,WavLM (target),0.5,-0.2166,0.7929,0.8377,False,True,False,3.108,0.7436,17.69
+sample_003.wav,ECAPA-TDNN,0.25,-0.8255,0.3142,0.6066,False,True,False,3.108,0.7436,17.69
+sample_003.wav,Resemblyzer d-vector,0.75,0.6846,0.4832,0.4366,True,False,False,3.108,0.7436,17.69
+sample_004.wav,WavLM (target),0.5,-0.4258,0.7233,0.6884,False,True,False,,0.6785,18.24
+sample_004.wav,ECAPA-TDNN,0.25,-0.8605,0.3043,0.4936,False,True,False,,0.6785,18.24
+sample_004.wav,Resemblyzer d-vector,0.75,0.6396,0.5146,0.479,True,False,False,,0.6785,18.24
+sample_005.wav,WavLM (target),0.5,-0.1356,0.8456,0.8105,False,True,False,3.226,0.7338,19.0
+sample_005.wav,ECAPA-TDNN,0.25,-0.9002,0.3634,0.428,False,True,False,3.226,0.7338,19.0
+sample_005.wav,Resemblyzer d-vector,0.75,0.8458,0.531,0.567,True,False,False,3.226,0.7338,19.0

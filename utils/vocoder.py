@@ -39,7 +39,10 @@ import logging
 from typing import Optional
 
 import torch
-import torchaudio.transforms as T
+try:
+    import torchaudio.transforms as T
+except Exception:   # Smart App Control blocks libtorchaudio.pyd (2026-09-15)
+    from utils import tacompat as T
 
 logger = logging.getLogger(__name__)
 

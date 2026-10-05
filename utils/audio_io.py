@@ -52,7 +52,10 @@ def load_wav(
 
     # Resample if needed
     if sr != target_sr:
-        import torchaudio.transforms as T
+        try:
+            import torchaudio.transforms as T
+        except Exception:
+            from utils import tacompat as T
         resampler = T.Resample(orig_freq=sr, new_freq=target_sr)
         wav = resampler(wav)
         logger.debug("Resampled %s: %d → %d Hz", os.path.basename(path), sr, target_sr)

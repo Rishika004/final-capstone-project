@@ -57,8 +57,37 @@ import torch.nn.functional as F
 
 logger = logging.getLogger(__name__)
 
-# Cosine-similarity threshold above which we consider a clone "successful"
-CLONE_SUCCESS_THRESHOLD = 0.75
+# Cosine-similarity threshold above which a clone counts as "successful".
+#
+# 0.75 WAS HARDCODED HERE AND IT MATCHES NOTHING. It was commented as "standard
+# speaker-verification threshold", but a verified sweep of the six baseline papers
+# (2026-09-16, see paper/TODO_BEFORE_SUBMISSION.md B3) found no paper using it, and
+# it contradicts this project's own EER-calibrated thresholds (ECAPA 0.29-0.49
+# depending on channel). A wrong threshold here does not crash -- it silently emits
+# a full table of meaningless protection rates.
+#
+# Two defensible conventions, and we report BOTH:
+#   EER-calibrated per channel  -- this project's practice, the stricter one.
+#       Source it from experiments/calibrate_thresholds.py through the SAME channel
+#       the clone passed through. Reusing a threshold across channels is invalid.
+#   0.25 on ECAPA-TDNN          -- the field convention, used by SafeSpeech,
+#       VoiceCloak and ClearMask (De-AntiFake uses 0.25 on x-vector). Originates in
+#       Jiang et al., "Mega-TTS 2", ICLR 2024. Report it for comparability.
+#
+# There is deliberately no module-level default: callers must pass a threshold, so
+# that a missing one is a TypeError rather than a plausible-looking wrong number.
+FIELD_CONVENTION_THRESHOLD = 0.25   # ECAPA-TDNN cosine; for comparability only
+
+
+def _require_threshold(threshold):
+    if threshold is None:
+        raise ValueError(
+            "cloning_attack: a threshold must be supplied explicitly. Use the "
+            "EER-calibrated value for the channel this clone passed through (see "
+            "experiments/calibrate_thresholds.py), and additionally report at "
+            "FIELD_CONVENTION_THRESHOLD=0.25 on ECAPA for comparability with "
+            "SafeSpeech / VoiceCloak / ClearMask / De-AntiFake.")
+    return float(threshold)
 
 
 # ---------------------------------------------------------------------------
@@ -79,6 +108,7 @@ def embedding_similarity_attack(
     wav_original: torch.Tensor,
     wav_protected: torch.Tensor,
     speaker_encoder: torch.nn.Module,
+    threshold: float = None,   # REQUIRED; see _require_threshold
 ) -> Dict[str, object]:
     """
     Simulate a voice-cloning attack via speaker embeddings.
@@ -98,7 +128,7 @@ def embedding_similarity_attack(
     -------
     dict with keys:
         emb_sim_orig_prot   — cosine similarity original vs protected
-        cloning_blocked     — True if sim < CLONE_SUCCESS_THRESHOLD
+        cloning_blocked     — True if sim < `threshold` (which is required)
         defence_effectiveness — float in [0, 1]
         attack_mode         — "embedding_simulation"
     """
@@ -108,13 +138,15 @@ def embedding_similarity_attack(
         emb_prot = speaker_encoder(wav_protected)
 
     sim = _cosine(emb_orig, emb_prot)
-    cloning_blocked      = sim < CLONE_SUCCESS_THRESHOLD
+    tau = _require_threshold(threshold)
+    cloning_blocked      = sim < tau
     defence_effectiveness = max(0.0, 1.0 - sim)   # range [0,1] since sim ∈ [-1,1]
 
     result = {
         "emb_sim_orig_prot":     round(sim, 4),
         "cloning_blocked":       cloning_blocked,
-        "clone_success_threshold": CLONE_SUCCESS_THRESHOLD,
+        "clone_success_threshold": tau,
+        "blocked_at_field_convention": sim < FIELD_CONVENTION_THRESHOLD,
         "defence_effectiveness": round(defence_effectiveness, 4),
         "attack_mode":           "embedding_simulation",
     }
@@ -156,6 +188,7 @@ def yourtts_cloning_attack(
     wav_original: torch.Tensor,
     wav_protected: torch.Tensor,
     speaker_encoder: torch.nn.Module,
+    threshold: float = None,   # REQUIRED; see _require_threshold
     text: str = "This is a test of the voice cloning system.",
     sample_rate: int = 16000,
     tmp_dir: str = "tmp_cloning",
@@ -191,7 +224,8 @@ def yourtts_cloning_attack(
     tts = _load_yourtts(device)
     if tts is None:
         logger.info("Falling back to embedding-similarity attack.")
-        return embedding_similarity_attack(wav_original, wav_protected, speaker_encoder)
+        return embedding_similarity_attack(wav_original, wav_protected,
+                                           speaker_encoder, threshold=threshold)
 
     os.makedirs(tmp_dir, exist_ok=True)
     orig_ref_path     = os.path.join(tmp_dir, "ref_original.wav")
@@ -218,7 +252,8 @@ def yourtts_cloning_attack(
             )
         except Exception as exc:
             logger.warning("YourTTS synthesis from %s failed: %s", label, exc)
-            return embedding_similarity_attack(wav_original, wav_protected, speaker_encoder)
+            return embedding_similarity_attack(wav_original, wav_protected,
+                                           speaker_encoder, threshold=threshold)
 
     # --- Load synthesised clips & embed -----------------------------------
     from utils.audio_io import load_wav
@@ -227,7 +262,8 @@ def yourtts_cloning_attack(
         clone_prot_wav, _ = load_wav(clone_prot_path, target_sr=sample_rate)
     except Exception as exc:
         logger.warning("Could not reload synthesised audio: %s", exc)
-        return embedding_similarity_attack(wav_original, wav_protected, speaker_encoder)
+        return embedding_similarity_attack(wav_original, wav_protected,
+                                           speaker_encoder, threshold=threshold)
 
     speaker_encoder.eval()
     with torch.no_grad():
@@ -238,7 +274,8 @@ def yourtts_cloning_attack(
     sim_clone_orig = _cosine(emb_clone_o, emb_orig)  # baseline clone quality
     sim_clone_prot = _cosine(emb_clone_p, emb_orig)  # attack quality on protected
 
-    cloning_blocked      = sim_clone_prot < CLONE_SUCCESS_THRESHOLD
+    tau = _require_threshold(threshold)
+    cloning_blocked      = sim_clone_prot < tau
     clone_degradation    = max(0.0, sim_clone_orig - sim_clone_prot)
     defence_effectiveness = clone_degradation / max(sim_clone_orig, 1e-6)
 
@@ -247,7 +284,8 @@ def yourtts_cloning_attack(
         "clone_prot_sim":         round(sim_clone_prot, 4),
         "clone_degradation":      round(clone_degradation, 4),
         "cloning_blocked":        cloning_blocked,
-        "clone_success_threshold": CLONE_SUCCESS_THRESHOLD,
+        "clone_success_threshold": tau,
+        "blocked_at_field_convention": sim_clone_prot < FIELD_CONVENTION_THRESHOLD,
         "defence_effectiveness":  round(defence_effectiveness, 4),
         "attack_mode":            "yourtts",
     }
@@ -383,7 +421,7 @@ def run_cloning_evaluation(
     sims = [r["emb_sim_orig_prot"] for r in valid if "emb_sim_orig_prot" in r]
     if sims:
         print(f"  Mean embedding sim      : {sum(sims)/len(sims):.4f}  "
-              f"(target < {CLONE_SUCCESS_THRESHOLD})")
+              f"(target < {FIELD_CONVENTION_THRESHOLD} field convention)")
 
     des = [r["defence_effectiveness"] for r in valid if "defence_effectiveness" in r]
     if des:

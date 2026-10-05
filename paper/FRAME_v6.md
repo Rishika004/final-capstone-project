@@ -1,0 +1,177 @@
+# Paper frame v6 — the reframe
+
+Written 2026-10-04 from `REVIEW_COUNCIL_2026-10-04.md` (all five reviewers agreed
+on this). Supersedes the framing of `draft_v5.md` and of
+`PLAN_TO_CLOSE_THE_CHAIN.md`.
+
+**BASE RULE: new base only.** Every number in the paper comes from RESULTS
+§21–32 — LibriSpeech test-clean, purifier v7, cross-session thresholds, n = 29
+speakers, budget m30_f15, `--seg-partials`. Nothing from §1–20 may appear as a
+number, including in the abstract, intro, tables or figures. Where a §21–32
+number does not yet exist, the slot is marked **[PENDING #n]** against the
+council item that produces it, and stays empty until then.
+
+---
+
+## 1. Why the frame changes
+
+Two of our own experiments on the new base removed both novelty claims of the
+defence framing:
+
+* **§29** — De-AntiFake's full PhonePuRe recovers the speaker (WavLM cosine
+  0.296 → 0.900, 29/29). We beat their stage 1 only.
+* **§30** — BPDA and exact gradients give the same protection (1 of 21 Holm
+  cells, Δ −0.009), at half the craft time. The gradient estimator is not why
+  earlier adaptive attempts failed.
+
+What survived is not a method but a measurement with an explanation: why a
+perturbation that survives purification still fools some speaker encoders and
+not others. That is an analysis paper, and the two defeats become findings
+inside it.
+
+---
+
+## 2. Title, thesis, contributions
+
+### Title
+**What a Speech Purifier Erases Is What a Speaker Encoder Reads:
+Encoder Geometry and the Limits of Purification-Robust Voice Protection**
+
+### Thesis
+A direction that moves a speaker encoder is one a speech purifier removes more
+readily than a random direction, and how strongly that holds differs by encoder;
+this single crafting-free measurement accounts for which encoders a
+purification-invariance constraint helps, which it hurts, and where the
+protective-perturbation paradigm stops working.
+
+### C1 — The measurement (§32)
+Through purifier v7, each encoder's own identity direction survives worse than a
+norm-matched random direction. α at t = 50: WavLM-SV 0.573, ECAPA 0.490,
+x-vector 0.434, d-vector 0.406, random 0.713 (random > WavLM +0.140, 27/29).
+WavLM separates from the other three; ECAPA > d-vector only at t = 50
+(p_adj .032); x-vector vs d-vector is **not** separable (p = .54 / .47). The
+d-vector's noise-to-signal ratio exceeds 1.
+
+Claim it as a **two-group separation plus d-vector nsr > 1**, never as a
+four-way ranking.
+**[PENDING #3 spectrally-matched random control · #8 all 10 pairs under Holm ·
+#13c the same measurement through DiffWave]**
+
+### C2 — What it explains: the constraint's encoder-dependent effect (§27, §30e)
+Under purifier mismatch at the loud budget the invariance constraint improves
+the paired margin on WavLM-SV in all four foreign cells (Δ −0.026 to −0.078),
+is same-sign but mostly non-significant on ECAPA (1/4 at m = 24), and **worsens**
+the d-vector at mild purification (+0.071, +0.075; 3/29). Unpurified it is null
+on WavLM and ECAPA (p = .77, .26) and worse on the d-vector (+0.079, 0/29).
+
+Stated as a **hypothesis supported by one sample of 29 speakers**, insensitive
+to crafting mode and gradient estimator (§27, §30e) — that is analysis-choice
+insensitivity, not replication. C1 is the explanation, generated after observing
+the reversal, not a prediction.
+**[PENDING #5 pre-registered replication on disjoint speakers makes this a
+finding · #13b CAM++ prospective test makes C1 a prediction]**
+
+### C3 — The paradigm's measured ceiling (§22b, §30, §29)
+1. **Coverage, not generalisation** (§22b). Same files, same thresholds, one
+   variable: clone success 12–14 % on crafted-against encoders vs 75–92 % on the
+   held-out one.
+2. **The gradient estimator is not the lever** (§30). BPDA matches exact within
+   4 points everywhere; exact gradients help only against the purifier they were
+   computed through, at its strongest setting (§30d). Report as a TOST
+   equivalence, not as a failure to reject. **[PENDING #8]**
+3. **A learned refinement stage recovers most of what purification leaves**
+   (§29). Full PhonePuRe restores identity on 29/29 files; end-to-end clone
+   success rises from 6/0/29 % to 38/27/71 % — reduced, not removed — and the
+   collapse concentrates on the d-vector, C1's lowest-α encoder. ASV acceptance
+   of the purified reference overstates what DiffVC actually clones, which is a
+   methodological warning for proxy-scored protection papers.
+   **[PENDING #4 pre-filter fix and pooled-seed ranges: these rates are
+   single-seed on n = 16/11/24 and §31c forbids shipping them as point
+   estimates]**
+
+### Not a contribution
+The crafting recipe (purifier-in-the-loop optimisation at EOT size 1,
+threshold-aware ensemble loss, segment crafting after AntiFake §C2, m30_f15)
+moves to §2 as "the protection we analyse".
+
+---
+
+## 3. Four-page budget (Interspeech: 4 + 1 references)
+
+| § | Content | Pages | Source | Gate |
+|---|---|---|---|---|
+| 1 | Intro: purification defeats protection; our question; C1–C3 | 0.6 | related_work §0, §0b | — |
+| 2 | Setup: rewritten threat model, corpus, disjoint calibration, encoders, purifiers with denoise gain and conditioning disclosed, the protection analysed, metrics, operating point | 0.6 | §21, §23, §26d | #2 #6 #7 #11 #19 |
+| 3 | **C1.** Fig. 1: α per encoder vs matched random at t = 50/200 | 0.9 | §32, `encoder_subspace.csv` | #3 #8 #13c |
+| 4 | **C2.** Table 1: 4 cells × 3 encoders, paired Δ with CI and Holm, plus the unpurified row | 0.7 | §27a–c, §30e | #5 #8 |
+| 5 | **C3.** Table 2: coverage contrast and the PhonePuRe two-number row; BPDA in one sentence | 0.8 | §22b, §29, §30 | #4 #8 |
+| 6 | Limitations and conclusion | 0.4 | council §B | — |
+
+Purifier transfer (the new-base figures from `foreign_tc_*.csv`) is supporting
+context in §2–3, not a headline: it is two checkpoints of one architecture, and
+the one architecturally different purifier (§29) breaks it. **[PENDING #2]**
+
+---
+
+## 4. Claims ledger
+
+| Write this | Not this |
+|---|---|
+| "purification-invariant subspace"; "null space" once, defined against Shallow Diffuse | "null space" as the name of our object |
+| "WavLM separates from the other three" | "WavLM > ECAPA > x-vector > d-vector" |
+| "an explanation generated after observing the reversal" | "retro-validation", "predicted", "without being told" |
+| "a hypothesis supported by one sample of 29 speakers" | "replicated across three conditions" |
+| "reduced, not removed, by full PhonePuRe" | "reverses De-AntiFake"; "survives purification" without "stage 1" |
+| "no advantage over BPDA (equivalence tested)" | "exact gradients are why prior work failed" |
+| "single-sample stochastic gradient (EOT size 1)" | bare "EOT" beside baselines' 1/5/10/15 sweeps |
+| "iterated mel denoiser in a DiffPure-style loop, denoise gain 0.19" | "diffusion purifier" for v7 |
+| "two checkpoints of one architecture" | "a property of speech diffusion purifiers" |
+| "matched-encoder (upper bound)" / "held-out (realistic)" | "deployment" for the matched-encoder setting |
+| "k of n speakers; sign test at its attainable minimum" | floor p-values quoted as strength |
+| ranges pooled over three seeds, n stated, n ≥ 12 | any single-seed binary rate as a point estimate |
+| "null unpurified on WavLM and ECAPA" (after #8) | "a trade" — there is no cost term on the new base (§27c) |
+
+---
+
+## 5. Positioning (novelty check run 2026-10-04)
+
+| Prior work | What it has | Our delta |
+|---|---|---|
+| arXiv 2505.22839 v2 (Aug 2026) | purification preserves on-manifold directions, in images | we do not claim it; we measure the target encoders' own directions, in speech |
+| ClearMask (ASIA CCS 2025) | on-manifold voice protection, no purification test | not proposed here; cited only |
+| De-AntiFake (ICML 2025), VocalBridge (2026) | adaptive protection fails against their purifiers | §30 removes the estimator as the explanation; §29 runs their full pipeline against an invariance-constrained perturbation |
+| AntiFake (CCS 2023) | ensemble coverage, segment loss | §22b measures the coverage limit with one variable changed; C1 gives a criterion for choosing members |
+| arXiv 2510.09504 | removability of speaker-adversarial perturbations by attacker knowledge | no per-encoder or identity-direction analysis (checked today) |
+| arXiv 2607.00899 (PnP) | purification defence for ASV, four backbones | defence side; no direction analysis (checked today) |
+| arXiv 2310.14270 (DAP) | diffusion purification for ASV | defence side |
+
+C1 is open as of today: no paper found that measures the survival of
+speaker-encoder identity directions through a speech purifier, or compares it
+across encoders. Re-check before submission.
+
+---
+
+## 6. Decided in advance, so it is not decided under deadline
+
+* **#3 null** (identity direction survives no worse than a spectrally-matched
+  random direction): C1 becomes a spectral statement — encoder identity lives in
+  the bands a purifier removes — still per-encoder, still explains C2. Retitle
+  around bandwidth, and report the null.
+* **#3 null and the per-encoder gaps vanish**: C1 is dead. C3 leads, C2 becomes
+  an observation, venue moves to SPSC.
+* **#5 replication fails**: report that C2 does not replicate; C1 and C3 carry
+  the paper.
+* **#13b contradicts C1**: report it. A failed prospective test is a result; a
+  skipped one is a hole.
+
+---
+
+## 7. Retired
+
+* `draft_v5.md` — history only. Do not edit it and do not quote its numbers; it
+  is written entirely on the old base.
+* `PLAN_TO_CLOSE_THE_CHAIN.md` — served the defence framing. Its P5 (second
+  cloner) and P6 (perceptual evidence) survive as council items #16 and #6.
+* Cut for this submission: the reduced-N adaptive attack through PhonePuRe
+  stage 2; more optimisation steps (§24a); further gradient-estimator work
+  (§30); additional same-family purifiers.

@@ -1,0 +1,49 @@
+speaker,transform,magnitude,unit,eval_t,encoder,threshold,pass_through_R,mel_psr,mel_dircos,cos_before,cos_after_purify,cos_ctrl_unprot,clone_fails_after,ctrl_identity_kept,defence_valid,snr_db,pesq,stoi
+3000,tilt,-6.0,dB across band,50,WavLM-SV,0.897,0.0001,0.8887,0.9007,0.9998,0.8905,0.8849,True,False,False,29.24,4.636,1.0
+3000,tilt,-6.0,dB across band,50,ECAPA-TDNN,0.346,0.0001,0.8887,0.9007,0.9952,0.8216,0.8224,False,True,False,29.24,4.636,1.0
+3000,tilt,-6.0,dB across band,50,Resemblyzer d-vector,0.735,0.0001,0.8887,0.9007,0.9951,0.9127,0.9188,False,True,False,29.24,4.636,1.0
+3000,tilt,-3.0,dB across band,50,WavLM-SV,0.897,0.0001,0.8985,0.9057,0.9999,0.8817,0.8849,True,False,False,35.03,4.643,1.0
+3000,tilt,-3.0,dB across band,50,ECAPA-TDNN,0.346,0.0001,0.8985,0.9057,0.9987,0.8251,0.8224,False,True,False,35.03,4.643,1.0
+3000,tilt,-3.0,dB across band,50,Resemblyzer d-vector,0.735,0.0001,0.8985,0.9057,0.9987,0.9134,0.9188,False,True,False,35.03,4.643,1.0
+3000,tilt,3.0,dB across band,50,WavLM-SV,0.897,0.0001,0.9114,0.917,1.0,0.895,0.8849,True,False,False,34.5,4.643,1.0
+3000,tilt,3.0,dB across band,50,ECAPA-TDNN,0.346,0.0001,0.9114,0.917,0.9989,0.8201,0.8224,False,True,False,34.5,4.643,1.0
+3000,tilt,3.0,dB across band,50,Resemblyzer d-vector,0.735,0.0001,0.9114,0.917,0.9985,0.9237,0.9188,False,True,False,34.5,4.643,1.0
+3000,tilt,6.0,dB across band,50,WavLM-SV,0.897,0.0001,0.9152,0.9245,0.9998,0.8932,0.8849,True,False,False,28.18,4.637,1.0
+3000,tilt,6.0,dB across band,50,ECAPA-TDNN,0.346,0.0001,0.9152,0.9245,0.9959,0.8266,0.8224,False,True,False,28.18,4.637,1.0
+3000,tilt,6.0,dB across band,50,Resemblyzer d-vector,0.735,0.0001,0.9152,0.9245,0.9938,0.924,0.9188,False,True,False,28.18,4.637,1.0
+3000,warp,0.94,envelope factor,50,WavLM-SV,0.897,0.0029,0.9217,0.9542,0.925,0.7702,0.8849,True,False,False,8.23,2.705,0.9303
+3000,warp,0.94,envelope factor,50,ECAPA-TDNN,0.346,0.0029,0.9217,0.9542,0.7417,0.6144,0.8224,False,True,False,8.23,2.705,0.9303
+3000,warp,0.94,envelope factor,50,Resemblyzer d-vector,0.735,0.0029,0.9217,0.9542,0.9067,0.8469,0.9188,False,True,False,8.23,2.705,0.9303
+3000,warp,0.97,envelope factor,50,WavLM-SV,0.897,0.0055,0.9024,0.9388,0.9657,0.8227,0.8849,True,False,False,13.82,3.642,0.9709
+3000,warp,0.97,envelope factor,50,ECAPA-TDNN,0.346,0.0055,0.9024,0.9388,0.9033,0.7396,0.8224,False,True,False,13.82,3.642,0.9709
+3000,warp,0.97,envelope factor,50,Resemblyzer d-vector,0.735,0.0055,0.9024,0.9388,0.977,0.9054,0.9188,False,True,False,13.82,3.642,0.9709
+3000,warp,1.03,envelope factor,50,WavLM-SV,0.897,0.0061,0.8915,0.9335,0.9871,0.9312,0.8849,False,False,False,14.32,3.597,0.9758
+3000,warp,1.03,envelope factor,50,ECAPA-TDNN,0.346,0.0061,0.8915,0.9335,0.9213,0.7799,0.8224,False,True,False,14.32,3.597,0.9758
+3000,warp,1.03,envelope factor,50,Resemblyzer d-vector,0.735,0.0061,0.8915,0.9335,0.982,0.908,0.9188,False,True,False,14.32,3.597,0.9758
+3000,warp,1.06,envelope factor,50,WavLM-SV,0.897,0.0032,0.9207,0.9553,0.9654,0.9487,0.8849,False,False,False,8.9,2.494,0.9433
+3000,warp,1.06,envelope factor,50,ECAPA-TDNN,0.346,0.0032,0.9207,0.9553,0.778,0.6588,0.8224,False,True,False,8.9,2.494,0.9433
+3000,warp,1.06,envelope factor,50,Resemblyzer d-vector,0.735,0.0032,0.9207,0.9553,0.9502,0.8831,0.9188,False,True,False,8.9,2.494,0.9433
+3081,tilt,-6.0,dB across band,50,WavLM-SV,0.897,0.0001,1.0021,0.9999,0.9999,0.9486,0.9546,False,True,False,12.43,4.637,1.0
+3081,tilt,-6.0,dB across band,50,ECAPA-TDNN,0.346,0.0001,1.0021,0.9999,0.9998,0.8883,0.8922,False,True,False,12.43,4.637,1.0
+3081,tilt,-6.0,dB across band,50,Resemblyzer d-vector,0.735,0.0001,1.0021,0.9999,0.9869,0.9273,0.9421,False,True,False,12.43,4.637,1.0
+3081,tilt,-3.0,dB across band,50,WavLM-SV,0.897,0.0001,1.0025,0.9999,1.0,0.9501,0.9546,False,True,False,17.32,4.641,1.0
+3081,tilt,-3.0,dB across band,50,ECAPA-TDNN,0.346,0.0001,1.0025,0.9999,1.0,0.8947,0.8922,False,True,False,17.32,4.641,1.0
+3081,tilt,-3.0,dB across band,50,Resemblyzer d-vector,0.735,0.0001,1.0025,0.9999,0.9956,0.9367,0.9421,False,True,False,17.32,4.641,1.0
+3081,tilt,3.0,dB across band,50,WavLM-SV,0.897,0.0002,1.0035,0.9999,0.9999,0.9517,0.9546,False,True,False,14.82,4.615,1.0
+3081,tilt,3.0,dB across band,50,ECAPA-TDNN,0.346,0.0002,1.0035,0.9999,0.9999,0.8937,0.8922,False,True,False,14.82,4.615,1.0
+3081,tilt,3.0,dB across band,50,Resemblyzer d-vector,0.735,0.0002,1.0035,0.9999,0.9912,0.912,0.9421,False,True,False,14.82,4.615,1.0
+3081,tilt,6.0,dB across band,50,WavLM-SV,0.897,0.0004,1.0041,0.9998,0.9997,0.9556,0.9546,False,True,False,7.57,4.363,0.9994
+3081,tilt,6.0,dB across band,50,ECAPA-TDNN,0.346,0.0004,1.0041,0.9998,0.9993,0.8893,0.8922,False,True,False,7.57,4.363,0.9994
+3081,tilt,6.0,dB across band,50,Resemblyzer d-vector,0.735,0.0004,1.0041,0.9998,0.9563,0.8712,0.9421,False,True,False,7.57,4.363,0.9994
+3081,warp,0.94,envelope factor,50,WavLM-SV,0.897,0.0031,0.9934,0.9994,0.9526,0.9193,0.9546,False,True,False,3.29,1.172,0.8915
+3081,warp,0.94,envelope factor,50,ECAPA-TDNN,0.346,0.0031,0.9934,0.9994,0.7935,0.6544,0.8922,False,True,False,3.29,1.172,0.8915
+3081,warp,0.94,envelope factor,50,Resemblyzer d-vector,0.735,0.0031,0.9934,0.9994,0.8927,0.8803,0.9421,False,True,False,3.29,1.172,0.8915
+3081,warp,0.97,envelope factor,50,WavLM-SV,0.897,0.0063,0.9881,0.9988,0.9648,0.9465,0.9546,False,True,False,6.46,2.501,0.9467
+3081,warp,0.97,envelope factor,50,ECAPA-TDNN,0.346,0.0063,0.9881,0.9988,0.9265,0.8093,0.8922,False,True,False,6.46,2.501,0.9467
+3081,warp,0.97,envelope factor,50,Resemblyzer d-vector,0.735,0.0063,0.9881,0.9988,0.9641,0.9168,0.9421,False,True,False,6.46,2.501,0.9467
+3081,warp,1.03,envelope factor,50,WavLM-SV,0.897,0.0063,0.9888,0.9988,0.9853,0.9398,0.9546,False,True,False,6.58,2.335,0.9372
+3081,warp,1.03,envelope factor,50,ECAPA-TDNN,0.346,0.0063,0.9888,0.9988,0.8912,0.7786,0.8922,False,True,False,6.58,2.335,0.9372
+3081,warp,1.03,envelope factor,50,Resemblyzer d-vector,0.735,0.0063,0.9888,0.9988,0.9626,0.9091,0.9421,False,True,False,6.58,2.335,0.9372
+3081,warp,1.06,envelope factor,50,WavLM-SV,0.897,0.0033,0.9933,0.9993,0.9083,0.8933,0.9546,True,True,True,3.55,1.172,0.8832
+3081,warp,1.06,envelope factor,50,ECAPA-TDNN,0.346,0.0033,0.9933,0.9993,0.768,0.688,0.8922,False,True,False,3.55,1.172,0.8832
+3081,warp,1.06,envelope factor,50,Resemblyzer d-vector,0.735,0.0033,0.9933,0.9993,0.8838,0.8514,0.9421,False,True,False,3.55,1.172,0.8832

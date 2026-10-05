@@ -206,21 +206,34 @@ def mode_protect(args: argparse.Namespace) -> int:
             svd_threshold=args.svd_threshold,
         )
     else:
-        # Single-shot null-space protection
-        print("\nRunning single-shot null-space protection ...")
+        # PGD protection with psychoacoustic masking (default path).
+        # The waveform delta is optimised against the speaker encoder and,
+        # after every step, projected under the frequency-masking threshold
+        # of the original speech — so the output sounds like the original.
+        pgd_steps = args.pgd_steps if args.pgd_steps > 0 else 150
+        print(f"\nRunning masked-PGD protection ({pgd_steps} steps, "
+              f"margin={args.margin_db:+.1f} dB) ...")
         from core.perturbation import apply_null_space_protection
-        mel_protected, _ = apply_null_space_protection(
+        mel_protected, best_wav_delta = apply_null_space_protection(
             x_mel=mel_original,
+            x_wav=wav_original,
+            speaker_encoder=speaker_encoder,
             purifier=purifier,
             epsilon=args.epsilon,
             K=args.K,
             svd_threshold=args.svd_threshold,
+            mode="pgd",
+            pgd_steps=pgd_steps,
+            perceptual=not args.flat_pgd,
+            masking_margin_db=args.margin_db,
         )
+        if best_wav_delta is None:
+            print("ERROR: PGD did not produce a waveform delta "
+                  "(speaker encoder unavailable?). No output written.")
+            return 1
         with torch.no_grad():
-            noise_scale = (mel_protected - mel_original).abs().mean().item() * 0.1
-            torch.manual_seed(42)
-            wav_noise = torch.randn_like(wav_original) * noise_scale
-            wav_protected = (wav_original + wav_noise).clamp(-1.0, 1.0)
+            wav_protected = (wav_original
+                             + best_wav_delta.to(device)).clamp(-1.0, 1.0)
 
     # Save output
     out_path = args.output
@@ -235,9 +248,13 @@ def mode_protect(args: argparse.Namespace) -> int:
 
     with torch.no_grad():
         from evaluation.evaluate import wav_to_logmel
-        mel_prot = wav_to_logmel(wav_protected, device)
+        mel_prot = wav_to_logmel(wav_protected, device)  # mel of the DELIVERED audio
 
+    from evaluation.metrics import perturbation_survival_rate
     mel_dist = mel_distance(mel_original, mel_prot)
+    # PSR measured on the delivered signal (review finding #1 + #2). PRR kept for
+    # reference but is degenerate (=1.0 at δ=0), so it is not the headline number.
+    psr = perturbation_survival_rate(mel_original, mel_prot, purifier)
     prr = purification_resistance_rate(mel_original, mel_prot, purifier)
 
     # SNR in mel space (avoids Griffin-Lim phase reconstruction artifacts)
@@ -245,9 +262,23 @@ def mode_protect(args: argparse.Namespace) -> int:
     mel_noise_power  = (mel_prot - mel_original).pow(2).mean().item()
     snr = 10.0 * math.log10(mel_signal_power / (mel_noise_power + 1e-20))
 
-    print(f"  SNR (mel, dB)   = {snr:.2f}  (higher is better)")
+    # Honest waveform-domain quality metrics
+    from core.psychoacoustic import waveform_snr_db
+    snr_wav = waveform_snr_db(wav_original.cpu(), wav_protected.cpu())
+    try:
+        from pesq import pesq as _pesq
+        pesq_v = _pesq(16000, wav_original.squeeze().cpu().numpy(),
+                       wav_protected.squeeze().cpu().numpy()[:wav_original.shape[-1]],
+                       "wb")
+    except Exception:
+        pesq_v = float("nan")
+
+    print(f"  SNR (waveform)  = {snr_wav:.2f} dB  (higher is better)")
+    print(f"  PESQ (wb)       = {pesq_v:.3f}  (>3.5 = transparent)")
+    print(f"  SNR (mel, dB)   = {snr:.2f}")
     print(f"  Mel distance    = {mel_dist:.6f}")
-    print(f"  PRR             = {prr:.4f}  (>1.0 is good)")
+    print(f"  PSR             = {psr:.4f}  (~1.0 = perturbation survives DiffPure)")
+    print(f"  PRR (legacy)    = {prr:.4f}  (=1.0 at δ=0; not a survival proof)")
     return 0
 
 
@@ -332,6 +363,8 @@ def mode_evaluate(args: argparse.Namespace) -> int:
         mode=mode,
         pgd_steps=args.pgd_steps,
         n_files=args.n_files if args.n_files > 0 else None,
+        perceptual=not args.flat_pgd,
+        masking_margin_db=args.margin_db,
     )
     print(f"\nEvaluation complete. {len(df)} files processed.")
     return 0
@@ -469,6 +502,30 @@ def build_parser() -> argparse.ArgumentParser:
         default=0,
         dest="n_files",
         help="Limit evaluation to first N files (0 = all files).",
+    )
+    parser.add_argument(
+        "--flat-pgd",
+        action="store_true",
+        default=False,
+        dest="flat_pgd",
+        help=(
+            "Use the old flat L-inf signed-gradient PGD instead of the "
+            "psychoacoustically masked PGD. The flat variant is stronger per "
+            "step but adds clearly audible broadband hiss."
+        ),
+    )
+    parser.add_argument(
+        "--margin-db",
+        type=float,
+        default=25.0,
+        dest="margin_db",
+        help=(
+            "Masking-threshold margin for perceptual PGD (default 25 = the "
+            "validated protect+quality sweet spot: PESQ ~3.9, cloning fails "
+            "on all encoders). 0 = strictly inaudible but too weak to protect; "
+            "each +6 dB doubles the allowed perturbation amplitude (stronger "
+            "protection, more audible). 35 = stronger protection at PESQ ~3.75."
+        ),
     )
 
     return parser

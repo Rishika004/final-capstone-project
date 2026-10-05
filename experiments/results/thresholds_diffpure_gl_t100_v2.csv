@@ -1,0 +1,4 @@
+encoder,channel,eer,threshold,target_mean,nontarget_mean,n_target,n_nontarget
+WavLM-SV,diffpure_gl,0.0987,0.8827,0.9288,0.6731,120,3420
+ECAPA-TDNN,diffpure_gl,0.0084,0.3283,0.5888,0.0896,120,3420
+Resemblyzer d-vector,diffpure_gl,0.0238,0.7034,0.8053,0.5568,120,3420

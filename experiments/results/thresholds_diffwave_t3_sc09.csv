@@ -1,0 +1,4 @@
+encoder,channel,eer,threshold,target_mean,nontarget_mean,n_target,n_nontarget
+WavLM-SV,diffwave,0.0746,0.8897,0.9353,0.6634,120,3420
+ECAPA-TDNN,diffwave,0.0186,0.29,0.5317,0.0954,120,3420
+Resemblyzer d-vector,diffwave,0.0084,0.7394,0.853,0.5592,120,3420

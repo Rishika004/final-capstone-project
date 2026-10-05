@@ -1,0 +1,4 @@
+encoder,channel,eer,threshold,target_mean,nontarget_mean,n_target,n_nontarget,cross_session,subset,speaker_set
+WavLM-SV,diffwave,0.0734,0.8774,0.9257,0.6802,464,12992,True,test-clean,all
+ECAPA-TDNN,diffwave,0.0214,0.2682,0.4767,0.0809,464,12992,True,test-clean,all
+Resemblyzer d-vector,diffwave,0.0409,0.7009,0.8019,0.5681,464,12992,True,test-clean,all

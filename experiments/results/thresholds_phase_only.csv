@@ -1,0 +1,4 @@
+encoder,channel,eer,threshold,target_mean,nontarget_mean,n_target,n_nontarget
+WavLM-SV,phase_only,0.1188,0.8465,0.9008,0.6293,40,1520
+ECAPA-TDNN,phase_only,0.025,0.2628,0.3968,0.0951,40,1520
+Resemblyzer d-vector,phase_only,0.2,0.5446,0.6056,0.4911,40,1520

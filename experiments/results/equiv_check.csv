@@ -1,0 +1,25 @@
+variant,file,eval_t,encoder,threshold,mel_psr,mel_dircos,cos_before,cos_after_purify,cos_ctrl_unprot,clone_fails_after,ctrl_identity_kept,defence_valid
+plain_m30_f15,spk3000_15664_0005,50,WavLM-SV,0.897,0.9254,0.9852,-0.2098,0.6986,0.9189,True,True,True
+plain_m30_f15,spk3000_15664_0005,50,ECAPA-TDNN,0.346,0.9254,0.9852,-0.9095,0.0559,0.8581,True,True,True
+plain_m30_f15,spk3000_15664_0005,50,Resemblyzer d-vector,0.735,0.9254,0.9852,0.4315,0.518,0.9385,True,True,True
+full_m30_f15,spk3000_15664_0005,50,WavLM-SV,0.897,0.9229,0.9841,-0.1382,0.6825,0.9189,True,True,True
+full_m30_f15,spk3000_15664_0005,50,ECAPA-TDNN,0.346,0.9229,0.9841,-0.8837,-0.0095,0.8581,True,True,True
+full_m30_f15,spk3000_15664_0005,50,Resemblyzer d-vector,0.735,0.9229,0.9841,0.4702,0.556,0.9385,True,True,True
+plain_m30_f15,spk3081_166546_0007,50,WavLM-SV,0.897,0.9936,0.9994,-0.1219,0.9251,0.9615,False,True,False
+plain_m30_f15,spk3081_166546_0007,50,ECAPA-TDNN,0.346,0.9936,0.9994,-0.9901,0.3339,0.8917,True,True,True
+plain_m30_f15,spk3081_166546_0007,50,Resemblyzer d-vector,0.735,0.9936,0.9994,0.5527,0.7651,0.9332,False,True,False
+full_m30_f15,spk3081_166546_0007,50,WavLM-SV,0.897,0.9907,0.9798,0.1516,0.6353,0.9615,True,True,True
+full_m30_f15,spk3081_166546_0007,50,ECAPA-TDNN,0.346,0.9907,0.9798,-0.7514,0.0197,0.8917,True,True,True
+full_m30_f15,spk3081_166546_0007,50,Resemblyzer d-vector,0.735,0.9907,0.9798,0.6606,0.8011,0.9332,False,True,False
+plain_m30_f15,spk3170_137482_0003,50,WavLM-SV,0.897,0.986,0.9979,-0.1562,0.8805,0.9836,True,True,True
+plain_m30_f15,spk3170_137482_0003,50,ECAPA-TDNN,0.346,0.986,0.9979,-0.8834,0.161,0.8794,True,True,True
+plain_m30_f15,spk3170_137482_0003,50,Resemblyzer d-vector,0.735,0.986,0.9979,0.537,0.6002,0.9235,True,True,True
+full_m30_f15,spk3170_137482_0003,50,WavLM-SV,0.897,0.9668,0.9892,-0.0076,0.8063,0.9836,True,True,True
+full_m30_f15,spk3170_137482_0003,50,ECAPA-TDNN,0.346,0.9668,0.9892,-0.7444,-0.0916,0.8794,True,True,True
+full_m30_f15,spk3170_137482_0003,50,Resemblyzer d-vector,0.735,0.9668,0.9892,0.5697,0.6245,0.9235,True,True,True
+plain_m30_f15,spk3536_23268_0003,50,WavLM-SV,0.897,0.9758,0.9976,-0.0902,0.6357,0.9687,True,True,True
+plain_m30_f15,spk3536_23268_0003,50,ECAPA-TDNN,0.346,0.9758,0.9976,-0.8467,0.0335,0.8294,True,True,True
+plain_m30_f15,spk3536_23268_0003,50,Resemblyzer d-vector,0.735,0.9758,0.9976,0.4345,0.6166,0.9146,True,True,True
+full_m30_f15,spk3536_23268_0003,50,WavLM-SV,0.897,0.9577,0.995,-0.0282,0.4255,0.9687,True,True,True
+full_m30_f15,spk3536_23268_0003,50,ECAPA-TDNN,0.346,0.9577,0.995,-0.8439,-0.2526,0.8294,True,True,True
+full_m30_f15,spk3536_23268_0003,50,Resemblyzer d-vector,0.735,0.9577,0.995,0.569,0.6281,0.9146,True,True,True

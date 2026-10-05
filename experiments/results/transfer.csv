@@ -1,0 +1,10 @@
+file,encoder,cos_sim,threshold,cloning_fails
+sample_001.wav,WavLM (target),-0.2858,0.5,YES
+sample_001.wav,Resemblyzer d-vector,0.8174,0.75,NO
+sample_001.wav,ECAPA-TDNN,0.768,0.25,NO
+sample_002.wav,WavLM (target),-0.1766,0.5,YES
+sample_002.wav,Resemblyzer d-vector,0.7873,0.75,NO
+sample_002.wav,ECAPA-TDNN,0.766,0.25,NO
+sample_003.wav,WavLM (target),-0.3954,0.5,YES
+sample_003.wav,Resemblyzer d-vector,0.883,0.75,NO
+sample_003.wav,ECAPA-TDNN,0.8264,0.25,NO

@@ -45,3 +45,17 @@ htmlcov/
 protected.wav
 protected_fixed.wav
 protected_fixed_lr.wav
+
+# ── W0 (PLAN_V3): keep checkpoints, audio, logs and third-party code out ──
+checkpoints/
+external/
+data/
+*.wav
+*.flac
+*.pkl
+*.pt
+*.log
+experiments/sb_models/
+/results/
+/results_*/
+__pycache__/

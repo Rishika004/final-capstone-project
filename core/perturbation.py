@@ -34,7 +34,10 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
-import torchaudio.transforms as T
+try:
+    import torchaudio.transforms as T
+except Exception:   # Smart App Control blocks libtorchaudio.pyd (2026-09-15)
+    from utils import tacompat as T
 
 from core.jacobian import estimate_jacobian_randomized
 from core.nullspace import (
@@ -100,9 +103,22 @@ def generate_pgd_perturbation(
     hop_length: int = 256,
     null_basis: Optional[torch.Tensor] = None,
     lambda_null: float = 5.0,
+    perceptual: bool = True,
+    masking_margin_db: float = 25.0,
+    bandlimit_hz: Optional[float] = 6000.0,
 ) -> torch.Tensor:
     """
     Two-stage PGD: waveform attack -> mel-space projection.
+
+    When ``perceptual=True`` (default) Stage 1 uses Adam and, after every
+    step, projects the waveform delta under the frequency-masking threshold
+    of the original speech (core/psychoacoustic.py). The delta then hides
+    beneath the voice's own spectral energy instead of being flat +-0.05
+    broadband hiss, so the protected audio sounds like the original.
+    ``masking_margin_db`` raises the cap (+6 dB = 2x amplitude = stronger but
+    slightly more audible). ``perceptual=False`` restores the old flat
+    signed-gradient behaviour. ``bandlimit_hz`` additionally removes delta
+    energy above the cutoff (robustness to resampling / low-pass).
 
     Stage 1 — Joint waveform PGD against WavLM + null-space constraint:
         Run signed-gradient PGD in waveform space with a combined loss:
@@ -199,19 +215,50 @@ def generate_pgd_perturbation(
     wav_delta = (torch.rand_like(x_wav) * 2 - 1) * epsilon_wav * 0.1
     wav_delta = wav_delta.detach().requires_grad_(True)
 
+    # Psychoacoustic masking setup (perceptual mode): per-bin magnitude cap
+    # computed once from the ORIGINAL audio; the delta is re-projected under
+    # it after every optimiser step.
+    masker = None
+    mask_cap = None
+    adam_opt: Optional[torch.optim.Adam] = None
+    if perceptual:
+        from core.psychoacoustic import PsychoacousticMasker, project_delta_to_masking
+        masker = PsychoacousticMasker(
+            sample_rate=sample_rate, n_fft=n_fft, hop_length=hop_length,
+            margin_db=masking_margin_db, device=device,
+        )
+        mask_cap = masker.magnitude_cap(x_wav)
+        # Small RANDOM init, not zeros. At delta=0 the loss cos(f(x+d), f(x))
+        # sits at its maximum (=1.0), so its gradient vanishes (~2e-8) and Adam
+        # never leaves the origin. A tiny random kick lands off that stationary
+        # point where the gradient is healthy (~1e-2). Kept far under the
+        # masking cap so it does not affect final quality.
+        wav_delta = ((torch.rand_like(x_wav) * 2 - 1) * epsilon_wav * 0.05)
+        wav_delta = wav_delta.detach().requires_grad_(True)
+        # lr=2e-3 matches the validated margin sweep (exp_margin_sweep.py).
+        adam_opt = torch.optim.Adam([wav_delta], lr=2e-3)
+        # Masking-projected Adam needs more iterations than signed-gradient PGD
+        # to converge under the constraint; the validated sweet spot used ~200.
+        if n_steps < 150:
+            n_steps = 150
+
     # Signed-gradient (FGSM-style) PGD: each step takes the maximum
     # allowed step in the gradient direction within the L-inf ball.
     # More reliable than Adam for adversarial attacks on speaker encoders.
     step_size = epsilon_wav / max(n_steps // 2, 1)   # reach boundary in ~half the steps
 
     null_tag = " + null-space" if null_b is not None else ""
-    print(f"  [PGD Stage 1] {n_steps} signed-gradient steps | "
-          f"epsilon_wav={epsilon_wav:.3f} | step={step_size:.5f}{null_tag}")
+    mode_tag = ("Adam + masking projection" if perceptual
+                else "signed-gradient")
+    print(f"  [PGD Stage 1] {n_steps} {mode_tag} steps | "
+          f"epsilon_wav={epsilon_wav:.3f}{null_tag}")
     best_cos   = float("inf")
     best_delta = wav_delta.detach().clone()
 
     for step in range(1, n_steps + 1):
-        if wav_delta.grad is not None:
+        if adam_opt is not None:
+            adam_opt.zero_grad()
+        elif wav_delta.grad is not None:
             wav_delta.grad.zero_()
 
         wav_perturbed = x_wav.detach() + wav_delta
@@ -248,15 +295,30 @@ def generate_pgd_perturbation(
 
         total_loss.backward()
 
-        with torch.no_grad():
-            # Signed gradient step: move in the direction that minimises cos_sim
-            wav_delta.data -= step_size * wav_delta.grad.sign()
-            # Project back onto L-inf ball
-            wav_delta.data.clamp_(-epsilon_wav, epsilon_wav)
+        if adam_opt is not None:
+            # cos_sim was computed with the CURRENT (already projected) delta,
+            # so snapshot the best BEFORE stepping.
+            if cos_sim.item() < best_cos:
+                best_cos   = cos_sim.item()
+                best_delta = wav_delta.detach().clone()
+            adam_opt.step()
+            with torch.no_grad():
+                from core.psychoacoustic import project_delta_to_masking
+                proj = project_delta_to_masking(
+                    wav_delta.data, mask_cap, masker,
+                    bandlimit_hz=bandlimit_hz, hard_linf=epsilon_wav,
+                ).to(device)
+                wav_delta.data.copy_(proj)
+        else:
+            with torch.no_grad():
+                # Signed gradient step: move in the direction that minimises cos_sim
+                wav_delta.data -= step_size * wav_delta.grad.sign()
+                # Project back onto L-inf ball
+                wav_delta.data.clamp_(-epsilon_wav, epsilon_wav)
 
-        if cos_sim.item() < best_cos:
-            best_cos   = cos_sim.item()
-            best_delta = wav_delta.detach().clone()
+            if cos_sim.item() < best_cos:
+                best_cos   = cos_sim.item()
+                best_delta = wav_delta.detach().clone()
 
         if step % 10 == 0 or step == 1:
             null_str = (f" | range_loss={loss_null.item():.6f}"
@@ -337,6 +399,9 @@ def apply_null_space_protection(
     speaker_encoder: Optional[nn.Module] = None,
     pgd_steps: int = 50,
     pgd_lr: float = 5e-4,
+    perceptual: bool = True,
+    masking_margin_db: float = 25.0,
+    bandlimit_hz: Optional[float] = 6000.0,
 ) -> "tuple[torch.Tensor, Optional[torch.Tensor]]":
     """
     Apply null-space protection to a mel spectrogram.
@@ -407,6 +472,9 @@ def apply_null_space_protection(
             n_steps=pgd_steps,
             lr=pgd_lr,
             seed=seed,
+            perceptual=perceptual,
+            masking_margin_db=masking_margin_db,
+            bandlimit_hz=bandlimit_hz,
             # null_basis not passed here — null-space projection happens in Step 4.
             # Joint optimisation via null_basis degrades speaker confusion because
             # range_loss dominates cos_sim gradient.  Keep them separate.

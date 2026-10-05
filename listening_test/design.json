@@ -1,0 +1,62 @@
+{
+  "speakers": [
+    3000,
+    3081,
+    3170,
+    3536,
+    3576,
+    3752
+  ],
+  "conditions": [
+    {
+      "condition": "original",
+      "kind": "clean",
+      "param": "None",
+      "note": "high anchor"
+    },
+    {
+      "condition": "anchor_noise",
+      "kind": "noise",
+      "param": "0.0",
+      "note": "low anchor, 0 dB SNR"
+    },
+    {
+      "condition": "tilt",
+      "kind": "transform",
+      "param": "('tilt', -6.0)",
+      "note": "free quality, 0 % protection"
+    },
+    {
+      "condition": "mcadams_095",
+      "kind": "transform",
+      "param": "('mcadams', 0.95)",
+      "note": "18 % protection"
+    },
+    {
+      "condition": "mcadams_085",
+      "kind": "transform",
+      "param": "('mcadams', 0.85)",
+      "note": "38 % protection"
+    },
+    {
+      "condition": "mcadams_080",
+      "kind": "transform",
+      "param": "('mcadams', 0.8)",
+      "note": "58 % protection"
+    },
+    {
+      "condition": "additive_plain",
+      "kind": "saved",
+      "param": "plain_m30_f15",
+      "note": "70 % protection"
+    },
+    {
+      "condition": "additive_eot",
+      "kind": "saved",
+      "param": "full_m30_f15",
+      "note": "90 % protection"
+    }
+  ],
+  "n_trials_A": 48,
+  "n_trials_B": 42
+}

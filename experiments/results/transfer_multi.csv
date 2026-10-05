@@ -1,0 +1,10 @@
+file,encoder,cos_sim,threshold,cloning_fails,prr,snr_db
+sample_001.wav,WavLM (target),-0.2906,0.5,YES,0.8449,22.75
+sample_001.wav,ECAPA-TDNN,-0.6937,0.25,YES,0.8449,22.75
+sample_001.wav,Resemblyzer d-vector,0.5977,0.75,YES,0.8449,22.75
+sample_002.wav,WavLM (target),-0.0659,0.5,YES,0.896,21.3
+sample_002.wav,ECAPA-TDNN,-0.7645,0.25,YES,0.896,21.3
+sample_002.wav,Resemblyzer d-vector,0.6445,0.75,YES,0.896,21.3
+sample_003.wav,WavLM (target),-0.1466,0.5,YES,0.8451,21.89
+sample_003.wav,ECAPA-TDNN,-0.6793,0.25,YES,0.8451,21.89
+sample_003.wav,Resemblyzer d-vector,0.5567,0.75,YES,0.8451,21.89

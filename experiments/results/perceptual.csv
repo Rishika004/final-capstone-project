@@ -1,0 +1,6 @@
+variant,cos_wavlm,cos_ecapa,cos_dvec,fails_wavlm,fails_ecapa,fails_dvec,prr_proj,prr_actual,snr_wav_db,silence_noise_db,n_silent_frames,pesq_wb,stoi,file
+psy,-0.4335,-0.6854,0.7335,True,True,True,0.8984,0.896,21.75,,0,3.963,0.771,sample_001.wav
+psy,-0.0472,-0.7179,0.754,True,True,False,0.7773,0.7765,18.05,,0,3.03,0.79,sample_002.wav
+psy,-0.2922,-0.7358,0.6821,True,True,True,0.8117,0.8107,18.0,,0,3.144,0.7496,sample_003.wav
+psy,-0.4537,-0.7965,0.641,True,True,True,0.9472,0.9448,20.45,,0,,0.7407,sample_004.wav
+psy,-0.189,-0.8326,0.8,True,True,False,0.7913,0.7908,22.29,,0,3.692,0.7856,sample_005.wav

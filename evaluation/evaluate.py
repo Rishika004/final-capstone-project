@@ -28,7 +28,10 @@ from pathlib import Path
 from typing import Optional
 
 import torch
-import torchaudio.transforms as T
+try:
+    import torchaudio.transforms as T
+except Exception:   # Smart App Control blocks libtorchaudio.pyd (2026-09-15)
+    from utils import tacompat as T
 import pandas as pd
 
 from core.perturbation import apply_null_space_protection
@@ -99,6 +102,8 @@ def evaluate_single_file(
     svd_threshold: float = 1e-3,
     mode: str = "random",
     pgd_steps: int = 50,
+    perceptual: bool = True,
+    masking_margin_db: float = 25.0,
 ) -> dict:
     """
     Run the full protection + evaluation pipeline for one audio file.
@@ -154,6 +159,8 @@ def evaluate_single_file(
         x_wav=wav_original if mode == "pgd" else None,
         speaker_encoder=speaker_encoder if mode == "pgd" else None,
         pgd_steps=pgd_steps,
+        perceptual=perceptual,
+        masking_margin_db=masking_margin_db,
     )
 
     # ---------------------------------------------------------------
@@ -192,22 +199,34 @@ def evaluate_single_file(
                 wav_protected = torch.nn.functional.pad(wav_protected, (0, orig_len - prot_len))
 
     # ---------------------------------------------------------------
-    # 4. Apply purifier to both (simulate DiffPure attack)
+    # 4. UNIFIED MEASURED SIGNAL (review finding #1)
+    #
+    # Every metric below is computed on the ONE waveform we actually save
+    # (wav_protected). We re-derive its log-mel here so that survival (PSR),
+    # speaker similarity and quality all describe the SAME signal, instead of
+    # measuring survival on a separately-null-projected mel that the delivered
+    # audio never contained.
+    #
+    # mel_protected (the null-projected mel returned by the protection) is kept
+    # only to report the theoretical-vs-delivered survival GAP, so the effect of
+    # bypassing the null projection in the waveform is visible rather than hidden.
     # ---------------------------------------------------------------
-    print("  Applying purifier to original and protected ...")
+    mel_delivered = wav_to_logmel(wav_protected, device)
+
+    print("  Applying purifier to original and delivered ...")
     with torch.no_grad():
         mel_orig_purified = purifier(mel_original)
-        mel_prot_purified = purifier(mel_protected)
+        mel_prot_purified = purifier(mel_delivered)
 
     # ---------------------------------------------------------------
-    # 5. Compute metrics
+    # 5. Compute metrics — all on the delivered signal
     # ---------------------------------------------------------------
     print("  Computing metrics ...")
     metrics = compute_all_metrics(
         wav_original=wav_original,
         wav_protected=wav_protected,
         mel_original=mel_original,
-        mel_protected=mel_protected,
+        mel_protected=mel_delivered,   # <- delivered mel, not the decoupled one
         purifier=purifier,
         speaker_encoder=speaker_encoder,
         sample_rate=SAMPLE_RATE,
@@ -215,16 +234,34 @@ def evaluate_single_file(
 
     # Additional metrics
     with torch.no_grad():
-        from evaluation.metrics import mel_distance, speaker_cosine_similarity, signal_to_noise_ratio
+        from evaluation.metrics import (mel_distance, speaker_cosine_similarity,
+                                        signal_to_noise_ratio,
+                                        perturbation_survival_rate)
         metrics["mel_dist_after_purify"] = mel_distance(
             mel_orig_purified, mel_prot_purified
         )
+        # Survival GAP: PSR of the theoretical null-projected mel vs. the mel we
+        # actually deliver. A large gap means the null-space guarantee does not
+        # transfer to the shipped waveform (the honest number is psr, on delivered).
+        metrics["psr_projected"] = perturbation_survival_rate(
+            mel_original, mel_protected, purifier
+        )
+        metrics["psr_delivered"] = metrics["psr"]
         # SNR computed in mel space — avoids Griffin-Lim phase reconstruction artifacts.
         # Mel-SNR is the true measure of how imperceptible our perturbation is.
         mel_signal_power = mel_original.pow(2).mean().item()
         mel_noise_power  = (mel_protected - mel_original).pow(2).mean().item()
         import math
         metrics["snr_db"] = 10.0 * math.log10(mel_signal_power / (mel_noise_power + 1e-20))
+
+        # Waveform-domain SNR + silence noise level — the honest audibility
+        # numbers (mel-space SNR flatters the perturbation considerably).
+        from core.psychoacoustic import waveform_snr_db, silence_noise_db
+        metrics["snr_wav_db"] = waveform_snr_db(wav_original.cpu(), wav_protected.cpu())
+        sil_db, n_sil = silence_noise_db(wav_original.cpu(), wav_protected.cpu(),
+                                         sample_rate=SAMPLE_RATE)
+        metrics["silence_noise_db"] = sil_db
+        metrics["n_silent_frames"] = n_sil
 
     elapsed = time.perf_counter() - t_start
 
@@ -248,12 +285,14 @@ def evaluate_single_file(
         "output_path": out_path,
     }
 
-    print(f"  PRR               = {metrics['prr']:.4f}  (>1.0 is good)")
+    print(f"  PSR (delivered)   = {metrics['psr']:.4f}  (~1.0 = δ survives, ~0 = removed)")
+    print(f"  PSR (projected)   = {metrics['psr_projected']:.4f}  (theoretical null-proj mel)")
+    print(f"  PRR (legacy)      = {metrics['prr']:.4f}  (=1.0 at δ=0; not a survival proof)")
     print(f"  Speaker cos-sim   = {metrics['speaker_similarity']:.4f}  (<0.5 is good)")
     print(f"  Mel distance      = {metrics['mel_distance']:.6f}")
     print(f"  PESQ score        = {metrics.get('pesq', float('nan')):.3f}  (>3.0 is good)")
     print(f"  STOI score        = {metrics.get('stoi', float('nan')):.4f}  (>0.95 is good)")
-    print(f"  SNR (dB)          = {metrics['snr_db']:.2f}")
+    print(f"  SNR wav (dB)      = {metrics.get('snr_wav_db', float('nan')):.2f}  (honest, waveform)")
     print(f"  Elapsed           = {elapsed:.2f}s")
     print(f"  Saved to          : {out_path}")
 
@@ -274,6 +313,8 @@ def run_full_evaluation(
     mode: str = "random",
     pgd_steps: int = 50,
     n_files: Optional[int] = None,
+    perceptual: bool = True,
+    masking_margin_db: float = 25.0,
 ) -> pd.DataFrame:
     """
     Evaluate null-space protection on all .wav files in audio_dir.
@@ -342,6 +383,8 @@ def run_full_evaluation(
                 svd_threshold=svd_threshold,
                 mode=mode,
                 pgd_steps=pgd_steps,
+                perceptual=perceptual,
+                masking_margin_db=masking_margin_db,
             )
             results.append(row)
         except Exception as exc:
@@ -358,7 +401,8 @@ def run_full_evaluation(
     print(f"\n[Evaluate] Results saved to {csv_path}")
 
     # Print summary table
-    numeric_cols = ["prr", "speaker_similarity", "mel_distance", "pesq", "stoi", "snr_db"]
+    numeric_cols = ["psr", "psr_projected", "prr", "speaker_similarity",
+                    "mel_distance", "pesq", "stoi", "snr_wav_db", "snr_db"]
     summary_cols = [c for c in numeric_cols if c in df.columns]
     if summary_cols:
         print("\n" + "="*70)

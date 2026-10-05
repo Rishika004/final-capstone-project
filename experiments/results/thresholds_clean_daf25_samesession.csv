@@ -1,0 +1,4 @@
+encoder,channel,eer,threshold,target_mean,nontarget_mean,n_target,n_nontarget,cross_session,subset,speaker_set
+WavLM-SV,clean,0.04,0.9006,0.9528,0.6752,300,9600,False,test-clean,deantifake
+ECAPA-TDNN,clean,0.0,0.4574,0.7102,0.0911,300,9600,False,test-clean,deantifake
+Resemblyzer d-vector,clean,0.0007,0.761,0.8686,0.5604,300,9600,False,test-clean,deantifake

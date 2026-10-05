@@ -117,9 +117,12 @@ class MelUNetPurifier(nn.Module):
     Output: [batch, n_mels=80, time]  (same shape, denoised)
     """
 
-    def __init__(self, n_mels: int = 80, base_channels: int = 64):
+    def __init__(self, n_mels: int = 80, base_channels: int = 64, residual: bool = False):
         super().__init__()
         C = base_channels  # 64
+        # residual=True: output = x + UNet(x)  (exact identity at zero noise;
+        # used by the v2 multi-speaker DiffPure backbone)
+        self.residual = residual
 
         # Encoder
         self.enc_in = nn.Conv1d(n_mels, C, kernel_size=3, padding=1)
@@ -178,6 +181,8 @@ class MelUNetPurifier(nn.Module):
         d2 = self.dec_block2(d2)
 
         out = self.out_conv(d2)                  # [B, n_mels, T]
+        if self.residual:
+            out = out + x
 
         if squeeze:
             out = out.squeeze(0)
@@ -273,3 +278,60 @@ def load_pretrained(
     print(f"[Purifier] MelUNetPurifier ready on {device} | {n_params/1e6:.2f}M params")
 
     return model
+
+
+# ---------------------------------------------------------------------------
+# 2-D spectrogram UNet (mel x time), residual — used when the 1-D UNet cannot
+# learn a speech prior strong enough to denoise (v2: denoising gain 6-14 %).
+# Same I/O contract as MelUNetPurifier: [B, n_mels, T] -> [B, n_mels, T].
+# ---------------------------------------------------------------------------
+class _Conv2Block(nn.Module):
+    def __init__(self, cin, cout):
+        super().__init__()
+        self.c1 = nn.Conv2d(cin, cout, 3, padding=1)
+        self.n1 = nn.GroupNorm(min(8, cout), cout)
+        self.c2 = nn.Conv2d(cout, cout, 3, padding=1)
+        self.n2 = nn.GroupNorm(min(8, cout), cout)
+        self.skip = nn.Conv2d(cin, cout, 1) if cin != cout else nn.Identity()
+
+    def forward(self, x):
+        h = F.gelu(self.n1(self.c1(x)))
+        h = self.n2(self.c2(h))
+        return F.gelu(h + self.skip(x))
+
+
+class MelUNet2D(nn.Module):
+    """Residual 2-D UNet: out = x + f(x). Downsamples mel and time by 2 twice."""
+
+    def __init__(self, n_mels: int = 80, base_channels: int = 32, residual: bool = True):
+        super().__init__()
+        C = base_channels
+        self.residual = residual
+        self.n_mels = n_mels
+        self.e1 = _Conv2Block(1, C)
+        self.e2 = _Conv2Block(C, 2 * C)
+        self.e3 = _Conv2Block(2 * C, 4 * C)
+        self.b = _Conv2Block(4 * C, 4 * C)
+        self.up2 = nn.ConvTranspose2d(4 * C, 2 * C, 2, stride=2)
+        self.d2 = _Conv2Block(4 * C, 2 * C)
+        self.up1 = nn.ConvTranspose2d(2 * C, C, 2, stride=2)
+        self.d1 = _Conv2Block(2 * C, C)
+        self.out = nn.Conv2d(C, 1, 1)
+        nn.init.zeros_(self.out.weight); nn.init.zeros_(self.out.bias)   # start at identity
+
+    def forward(self, x):
+        squeeze = x.dim() == 2
+        if squeeze:
+            x = x.unsqueeze(0)
+        B, M, T = x.shape
+        pm = (-M) % 4; pt = (-T) % 4
+        h = F.pad(x, (0, pt, 0, pm)).unsqueeze(1)          # [B,1,M',T']
+        e1 = self.e1(h)
+        e2 = self.e2(F.avg_pool2d(e1, 2))
+        e3 = self.e3(F.avg_pool2d(e2, 2))
+        b = self.b(e3)
+        d2 = self.d2(torch.cat([self.up2(b), e2], 1))
+        d1 = self.d1(torch.cat([self.up1(d2), e1], 1))
+        o = self.out(d1).squeeze(1)[:, :M, :T]
+        o = o + x if self.residual else o
+        return o.squeeze(0) if squeeze else o

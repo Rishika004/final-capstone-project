@@ -43,35 +43,92 @@ logger = logging.getLogger(__name__)
 # 1. Purification Resistance Rate (PRR)
 # ---------------------------------------------------------------------------
 
+def perturbation_survival_rate(
+    x_original_mel: torch.Tensor,
+    x_protected_mel: torch.Tensor,
+    purifier: nn.Module,
+    seed: int = 2026,
+) -> float:
+    """
+    Perturbation Survival Rate (PSR) — the correctly-normalised survival metric.
+
+    Definition
+    ----------
+        PSR = || DiffPure(x + δ) - DiffPure(x) || / || δ ||
+
+    where δ = x_protected_mel - x_original_mel and BOTH DiffPure calls use the
+    SAME noise draw (fixed ``seed``) so the numerator reflects only the response
+    to δ, not DiffPure's own stochasticity.
+
+    Interpretation
+    --------------
+    - PSR ≈ 1.0 : δ passes through purification intact  →  it SURVIVES.
+    - PSR ≈ 0.0 : DiffPure(x+δ) ≈ DiffPure(x)  →  δ was REMOVED.
+    - PSR  > 1.0 : purifier amplifies δ's direction (chaotic divergence in the
+                   DDPM loop), which is NOT evidence of survival.
+
+    Why this replaces PRR as the headline number
+    ---------------------------------------------
+    The legacy ``purification_resistance_rate`` below is degenerate: it equals
+    exactly 1.0 when δ = 0, so a reported PRR ≈ 1.0 is indistinguishable from
+    "no perturbation at all". PSR is normalised by ‖δ‖ and is 0 when δ = 0, so
+    it actually measures what fraction of the perturbation survives.
+
+    Parameters
+    ----------
+    x_original_mel  : [batch, mel_bins, time]
+    x_protected_mel : [batch, mel_bins, time]  (must describe the SAME signal
+                      whose speaker-similarity / quality you report — see the
+                      "unified measured signal" discipline in evaluate.py)
+    purifier        : nn.Module. If it accepts a ``seed`` kwarg (MelDiffPure),
+                      both calls are made deterministic; otherwise it is called
+                      without one (single-pass surrogates are deterministic).
+    seed            : fixed DiffPure noise seed shared by both calls.
+
+    Returns
+    -------
+    psr : float   (nan if ‖δ‖ ≈ 0)
+    """
+    purifier.eval()
+    delta_norm = (x_protected_mel - x_original_mel).norm().item()
+    if delta_norm < 1e-12:
+        logger.warning("PSR undefined: perturbation is ~zero (||δ||=%.2e).", delta_norm)
+        return float("nan")
+
+    def _purify(x):
+        with torch.no_grad():
+            try:
+                return purifier(x, seed=seed)
+            except TypeError:
+                return purifier(x)
+
+    y_orig = _purify(x_original_mel)
+    y_prot = _purify(x_protected_mel)
+
+    survived = (y_prot - y_orig).norm().item()
+    psr = survived / delta_norm
+    logger.debug("PSR: survived=%.4f | ||δ||=%.4f | PSR=%.4f",
+                 survived, delta_norm, psr)
+    return psr
+
+
 def purification_resistance_rate(
     x_original_mel: torch.Tensor,
     x_protected_mel: torch.Tensor,
     purifier: nn.Module,
 ) -> float:
     """
-    Compute the Purification Resistance Rate (PRR).
+    LEGACY — Purification Resistance Rate (PRR).
+
+    ⚠ Degenerate: equals exactly 1.0 when δ = 0, so a value near 1.0 is
+    indistinguishable from "no perturbation". Retained only for backward
+    compatibility with older result CSVs. Use ``perturbation_survival_rate``
+    (PSR) for any reported survival claim.
 
     Definition
     ----------
     PRR = ||purifier(x_protected) - x_protected||
            / ||purifier(x_original) - x_original||
-
-    Interpretation
-    --------------
-    - PRR > 1.0 : The purifier modifies the protected audio MORE than the
-                  original.  However, since the modification is in the
-                  null space, this change is not aligned with removing the
-                  perturbation — it is a spurious distortion.
-                  (The perturbation *resisted* the purifier.)
-    - PRR ≈ 1.0 : Null-space projection had no additional effect.
-    - PRR < 1.0 : The purifier is MORE effective on the protected audio
-                  (undesirable).
-
-    A better formulation used in the paper (reported as main result):
-    PRR_residual = ||purifier(x_protected) - x_original||
-                    / ||purifier(x_original) - x_original||
-
-    Both variants are computed and returned.
 
     Parameters
     ----------
@@ -82,7 +139,6 @@ def purification_resistance_rate(
     Returns
     -------
     prr : float
-        PRR value.  Typically reported as the mean over a batch.
     """
     purifier.eval()
     with torch.no_grad():
@@ -349,11 +405,22 @@ def compute_all_metrics(
     Returns
     -------
     metrics : dict with keys:
-        'prr', 'speaker_cosine_sim', 'mel_distance', 'pesq', 'snr_db'
+        'psr', 'prr', 'speaker_cosine_sim', 'mel_distance', 'pesq', 'stoi', 'snr_db'
+
+    IMPORTANT — unified measured signal
+    -----------------------------------
+    ``mel_protected`` MUST be the log-mel of ``wav_protected`` (the audio you
+    actually ship), so that every metric — speaker similarity, survival, and
+    quality — describes ONE signal. Passing a separately-null-projected mel here
+    (a different perturbation than the delivered waveform) is the mismatch that
+    finding #1 of the review flagged.
     """
     metrics = {}
 
-    metrics["prr"] = purification_resistance_rate(
+    metrics["psr"] = perturbation_survival_rate(
+        mel_original, mel_protected, purifier
+    )
+    metrics["prr"] = purification_resistance_rate(  # legacy, degenerate at δ=0
         mel_original, mel_protected, purifier
     )
     metrics["speaker_cosine_sim"] = speaker_cosine_similarity(

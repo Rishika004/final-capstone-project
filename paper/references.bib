@@ -1,0 +1,471 @@
+% paper/references.bib
+% Every entry below was verified against a primary source on 2026-09-16.
+% Provenance is in paper/related_work.md sections 10-12. Do NOT add an entry
+% here without fetching its record: this project has already been bitten by a
+% silently-rewritten arXiv paper and by two references that did not exist.
+%
+% Bot-challenge note (2026-09-16): openreview.net and dblp both now sit behind
+% bot challenges and could not be read automatically. The arXiv export API,
+% Crossref, PMLR, CVF Open Access and the conference virtual sites were the
+% reliable substitutes.
+
+% ---------------------------------------------------------------- geometry
+@article{miyasawa1961empirical,
+  title   = {An empirical Bayes estimator of the mean of a normal population},
+  author  = {Miyasawa, K.},
+  journal = {Bulletin of the International Statistical Institute},
+  volume  = {38}, pages = {181--188}, year = {1961}
+}
+  % vol/pages confirmed via two Simoncelli-group reference lists. NO issue
+  % number is supported -- the widely seen "38(4)" is an embellishment.
+  % One source dates it 1960; 1961 is the standard citation.
+
+@inproceedings{kadkhodaie2024generalization,
+  title     = {Generalization in diffusion models arises from geometry-adaptive harmonic representations},
+  author    = {Kadkhodaie, Zahra and Guth, Florentin and Simoncelli, Eero P. and Mallat, St\'ephane},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2024}, note = {Oral; Outstanding Paper Award},
+  eprint    = {2310.02557}, archivePrefix = {arXiv}
+}
+
+@inproceedings{zhang2024emergence,
+  title     = {The Emergence of Reproducibility and Generalizability in Diffusion Models},
+  author    = {Zhang, Huijie and Zhou, Jinfan and Lu, Yifu and Guo, Minzhe and Wang, Peng and Shen, Liyue and Qu, Qing},
+  booktitle = {Proceedings of the 41st International Conference on Machine Learning (ICML)},
+  year      = {2024}, eprint = {2310.05264}, archivePrefix = {arXiv}
+}
+
+@article{liu2025demystifying,
+  title   = {Demystifying Adversarial Robustness in Diffusion Models: Compression, Randomness, and Geometry},
+  author  = {{Liu Yuezhang} and Wei, Xue-Xin},
+  journal = {arXiv preprint arXiv:2505.22839}, year = {2025},
+  note    = {v2, 11 August 2026; no venue}
+}
+  % Name is braced deliberately: arXiv and the paper both PRINT "Liu Yuezhang"
+  % (surname first). Cite in text as "Liu & Wei", never "Yuezhang & Wei".
+  % CRITICAL: v1 (28 May 2025) contains none of the on-manifold content; v2
+  % does. Any novelty claim against this paper must name the version.
+
+@inproceedings{li2025shallow,
+  title     = {Shallow Diffuse: Robust and Invisible Watermarking through Low-Dimensional Subspaces in Diffusion Models},
+  author    = {Li, Wenda and Zhang, Huijie and Qu, Qing},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2025}, note = {Spotlight}, eprint = {2410.21088}, archivePrefix = {arXiv}
+}
+  % NOT a bare preprint. Title is "Low-Dimensional", not "Low-Dim".
+
+@article{tramer2017space,
+  title   = {The Space of Transferable Adversarial Examples},
+  author  = {Tram\`er, Florian and Papernot, Nicolas and Goodfellow, Ian and Boneh, Dan and McDaniel, Patrick},
+  journal = {arXiv preprint arXiv:1704.03453}, year = {2017}
+}
+  % Preprint only -- never formally published (confirmed via OpenAlex).
+
+@inproceedings{stutz2019disentangling,
+  title     = {Disentangling Adversarial Robustness and Generalization},
+  author    = {Stutz, David and Hein, Matthias and Schiele, Bernt},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {6976--6987}, year = {2019}
+}
+
+% ------------------------------------------------------ diffusion / purification
+@inproceedings{kong2021diffwave,
+  title     = {DiffWave: A Versatile Diffusion Model for Audio Synthesis},
+  author    = {Kong, Zhifeng and Ping, Wei and Huang, Jiaji and Zhao, Kexin and Catanzaro, Bryan},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021}, note = {Oral}, eprint = {2009.09761}, archivePrefix = {arXiv}
+}
+
+@inproceedings{nie2022diffusion,
+  title     = {Diffusion Models for Adversarial Purification},
+  author    = {Nie, Weili and Guo, Brandon and Huang, Yujia and Xiao, Chaowei and Vahdat, Arash and Anandkumar, Animashree},
+  booktitle = {Proceedings of the 39th International Conference on Machine Learning},
+  series    = {Proceedings of Machine Learning Research}, volume = {162},
+  pages     = {16805--16827}, year = {2022}, publisher = {PMLR}
+}
+
+@inproceedings{wu2023defending,
+  title     = {Defending against Adversarial Audio via Diffusion Model},
+  author    = {Wu, Shutong and Wang, Jiongxiao and Ping, Wei and Nie, Weili and Xiao, Chaowei},
+  booktitle = {The Eleventh International Conference on Learning Representations (ICLR)},
+  year      = {2023}, note = {Poster}, eprint = {2303.01507}, archivePrefix = {arXiv}
+}
+  % Venue solid (camera-ready header + iclr.cc poster page). The "Poster" track
+  % rests on iclr.cc + an OpenReview mirror, not openreview.net itself
+  % (bot-challenged). If the venue is strict, drop the track.
+
+@inproceedings{kamble2026purification,
+  author    = {Kamble, Dhammadip and Sao, Anil Kumar and Ramachandra, Raghavendra},
+  title     = {The Purification Paradox: Dissecting and Exploiting Generative Vulnerability Bands in Diffusion Trajectories},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops},
+  month     = {June}, year = {2026}, pages = {420--428},
+  note      = {SAFE: Synthetic and Adversarial ForEnsics workshop}
+}
+
+% ------------------------------------------------------------- voice protection
+@inproceedings{fan2025deantifake,
+  title     = {De-AntiFake: Rethinking the Protective Perturbations Against Voice Cloning Attacks},
+  author    = {Fan, Wei and Chen, Kejiang and Liu, Chang and Zhang, Weiming and Yu, Nenghai},
+  booktitle = {Proceedings of the 42nd International Conference on Machine Learning (ICML)},
+  series    = {Proceedings of Machine Learning Research}, volume = {267},
+  year      = {2025}, publisher = {PMLR}, eprint = {2507.02606}, archivePrefix = {arXiv}
+}
+  % Page numbers not yet in published metadata.
+
+@article{zhao2026purify,
+  title   = {Purify Once, Edit Freely: Breaking Image Protections under Model Mismatch},
+  author  = {Zhao, Qichen and Zhai, Shengfang and Bai, Xinjian and Shen, Qingni and
+             Lin, Qiqi and Gao, Yansong and Wu, Zhonghai},
+  journal = {arXiv preprint arXiv:2603.13028},
+  year    = {2026},
+  note    = {v1, 13 Mar 2026. Verified against the arXiv abstract page 2026-09-17.
+             Relation to this work: they establish purifier/model mismatch as a
+             FAILURE mode for image protections (2,100 editing tasks, six
+             protection methods) and do not propose a construction that survives
+             it. We measure the same variable in speech and give a constructive
+             mitigation. Cited in Sec. 5 and Sec. 1.}
+}
+
+@inproceedings{yu2023antifake,
+  title     = {AntiFake: Using Adversarial Audio to Prevent Unauthorized Speech Synthesis},
+  author    = {Yu, Zhiyuan and Zhai, Shixuan and Zhang, Ning},
+  booktitle = {Proceedings of the 2023 ACM SIGSAC Conference on Computer and
+               Communications Security (CCS '23)},
+  pages     = {460--474},
+  year      = {2023},
+  address   = {Copenhagen, Denmark},
+  publisher = {ACM},
+  doi       = {10.1145/3576915.3623209},
+  url       = {https://cybersecurity.seas.wustl.edu/paper/AntiFakeCCS23.pdf},
+  note      = {Verified against the published PDF 2026-09-17. Two facts we cite.
+               (1) The pre-filter: AERR is defined only over samples already
+               filtered to bypass SV without AntiFake. (2) Table 4, Sec. 6.7:
+               rows are the CRAFTING encoder, columns five evaluated SYNTHESIZERS
+               (not encoders -- the match is implicit via each synthesizer's
+               internal encoder). Single-encoder crafting gives 99.6-100 % AERR on
+               the synthesizer built on that encoder and 0-20.6 % on the other
+               four; the GE2E row, our case, is 100 % on SV2TTS against
+               1.2-20.6 % elsewhere. The synthesizer<->encoder pairing is EXPLICIT
+               in Sec. 6.1 only for SV2TTS (GE2E) and YourTTS (H/ASP); AdaptVC
+               (AdaIN) is implied and Tortoise is unstated, so rely only on the
+               first two. CAUTION, and this was misread twice before it was
+               got right: Table 4 is not LABELLED a leave-one-out protocol and has
+               no LOO aggregate, but its subset rows that omit the matching encoder
+               ARE de-facto held-out cells -- e.g. 2+3+4, which excludes AdaIN,
+               gives 74.8 % on AdaptVC, and 1+2+3, which excludes ViT, gives 24.6 %
+               on Tortoise, against ~99 % for the full ensemble. So it is weak
+               evidence that the protocol is unnamed and strong evidence that the
+               numbers already exist. (3) Sec. 7 "Overlapped Encoders" concedes the problem
+               our fix F1 addresses -- their evaluated synthesizers' encoders
+               overlap their own ensemble -- and argues from Table 4 that
+               "different levels of transferability exist even when entirely
+               different encoders were used for optimization and synthesis",
+               naming systematic cross-encoder study as future work.}
+}
+
+@inproceedings{popov2022diffvc,
+  title     = {Diffusion-Based Voice Conversion with Fast Maximum Likelihood
+               Sampling Scheme},
+  author    = {Popov, Vadim and Vovk, Ivan and Gogoryan, Vladimir and
+               Sadekova, Tasnima and Kudinov, Mikhail and Wei, Jiansheng},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2022},
+  url       = {https://arxiv.org/abs/2109.13821},
+  note      = {The cloning model in our threat model. Speaker conditioning is
+               attributed in the paper only to Jia et al. 2018 ("the pre-trained
+               speaker verification network employed in (Jia et al. 2018)",
+               Sec. 2.2); GE2E, Resemblyzer and Jemine are never named. VERIFIED BY
+               US, not by any published source: the shipped checkpoint
+               DiffVC/checkpts/spk_encoder/pretrained.pt is byte-identical to
+               resemblyzer/pretrained.pt -- same git blob SHA-1
+               47e405a459e4b97a21325dc78ba6f8270498ac06, 17,090,379 bytes, per the
+               GitHub API on both repositories (2026-09-17). Cite as our own
+               verification. See paper Sec. 7 and fix F1.}
+}
+
+@article{kim2025rovo,
+  title   = {RoVo: Robust Voice Protection Against Unauthorized Speech Synthesis
+             with Embedding-Level Perturbations},
+  author  = {Kim, Seungmin and Park, Sohee and Kim, Donghyun and Lee, Jisu and
+             Choi, Daeseon},
+  journal = {arXiv preprint arXiv:2505.12686},
+  year    = {2025},
+  url     = {https://arxiv.org/abs/2505.12686},
+  note    = {PREPRINT, not refereed -- the PDF still carries an unfilled ACM
+             template block and arXiv lists no venue. Cite as a preprint. Closest
+             existing analogue to our held-out-encoder ablation: Sec. 6.3 crafts
+             against the encoders of SV2TTS, YourTTS and AVC and evaluates on
+             Tortoise, "which was entirely excluded from the training process".
+             But the held-out unit is named as a SYNTHESIZER, the encoder
+             exclusion is a consequence rather than the framing, and it is a
+             single hold-out, not a rotation.}
+}
+
+@inproceedings{chen2025songbsab,
+  title     = {SongBsAb: A Dual Prevention Approach against Singing Voice
+               Conversion based Illegal Song Covers},
+  author    = {Chen, Guangke and Zhang, Yedi and others},
+  booktitle = {Network and Distributed System Security Symposium (NDSS)},
+  year      = {2025},
+  url       = {https://arxiv.org/abs/2401.17133},
+  note      = {The strongest crafting/victim encoder disjointness in the
+               literature: Sec. V-A uses 8 identity encoders that are "different
+               from those used in all SVC models", and Sec. V-C crafts with each.
+               Disjoint BY CONSTRUCTION rather than by holding out an ensemble
+               member, and the domain is singing voice conversion, not speech.}
+}
+
+@inproceedings{yang2024rwvoiceshield,
+  title     = {RW-VoiceShield: Raw Waveform-based Adversarial Attack on One-shot
+               Voice Conversion},
+  author    = {Yang, others},
+  booktitle = {Interspeech},
+  year      = {2024},
+  url       = {https://www.isca-archive.org/interspeech_2024/yang24e_interspeech.html},
+  note      = {Genuine encoder mismatch, single surrogate: their black-box setting
+               retrains a speaker encoder with a modified hidden size and crafts
+               against that instead of the one FreeVC uses.}
+}
+
+@inproceedings{yu2025mimicblocker,
+  title     = {Mimic Blocker: Self-Supervised Adversarial Training for Voice
+               Conversion Defense with Pretrained Feature Extractors},
+  author    = {Yu, Gwangyeol and Lee, Junhyeok and Kim, Seoryeong and
+               Lee, Jimin and Lee, Jehyuk},
+  booktitle = {Interspeech},
+  year      = {2025},
+  url       = {https://www.isca-archive.org/interspeech_2025/yu25c_interspeech.pdf},
+  note      = {Sec. 3.1 swaps the crafting extractor (WavLM -> HuBERT) to define
+               its black-box setting, and documents the field's prior convention:
+               black-box previously meant the speaker encoder was RETRAINED on new
+               data, not held out of an ensemble.}
+}
+
+@article{vanle2023antidreambooth,
+  title   = {Anti-DreamBooth: Protecting Users from Personalized Text-to-Image
+             Synthesis},
+  author  = {Van Le, Thanh and Phung, Hao and Nguyen, Thuan Hoang and
+             Dao, Quan and Tran, Ngoc and Tran, Anh},
+  journal = {arXiv preprint arXiv:2303.15433},
+  year    = {2023},
+  url     = {https://arxiv.org/abs/2303.15433},
+  note    = {The image-domain contrast for our related work: Sec. 5.4 makes
+             model mismatch one of three first-class "adverse settings", with an
+             ensemble variant over SD v1.4/v1.5/v2.1. Held-out-model transfer is
+             a designated evaluation category there and is not one in speech.}
+}
+
+@article{pu2025freetalk,
+  title   = {FreeTalk: A Plug-and-Play and Black-Box Defense against Speech
+             Synthesis Attacks},
+  author  = {Pu, others and Feng, others and Zhou, others and Chen, others and
+             Hu, others and Ji, others},
+  journal = {arXiv preprint arXiv:2509.00561},
+  year    = {2025},
+  url     = {https://arxiv.org/abs/2509.00561},
+  note    = {THE closest prior art to a held-out-encoder protocol, and the one a
+             reviewer will raise. Table II is a full 4x4 crafting-encoder x
+             evaluation-encoder matrix (CAM++, ECAPA, ERes2Net, ResNet on both
+             axes), so every off-diagonal cell is genuine unseen-encoder transfer;
+             the main experiments craft with X-Vector and evaluate on four
+             encoders disjoint from it. It never uses the words held-out,
+             leave-one-out or unseen encoder, and the matrix is not the headline
+             metric -- but the numbers exist. Do NOT claim "no prior work
+             evaluates on unseen speaker encoders": this falsifies it.}
+}
+
+@inproceedings{wang2025clearmask,
+  title     = {ClearMask: Noise-Free and Naturalness-Preserving Protection
+               Against Voice Deepfake Attacks},
+  author    = {Wang, others},
+  booktitle = {ACM Asia Conference on Computer and Communications Security
+               (ASIA CCS)},
+  year      = {2025},
+  doi       = {10.1145/3708821.3733881},
+  url       = {https://arxiv.org/abs/2508.17660},
+  note      = {Crafting ensemble is genuinely an ensemble of SPEAKER ENCODERS
+               (AdaIN-VC, AutoVC, SV2TTS), and Table 2 splits surrogate from test
+               models with an "Encoder Architecture" column, the test side
+               including DiffVC. Two independent reads of this paper disagreed on
+               whether it qualifies as a held-out-ENCODER protocol; the careful
+               reading is that it does not -- the unit held out is the synthesis
+               model, Sec. 5.2 frames it as "unseen voice synthesis models", and
+               the words held-out/leave-one-out/excluded do not appear. Cite as
+               the closest ensemble-of-encoders design, not as the protocol.}
+}
+
+% ============================================================================
+% Added 2026-09-22. Seventeen entries for tools, metrics, statistics and
+% baselines the paper already relies on. Every field below was checked against
+% the primary record the same day: arXiv abstract pages for preprints, Crossref
+% registered metadata (api.crossref.org) for IEEE/JSTOR items whose landing
+% pages block automated readers, the AAAI OJS page for VoiceCloak.
+% ============================================================================
+
+% ---- corpus and speaker encoders -------------------------------------------
+
+@inproceedings{panayotov2015librispeech,
+  title     = {Librispeech: An {ASR} corpus based on public domain audio books},
+  author    = {Panayotov, Vassil and Chen, Guoguo and Povey, Daniel and Khudanpur, Sanjeev},
+  booktitle = {2015 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  pages     = {5206--5210}, year = {2015},
+  doi       = {10.1109/ICASSP.2015.7178964},
+  note      = {Evaluation corpus. We use test-clean; purifier v7 is trained on train-clean-100, which is disjoint.}
+}
+
+@article{chen2022wavlm,
+  title     = {{WavLM}: Large-Scale Self-Supervised Pre-Training for Full Stack Speech Processing},
+  author    = {Chen, Sanyuan and Wang, Chengyi and Chen, Zhengyang and Wu, Yu and Liu, Shujie and Chen, Zhuo and Li, Jinyu and Kanda, Naoyuki and Yoshioka, Takuya and Xiao, Xiong and Wu, Jian and Zhou, Long and Ren, Shuo and Qian, Yanmin and Qian, Yao and Wu, Jian and Zeng, Michael and Yu, Xiangzhan and Wei, Furu},
+  journal   = {IEEE Journal of Selected Topics in Signal Processing},
+  year      = {2022}, doi = {10.1109/JSTSP.2022.3188113},
+  eprint    = {2110.13900}, archivePrefix = {arXiv},
+  note      = {The WavLM-SV encoder is the public microsoft/wavlm-base-plus-sv checkpoint: WavLM-Base-Plus with a trained x-vector head on VoxCeleb1.}
+}
+
+@inproceedings{desplanques2020ecapa,
+  title     = {{ECAPA-TDNN}: Emphasized Channel Attention, Propagation and Aggregation in {TDNN} Based Speaker Verification},
+  author    = {Desplanques, Brecht and Thienpondt, Jenthe and Demuynck, Kris},
+  booktitle = {Proc. Interspeech 2020},
+  year      = {2020}, doi = {10.21437/Interspeech.2020-2650},
+  eprint    = {2005.07143}, archivePrefix = {arXiv},
+  note      = {Used through SpeechBrain spkrec-ecapa-voxceleb.}
+}
+
+@article{ravanelli2021speechbrain,
+  title     = {{SpeechBrain}: A General-Purpose Speech Toolkit},
+  author    = {Ravanelli, Mirco and Parcollet, Titouan and Plantinga, Peter and Rouhe, Aku and Cornell, Samuele and Lugosch, Loren and Subakan, Cem and Dawalatabad, Nauman and Heba, Abdelwahab and Zhong, Jianyuan and Chou, Ju-Chieh and Yeh, Sung-Lin and Fu, Szu-Wei and Liao, Chien-Feng and Rastorgueva, Elena and Grondin, Fran{\c{c}}ois and Aris, William and Na, Hwidong and Gao, Yan and De Mori, Renato and Bengio, Yoshua},
+  journal   = {arXiv preprint arXiv:2106.04624}, year = {2021},
+  eprint    = {2106.04624}, archivePrefix = {arXiv}
+}
+
+@inproceedings{wan2018ge2e,
+  title     = {Generalized End-to-End Loss for Speaker Verification},
+  author    = {Wan, Li and Wang, Quan and Papir, Alan and Lopez Moreno, Ignacio},
+  booktitle = {2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  year      = {2018},
+  eprint    = {1710.10467}, archivePrefix = {arXiv},
+  note      = {The d-vector encoder. Resemblyzer is a public reimplementation of this model and is the speaker encoder DiffVC vendors (shared checkpoint, RESULTS 20). Pages not verified; arXiv page states ICASSP 2018.}
+}
+
+@inproceedings{snyder2018xvectors,
+  title     = {X-Vectors: Robust {DNN} Embeddings for Speaker Recognition},
+  author    = {Snyder, David and Garcia-Romero, Daniel and Sell, Gregory and Povey, Daniel and Khudanpur, Sanjeev},
+  booktitle = {2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  pages     = {5329--5333}, year = {2018},
+  doi       = {10.1109/ICASSP.2018.8461375},
+  note      = {De-AntiFake's scoring encoder. Tested as a fourth crafting member and rejected (RESULTS 24): separation 0.062.}
+}
+
+% ---- diffusion sampling and vocoding ---------------------------------------
+
+@inproceedings{song2021ddim,
+  title     = {Denoising Diffusion Implicit Models},
+  author    = {Song, Jiaming and Meng, Chenlin and Ermon, Stefano},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021},
+  eprint    = {2010.02502}, archivePrefix = {arXiv},
+  note      = {The deterministic reverse sampler we differentiate through (--sampler ddim).}
+}
+
+@article{griffin1984signal,
+  title     = {Signal estimation from modified short-time {Fourier} transform},
+  author    = {Griffin, Daniel and Lim, Jae},
+  journal   = {IEEE Transactions on Acoustics, Speech, and Signal Processing},
+  volume    = {32}, number = {2}, pages = {236--243}, year = {1984},
+  doi       = {10.1109/TASSP.1984.1164317},
+  note      = {The attacker's mel-to-waveform resynthesis in our purification channel.}
+}
+
+% ---- perceptual metrics ----------------------------------------------------
+
+@inproceedings{rix2001pesq,
+  title     = {Perceptual evaluation of speech quality ({PESQ})---a new method for speech quality assessment of telephone networks and codecs},
+  author    = {Rix, Antony W. and Beerends, John G. and Hollier, Michael P. and Hekstra, Andries P.},
+  booktitle = {2001 IEEE International Conference on Acoustics, Speech, and Signal Processing (ICASSP)},
+  volume    = {2}, pages = {749--752}, year = {2001},
+  doi       = {10.1109/ICASSP.2001.941023},
+  note      = {Standardised as ITU-T Recommendation P.862 (2001).}
+}
+
+@article{taal2011stoi,
+  title     = {An Algorithm for Intelligibility Prediction of Time--Frequency Weighted Noisy Speech},
+  author    = {Taal, Cees H. and Hendriks, Richard C. and Heusdens, Richard and Jensen, Jesper},
+  journal   = {IEEE Transactions on Audio, Speech, and Language Processing},
+  volume    = {19}, number = {7}, pages = {2125--2136}, year = {2011},
+  doi       = {10.1109/TASL.2011.2114881}
+}
+
+% ---- statistics ------------------------------------------------------------
+
+@article{holm1979simple,
+  title     = {A Simple Sequentially Rejective Multiple Test Procedure},
+  author    = {Holm, Sture},
+  journal   = {Scandinavian Journal of Statistics},
+  volume    = {6}, number = {2}, pages = {65--70}, year = {1979},
+  note      = {Every confirmatory family in the paper is Holm-corrected (analyse\_mismatch.py).}
+}
+
+@article{wilcoxon1945individual,
+  title     = {Individual Comparisons by Ranking Methods},
+  author    = {Wilcoxon, Frank},
+  journal   = {Biometrics Bulletin},
+  volume    = {1}, number = {6}, pages = {80--83}, year = {1945},
+  doi       = {10.2307/3001968},
+  note      = {Paired signed-rank test on the decision margin. Crossref lists the first page only; 80--83 is the standard span.}
+}
+
+% ---- adaptive attacks and purification for speaker verification -----------
+
+@inproceedings{tramer2020fundamental,
+  title     = {Fundamental Tradeoffs between Invariance and Sensitivity to Adversarial Perturbations},
+  author    = {Tram{\`e}r, Florian and Behrmann, Jens and Carlini, Nicholas and Papernot, Nicolas and Jacobsen, J{\"o}rn-Henrik},
+  booktitle = {Proceedings of the 37th International Conference on Machine Learning (ICML)},
+  year      = {2020}, publisher = {PMLR},
+  eprint    = {2002.04599}, archivePrefix = {arXiv},
+  note      = {Fix T4. Invariance-based vs sensitivity-based failure modes; the encoder-transfer discussion sits on this distinction.}
+}
+
+@article{bai2026positive,
+  title     = {Positive-Incentive Noise Predictor for Adversarial Purification in Speaker Verification},
+  author    = {Bai, Yibo and Chen, Sizhou and Panariello, Michele and Ma, Hao and Zhang, Xiao-Lei and Li, Xuelong and Todisco, Massimiliano and Evans, Nicholas},
+  journal   = {arXiv preprint arXiv:2607.00899}, year = {2026},
+  eprint    = {2607.00899}, archivePrefix = {arXiv},
+  note      = {Fix T4. Submitted to IEEE TASLP, July 2026. Finds that the FORWARD noising step provides most of a diffusion purifier's robustness gain -- directly relevant to how we choose purifier strength t by damage matching rather than by step count.}
+}
+
+% ---- voice-protection baselines used for conventions and comparison -------
+
+@article{abbasihafshejani2026vocalbridge,
+  title     = {{VocalBridge}: Latent Diffusion-Bridge Purification for Defeating Perturbation-Based Voiceprint Defenses},
+  author    = {Abbasihafshejani, Maryam and Sakib, AHM Nazmus and Jadliwala, Murtuza},
+  journal   = {arXiv preprint arXiv:2601.02444}, year = {2026},
+  eprint    = {2601.02444}, archivePrefix = {arXiv},
+  note      = {Unpublished preprint, no venue as of 2026-09-22. Cited for (i) its Sec. V-E adaptive-protection result and (ii) its 0.6 percent same-session EER, the comparison point for fix S1.}
+}
+
+@inproceedings{zhang2025safespeech,
+  title     = {{SafeSpeech}: Robust and Universal Voice Protection Against Malicious Speech Synthesis},
+  author    = {Zhang, Zhisheng and Wang, Derui and Yang, Qianyi and Huang, Pengyang and Pu, Junhan and Cao, Yuxin and Ye, Kai and Hao, Jie and Yang, Yixian},
+  booktitle = {34th USENIX Security Symposium (USENIX Security 25)},
+  year      = {2025},
+  eprint    = {2504.09839}, archivePrefix = {arXiv},
+  note      = {Venue from the arXiv comments field ("Accepted to USENIX Security 2025"); pages not verified. Cited for the cosine-0.25 clone-success convention and WER as content preservation.}
+}
+
+@article{hu2026voicecloak,
+  title     = {{VoiceCloak}: A Multi-Dimensional Defense Framework Against Unauthorized Diffusion-Based Voice Cloning},
+  author    = {Hu, Qianyue and Wu, Junyan and Lu, Wei and Luo, Xiangyang},
+  journal   = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume    = {40}, number = {1}, pages = {399--407}, year = {2026},
+  doi       = {10.1609/aaai.v40i1.37002},
+  eprint    = {2505.12332}, archivePrefix = {arXiv},
+  note      = {Cited for the cosine-0.25 convention; a diffusion-based cloner defence, positioned in related work.}
+}
+
+@misc{gilkey2024librispeechalignments,
+  title        = {librispeech-alignments: {MFA} word- and phoneme-level alignments for {LibriSpeech}},
+  author       = {Gilkey, Kim and Lugosch, Loren},
+  year         = {2024},
+  howpublished = {Hugging Face dataset \url{https://huggingface.co/datasets/gilkeyio/librispeech-alignments}},
+  note         = {CC-BY-4.0. Montreal Forced Aligner alignments (english\_us\_arpa, 69 stress-marked ARPAbet labels + spn) shared by Loren Lugosch and packaged by Kim Gilkey. Used 2026-09-22 to supply PhonePuRe stage 2 with phoneme timings for our 29 test-clean reference utterances, replacing MFA at inference; the original CorentinJ Google Drive archive was blocked by Google's large-file gate. Year is the dataset's upload year as shown on the card; verify before typesetting.}
+}
