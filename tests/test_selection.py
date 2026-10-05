@@ -55,11 +55,24 @@ SCALES = (0.08960, 0.09955, 0.06524)
 
 def _import():
     """exp_purifier_aware imports torch._dynamo / transformers / speechbrain at
-    module level; skip rather than fail if that environment is unavailable."""
+    module level; skip rather than fail if that environment is unavailable.
+
+    It also replaces `sys.stdout` with a UTF-8 TextIOWrapper around
+    `sys.stdout.buffer` at import time -- every experiment script in this
+    project does, to survive cp1252 consoles. Under pytest that wrapper is
+    built around the capture object and left in place, so pytest's own
+    end-of-session summary writes to a closed file and the run exits 1 with
+    `ValueError: I/O operation on closed file` even though every test passed.
+    A suite that fails while passing is worse than one that fails, so stdout is
+    snapshotted and restored around the import.
+    """
+    saved_out, saved_err = sys.stdout, sys.stderr
     try:
         from experiments.exp_purifier_aware import agg_lse, ship_score
     except Exception as exc:                        # pragma: no cover
         pytest.skip(f"exp_purifier_aware not importable here: {exc}")
+    finally:
+        sys.stdout, sys.stderr = saved_out, saved_err
     return agg_lse, ship_score
 
 
