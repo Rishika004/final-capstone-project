@@ -130,6 +130,8 @@ the one architecturally different purifier (§29) breaks it. **[PENDING #2]**
 | "k of n speakers; sign test at its attainable minimum" | floor p-values quoted as strength |
 | ranges pooled over three seeds, n stated, n ≥ 12 | any single-seed binary rate as a point estimate |
 | "null unpurified on WavLM and ECAPA" (after #8) | "a trade" — there is no cost term on the new base (§27c) |
+| "n unpaid colleagues, k of them naive to the method", with the recruitment route in the same sentence | "a listening test with n listeners"; any bare MOS from this panel |
+| "UTMOS / NISQA are MOS *predictors*" | "MOS" for an automated score |
 
 ---
 
@@ -163,6 +165,21 @@ across encoders. Re-check before submission.
   the paper.
 * **#13b contradicts C1**: report it. A failed prospective test is a result; a
   skipped one is a hole.
+* **The listening panel is unpaid colleagues, not 20–25 paid naive listeners**
+  (decided 2026-10-05). PLAN_V3's 20 Jan gate reads "no human listening data →
+  SPSC". A convenience panel is not the same as satisfying that gate, so the
+  gate is sharpened here before the data exists, not after:
+  * The decision is read off the **naive subgroup alone**. Non-naive ratings
+    are reported beside it and never substituted for it.
+  * Interspeech needs the naive subgroup to carry the two claims the test
+    exists for — the shipping arm is not catastrophically unnatural, and it is
+    still heard as the same speaker — with the panel size stated in the
+    sentence that states the number.
+  * If the naive subgroup is too small to support those, the result is reported
+    as a pilot and the venue moves, exactly as a null would. "We ran a
+    listening test" with five non-naive colleagues is weaker than reporting no
+    panel and saying why, because the first invites a reviewer to discover the
+    composition and the second does not.
 
 ---
 
