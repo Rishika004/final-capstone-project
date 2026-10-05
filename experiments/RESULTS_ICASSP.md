@@ -3431,3 +3431,104 @@ and not, so it is the one to report. (An earlier draft of this section said
   (diffpure t=50, DiffWave t=1/t=3). Only the clean channel has raw scores so
   far; the others need the same `--dump-scores` re-run, which is ~1 GPU-h and
   is the remaining piece of this item.
+
+---
+
+## 43. C1 robustness: α is unchanged through the d-vector's real front end, and the cohort discrepancy is closed (2026-10-06)
+
+`experiments/exp_encoder_subspace.py --n-files 29 --cross-session
+--dvec-frozen-vad --t 50,200 --seeds 2026,7`;
+`encoder_subspace_xsess_fe.csv`. PLAN_V3 W2's C1 robustness row, which also
+settles §37e.
+
+### 43a. Two questions, one run
+
+**The robustness question.** §32/§37 compute α(g_dvec) through `DvecEnc.embed`
+— the torch-mel partial average with **no** `preprocess_wav`. The real
+evaluation path trims silence first. So a reviewer can ask whether the
+d-vector's low α is a property of the encoder or of the front end it was
+measured without. That is council #10's objection aimed one level upstream,
+at the *direction* rather than at the protection, and §41 does not answer it.
+
+`preprocess_wav` is not differentiable: the VAD decision is a hard threshold.
+Freezing that decision **on the clean signal** makes the rest differentiable —
+the trim becomes a fixed index selection — and §38 measured the
+volume-normalisation gain at exactly 0.000 dB across this cohort, so there is
+nothing else in `preprocess_wav` to model. Freezing on the clean signal is
+legitimate precisely because the quantity is a property of the clean utterance.
+The twin is measured as an additional direction, so it is paired per speaker
+with the native one and gets its own matched control.
+
+**The cohort question.** §37e found that the α table was computed on
+`sorted(ref)[:29]` while the rest of the paper uses the cross-session-filtered
+set: 21 of 29 shared, 8 not. α is pure geometry so it was valid on its own
+terms, but §32/§37 could not be paired per speaker with §27/§33. This run uses
+`--cross-session`, i.e. the reported cohort.
+
+### 43b. The front end does not move α
+
+Paired per speaker, n = 29, frozen-VAD minus native:
+
+| t | native α | through the real front end | Δ | 95 % CI | p |
+|---|---|---|---|---|---|
+| 50 | 0.3880 | 0.3907 | **+0.0027** | [−0.0176, +0.0182] | 0.51 |
+| 200 | 0.2622 | 0.2653 | **+0.0031** | [−0.0106, +0.0134] | 0.37 |
+
+Nothing. Both intervals straddle zero, and the point estimates are a hundredth
+of the gap C1 is about (α 0.568 against 0.388 across encoders). **α(g_dvec) is
+not an artefact of measuring it without `preprocess_wav`.**
+
+The ordering is untouched, with the twin landing on top of the native d-vector
+at both timesteps:
+
+> t = 50: WavLM-SV 0.568 > ECAPA 0.463 > d-vector (frozen VAD) 0.391 ≈ d-vector 0.388
+> t = 200: WavLM-SV 0.369 > ECAPA 0.302 > d-vector (frozen VAD) 0.265 ≈ d-vector 0.262
+
+### 43c. The council #3 gate still clears, on the reported cohort
+
+All four directions, including the twin, against their own band-matched
+controls, Holm over four:
+
+| direction | α | matched control | Δ | 95 % CI | below | p_holm |
+|---|---|---|---|---|---|---|
+| WavLM-SV | 0.568 | 0.708 | −0.1398 | [−0.1625, −0.1111] | 27/29 | 2.6e−08 |
+| ECAPA-TDNN | 0.463 | 0.711 | −0.2483 | [−0.2878, −0.2033] | 28/29 | 2.2e−08 |
+| d-vector | 0.388 | 0.702 | −0.3139 | [−0.3653, −0.2603] | 28/29 | 2.2e−08 |
+| d-vector *(frozen VAD)* | 0.391 | 0.699 | −0.3087 | [−0.3576, −0.2578] | **29/29** | 1.5e−08 |
+
+`pca_span` 0.844 and `random` 0.714 reproduce §37d: the invariant subspace is
+speech-shaped, and every encoder direction points substantially out of it.
+
+### 43d. The cohort correction, and what it costs
+
+| encoder | §37 cohort | reported cohort | shift |
+|---|---|---|---|
+| WavLM-SV | 0.573 | 0.568 | −0.005 |
+| ECAPA-TDNN | 0.490 | 0.463 | −0.028 |
+| d-vector | 0.406 | 0.388 | −0.019 |
+
+Overlap is 21 of 29 exactly as §37e said; the eight swapped speakers are
+listed in the CSV. The shifts are small, the ordering is unchanged, and the
+gate verdict is unchanged. **So §37e cost the paper nothing except the right to
+say "the same 29 speakers" — and that right is now bought back.** §32/§37 may
+be paired per speaker with §27/§33 from here, using
+`encoder_subspace_xsess_fe.csv`; the older `encoder_subspace_matched.csv`
+stays on disk as the record of what §37 reported and should not be mixed with
+it.
+
+**Which file the paper quotes:** this one. Fig. 1 is built from
+`encoder_subspace_xsess_fe.csv`, and §32/§37's numbers are restated at the
+values above. The differences are within a fiftieth everywhere, so no
+conclusion moves, but two tables quoting α to three decimals from two cohorts
+would be the §25 failure mode in miniature.
+
+### 43e. What is now closed, and what C1 still owes
+
+Closed: #3 (matched controls, §37), the front-end objection at the protection
+level (#10, §41) and at the direction level (this section), and the cohort
+discrepancy (§37e).
+
+Still open for C1, both scheduled: **#13c**, the same α measurement through
+DiffWave, so the explanation and the phenomenon live on the same purifier; and
+**#13b**, the prospective test on CAM++ and ERes2Net that turns C1 from an
+explanation into a prediction.
