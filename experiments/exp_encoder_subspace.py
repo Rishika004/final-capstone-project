@@ -58,6 +58,17 @@ the one case we already know is not a criterion.
 
 Baselines, so the alphas are interpretable rather than free-floating:
   * random  -- a Gaussian mel direction of identical norm.
+  * band_matched:<enc>  -- MATCHED CONTROL, one per encoder (council #3,
+    PLAN_V3 W1): white noise carrying that encoder direction's own per-mel-band
+    power profile, same norm. Matched on the spectral envelope, random in
+    direction. If an encoder direction survives no worse than its own matched
+    control, alpha is measuring spectral smoothness, not a per-encoder subspace,
+    and C1 is a spectral claim. See core/matched_random.py for the
+    pre-registered reading of each branch.
+  * pca_span  -- MATCHED CONTROL: every frame inside the span of the top-k
+    principal components of CLEAN log-mel frames, built from a subset disjoint
+    from the evaluation speakers. As smooth and speech-like as the corpus
+    allows, and blind to every encoder.
   * (reference, not recomputed here) the OPTIMISED pass-through direction and
     random, measured on this purifier in survival_tc_v7.csv: alpha 0.867 vs
     0.713 at t=50, 0.525 vs 0.466 at t=200. An encoder direction near the
@@ -87,6 +98,9 @@ import torch
 import torch._dynamo   # noqa: F401  (import-order gotcha; see exp_purifier_aware)
 import transformers    # noqa: F401
 
+from core.matched_random import clean_mel_basis, controls_for, DEFAULT_K
+from utils.provenance import provenance, add_prereg_arg
+
 OUT = os.path.join(PROJ, "experiments", "results", "encoder_subspace.csv")
 
 
@@ -104,8 +118,18 @@ def main():
     ap.add_argument("--with-xvector", action="store_true", dest="with_xvector",
                     help="include x-vector, the retro-validation case (RESULTS 24b)")
     ap.add_argument("--subset", default="test-clean")
+    ap.add_argument("--pca-k", type=int, default=DEFAULT_K, dest="pca_k",
+                    help="components the pca_span control is confined to")
+    ap.add_argument("--pca-subset", default="dev-clean", dest="pca_subset",
+                    help="corpus for the clean-mel PCA basis; MUST be disjoint "
+                         "from --subset or the control sees the eval speakers")
+    ap.add_argument("--no-controls", action="store_true", dest="no_controls",
+                    help="omit the council #3 matched controls, reproducing the "
+                         "2026-10-01 run exactly")
     ap.add_argument("--out", default=OUT)
+    add_prereg_arg(ap)
     a = ap.parse_args()
+    PROV = provenance(a.prereg)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ts = [int(v) for v in a.t.split(",")]
@@ -128,12 +152,33 @@ def main():
                           sampler=a.sampler).to(device).eval() for t in ts}
     encs = build_encoders(device, with_xvector=a.with_xvector)
 
+    # The matched controls (council #3). Built once, before the speaker loop:
+    # the basis is a property of the corpus, not of any evaluation speaker.
+    basis, pca_info = (None, {})
+    if not a.no_controls:
+        if a.pca_subset == a.subset:
+            raise SystemExit(
+                f"[A2] --pca-subset == --subset ({a.subset}): the clean-PCA "
+                "control would be built from the speakers it controls for. "
+                "Pass a disjoint subset.")
+        basis, pca_info = clean_mel_basis(k=a.pca_k, subset=a.pca_subset,
+                                          device=device)
+
     items = list_librispeech(os.path.join(PROJ, "data", "librispeech"),
                              a.subset, min_sec=4.0)
     ref = reference_items(items, min_sec=4.0)
     spks = sorted(ref)[: a.n_files]
     print(f"[A2] {len(spks)} speakers | purifier {os.path.basename(a.ckpt)} "
           f"({a.sampler}) t={ts} | encoders: {[e.name for e in encs]}")
+    print(f"[A2] code_sha={PROV['code_sha']} prereg_sha={PROV['prereg_sha'] or '-'}")
+    if basis is None:
+        print("[A2] matched controls DISABLED (--no-controls): white noise is the "
+              "only baseline, which is council defect #3.")
+    else:
+        print(f"[A2] matched controls ON: band_matched per encoder + pca_span "
+              f"(k={a.pca_k} from {a.pca_subset}, "
+              f"{pca_info.get('var_explained', float('nan')):.1%} of clean "
+              f"log-mel variance)")
     print("[A2] alpha = how much of the encoder's own identity direction the "
           "purifier passes through (1.0 = untouched).")
     print("[A2] reference on this purifier (survival_tc_v7.csv): optimised "
@@ -169,9 +214,28 @@ def main():
         dirs["random"] = unit(torch.randn(mel_o.shape, generator=gen,
                                           device=device)).detach()
 
+        # One band-matched control per encoder direction (its own envelope),
+        # and a single pca_span control -- every direction here is scaled to the
+        # same per-element RMS, so one norm-matched span draw serves them all.
+        controls = {}
+        if basis is not None:
+            for e in encs:
+                c = controls_for(dirs[e.name], None, seed=spk)
+                controls[f"band_matched:{e.name}"] = c["band_matched"]
+            controls["pca_span"] = controls_for(
+                dirs[encs[0].name], basis, seed=spk)["pca_span"]
+        dirs.update(controls)
+
         for name, d in dirs.items():
             r = dict(speaker=spk, direction=name,
-                     rms=round(float(d.pow(2).mean().sqrt()), 4))
+                     rms=round(float(d.pow(2).mean().sqrt()), 4),
+                     is_control=name.startswith(("band_matched", "pca_span")),
+                     controls_for=(name.split(":", 1)[1]
+                                   if name.startswith("band_matched:") else ""),
+                     pca_k=(a.pca_k if name == "pca_span" else ""),
+                     pca_subset=(a.pca_subset if name == "pca_span" else ""),
+                     pca_var=(pca_info.get("var_explained", "")
+                              if name == "pca_span" else ""))
             for t in ts:
                 psr, cosv, alpha, nsr = survival(dps[t], mel_o, d, seeds,
                                                  full=True)
@@ -179,10 +243,19 @@ def main():
                 r[f"nsr_t{t}"] = round(nsr, 4)
                 r[f"psr_t{t}"] = round(psr, 4)
                 r[f"dircos_t{t}"] = round(cosv, 4)
+            r.update(PROV)
             rows.append(r)
-        print(f"  [{i + 1}/{len(spks)}] spk{spk}  " + "  ".join(
-            f"{n.split()[0][:9]}={[x for x in rows if x['speaker'] == spk and x['direction'] == n][0][f'alpha_t{ts[0]}']:+.3f}"
-            for n in dirs), flush=True)
+        got = {x["direction"]: x[f"alpha_t{ts[0]}"] for x in rows
+               if x["speaker"] == spk}
+        print(f"  [{i + 1}/{len(spks)}] spk{spk}")
+        print("        encoder " + "  ".join(
+            f"{e.name.split()[0][:9]}={got[e.name]:+.3f}" for e in encs)
+            + f"  random={got['random']:+.3f}")
+        if basis is not None:
+            print("        control " + "  ".join(
+                f"{e.name.split()[0][:9]}={got[f'band_matched:{e.name}']:+.3f}"
+                for e in encs) + f"  pca_span={got['pca_span']:+.3f}")
+        sys.stdout.flush()
         pd.DataFrame(rows).to_csv(a.out, index=False)
 
     df = pd.DataFrame(rows)
@@ -191,6 +264,33 @@ def main():
     print("=" * 74)
     cols = [c for c in df.columns if c.startswith(("alpha", "nsr"))]
     print(df.groupby("direction")[cols].mean().round(3).to_string())
+
+    if basis is not None:
+        # The council #3 gate, paired per speaker. Printed here so the verdict
+        # is in the log beside the numbers it is read from; the CI and the
+        # Wilcoxon p are computed in analyse_matched_control.py.
+        a_t = f"alpha_t{ts[0]}"
+        piv = df.pivot_table(index="speaker", columns="direction", values=a_t)
+        print("\n" + "=" * 74)
+        print(f"COUNCIL #3 GATE -- paired alpha({a_t}) vs the MATCHED control, "
+              f"n={len(piv)}")
+        print("=" * 74)
+        print(f"  {'encoder':22s} {'alpha':>7s} {'matched':>8s} {'delta':>8s} "
+              f"{'below':>7s}  {'vs pca_span':>11s}")
+        for e in encs:
+            bm = f"band_matched:{e.name}"
+            if e.name not in piv or bm not in piv:
+                continue
+            d = piv[e.name] - piv[bm]
+            dp = piv[e.name] - piv["pca_span"] if "pca_span" in piv else None
+            print(f"  {e.name[:22]:22s} {piv[e.name].mean():+7.3f} "
+                  f"{piv[bm].mean():+8.3f} {d.mean():+8.3f} "
+                  f"{int((d < 0).sum()):3d}/{len(d):<3d} "
+                  f"{(dp.mean() if dp is not None else float('nan')):+11.3f}")
+        print("\n  delta < 0 = the encoder direction survives WORSE than a random")
+        print("  direction with its own spectral envelope, which is what C1 claims.")
+        print("  Read against the pre-registered branches in core/matched_random.py;")
+        print("  the CI and Wilcoxon p decide, not these means.")
     print(f"\n[A2] saved {a.out}")
     print("[A2] Read against the pre-registered criteria in this file's docstring.")
 
