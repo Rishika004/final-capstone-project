@@ -128,13 +128,29 @@ questions and no right answers &mdash; we want your impression. You may replay
 anything as often as you like.</p></div>
 <div class="card"><div class="row"><label>Your participant ID &nbsp;
 <input id="who" style="font:inherit;padding:8px;border:1px solid #c9ced5;
-border-radius:7px"></label>
-<button class="primary" onclick="start()">Start</button></div>
+border-radius:7px"></label></div>
+<p style="margin-top:14px"><label>Are you listening through headphones or
+earphones? &nbsp;<select id="hp" style="font:inherit;padding:7px">
+<option value="">choose</option><option value="1">Yes</option>
+<option value="0">No, speakers</option></select></label></p>
+<p><label>Have you worked on this project, or heard these recordings before?
+&nbsp;<select id="nv" style="font:inherit;padding:7px">
+<option value="">choose</option><option value="1">No, neither</option>
+<option value="0">Yes</option></select></label></p>
+<p class="muted">Both answers are recorded with your ratings. Neither excludes
+you from taking part &mdash; they are needed because someone who already knows
+what the clips are can hear them differently, and that has to be visible in the
+analysis rather than hidden in it.</p>
+<div class="row"><button class="primary" onclick="start()">Start</button></div>
 <p class="muted" style="margin-top:10px">Your ID is used only to group your own
 answers together.</p></div>`}
 
 function start(){
  listener=(document.getElementById("who").value||"anon").trim();
+ headphones=document.getElementById("hp").value;
+ naive=document.getElementById("nv").value;
+ if(headphones===""||naive===""){
+  alert("Please answer the two questions above before starting.");return}
  seed=1;for(const ch of listener){seed=(seed*31+ch.charCodeAt(0))%%4294967296}
  seed=seed||1;
  const r=rng(seed);
@@ -191,21 +207,33 @@ function screen(){
 
 function done(){
  const s=screen();
- const hdr="listener,seed,block,stim_id,rating,order,screen_pass,anchor_hi_mean,anchor_lo_mean,build_seed";
+ const hdr="listener,seed,block,stim_id,rating,order,screen_pass,"
+  +"anchor_hi_mean,anchor_lo_mean,headphones,naive,build_seed";
  const csv=[hdr].concat(results.map(r=>[r.listener,r.seed,r.block,r.stim_id,
   r.rating,r.order,s.pass?1:0,
   isNaN(s.hi)?"":s.hi.toFixed(3),isNaN(s.lo)?"":s.lo.toFixed(3),
-  BUILD.seed].join(","))).join("\\n");
+  headphones,naive,BUILD.seed].join(","))).join("\\n");
  const blob=new Blob([csv],{type:"text/csv"});
  const url=URL.createObjectURL(blob);
  app.innerHTML=`<h1>Finished &mdash; thank you</h1>
-<div class="card"><p>Please return your answers in one of these two ways.</p>
+<div class="card"><p id="sent" class="muted">Sending your answers&hellip;</p>
 <p class="row"><a class="primary" style="text-decoration:none;padding:9px 16px;
  border-radius:8px;background:#1f6feb;color:#fff"
  href="${url}" download="listening_${listener}.csv">Download the CSV</a>
 <button onclick="copy()">Copy to clipboard</button></p>
-<p class="muted">Or copy the text below and paste it where you were asked to.</p>
-<textarea id="out" readonly>${csv}</textarea></div>`}
+<p class="muted">If the line above says your answers were saved, nothing more is
+needed. Otherwise please send the file or the text below to whoever asked you to
+take the test.</p>
+<textarea id="out" readonly>${csv}</textarea></div>`;
+ // Hand the submission straight to experiments/serve_listening_test.py when
+ // the page is being served by it. The download and copy buttons stay, because
+ // the page is also openable as a plain file with no server behind it.
+ fetch("submit",{method:"POST",headers:{"Content-Type":"text/csv"},body:csv})
+  .then(r=>{const el=document.getElementById("sent");
+   el.textContent=r.ok?"Your answers were saved. Thank you \\u2014 you can close this tab."
+    :"Could not save automatically (status "+r.status+"). Please return the file below.";})
+  .catch(()=>{const el=document.getElementById("sent");
+   el.textContent="Not saved automatically (no server). Please return the file below.";})}
 
 function copy(){const t=document.getElementById("out");t.select();
  navigator.clipboard.writeText(t.value).then(()=>{},()=>{})}
