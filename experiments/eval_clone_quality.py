@@ -97,6 +97,41 @@ SR = 16000
 CROP_SEC = 4.0
 
 
+def load_for_scoring(path, match_lufs=-23.0):
+    """Read, mono-mix, crop, and (by default) loudness-match before scoring.
+
+    LEVEL IS CONFOUNDED WITH CONDITION HERE, exactly as utils/loudness.py says
+    for the listening test: the protection is an SNR-constrained perturbation,
+    so a protected file is quieter than its original by construction, and the
+    clean original read straight off the FLAC is louder again than anything
+    load_flac wrote. NISQA reports a `loud` dimension and UTMOS is not level
+    invariant, so scoring unmatched audio would let a gain difference show up
+    as a naturalness difference between conditions.
+
+    Matching every condition to the same integrated loudness removes that,
+    and is what the listening-test stimuli already do (-23 LUFS). The measured
+    level before matching is kept in the CSV so the gain difference itself
+    stays visible rather than being quietly discarded.
+    """
+    from utils.loudness import integrated_lufs, normalise
+    y, sr = sf.read(path, dtype="float32")
+    if y.ndim > 1:
+        y = y.mean(axis=1)
+    y = y[: int(CROP_SEC * SR)]
+    if match_lufs is None:
+        return (np.ascontiguousarray(y, dtype=np.float32),
+                round(float(integrated_lufs(y, sr)), 2), 0.0, False)
+    # normalise() returns (scaled, info); info carries the measured input
+    # loudness, the gain applied, and whether the peak ceiling clamped it. A
+    # clamp means the file did NOT reach the target, so it is carried through to
+    # the CSV rather than dropped -- an unreached target is exactly the case
+    # where level is still confounded with condition.
+    y2, info = normalise(y, sr, target_lufs=match_lufs)
+    return (np.ascontiguousarray(y2, dtype=np.float32),
+            float(info["lufs_before"]), float(info["gain_db"]),
+            bool(info["clamped"]))
+
+
 # --------------------------------------------------------------- references
 def ground_truth_words(align, utt_id, crop=CROP_SEC):
     """Ground-truth words of `utt_id` whose MIDPOINT falls inside the crop.
@@ -176,8 +211,17 @@ def run_nisqa(files, workdir, python=None):
     if not os.path.isfile(weights):
         print(f"[Q] NISQA not vendored at {NISQA_DIR}; skipping its columns")
         return None
+    # A FRESH input directory every time. NISQA scores whatever is in the
+    # directory, so a leftover file from an earlier attempt would silently add
+    # rows -- and if it were an unmatched copy of a file scored here, the merge
+    # would attach the wrong loudness condition to a row.
     d_in = os.path.join(workdir, "nisqa_in")
+    if os.path.isdir(d_in):
+        shutil.rmtree(d_in)
     os.makedirs(d_in, exist_ok=True)
+    res = os.path.join(workdir, "NISQA_results.csv")
+    if os.path.isfile(res):
+        os.remove(res)
     for flat, src in files.items():
         shutil.copyfile(src, os.path.join(d_in, flat))
     cmd = [python or sys.executable, "run_predict.py", "--mode", "predict_dir",
@@ -186,12 +230,25 @@ def run_nisqa(files, workdir, python=None):
            "--num_workers", "0", "--bs", "4"]
     print(f"[Q] NISQA on {len(files)} files ...", flush=True)
     r = subprocess.run(cmd, cwd=NISQA_DIR, capture_output=True, text=True)
-    res = os.path.join(workdir, "NISQA_results.csv")
     if r.returncode != 0 or not os.path.isfile(res):
-        print(f"[Q] NISQA failed (exit {r.returncode}); "
-              f"stderr tail: {r.stderr[-400:]}")
-        return None
-    df = pd.read_csv(res).set_index("deg")
+        # Loud, and the whole message. A silent None here is how the first run
+        # produced a quality table with no NISQA columns and no explanation.
+        log = os.path.join(workdir, "nisqa_failed.log")
+        with open(log, "w", encoding="utf-8", errors="replace") as fh:
+            fh.write("cmd: %s\ncwd: %s\nexit: %s\n\n--- stdout ---\n%s"
+                     "\n\n--- stderr ---\n%s"
+                     % (cmd, NISQA_DIR, r.returncode, r.stdout, r.stderr))
+        raise SystemExit(
+            "[Q] NISQA failed (exit %s). Full output in %s.\n"
+            "    stderr tail: %s\n"
+            "    Re-run with --no-nisqa to produce the table without it, and "
+            "say so in the write-up."
+            % (r.returncode, log, r.stderr[-800:]))
+    df = pd.read_csv(res)
+    # NISQA has written `deg` as a bare basename and as a full path across
+    # versions; normalise so the merge key is always the basename we chose.
+    df["deg"] = df["deg"].astype(str).map(os.path.basename)
+    df = df.set_index("deg")
     keep = [c for c in ["mos_pred", "noi_pred", "dis_pred", "col_pred",
                         "loud_pred"] if c in df.columns]
     return df[keep].rename(columns={c: "nisqa_" + c.replace("_pred", "")
@@ -218,6 +275,10 @@ def main():
                     help="council #6 asks for whisper-large-v3; pass a smaller "
                          "checkpoint to trade accuracy for VRAM")
     ap.add_argument("--no-nisqa", action="store_true", dest="no_nisqa")
+    ap.add_argument("--match-lufs", type=float, default=-23.0, dest="match_lufs",
+                    help="integrated loudness every file is matched to before "
+                         "scoring, so level is not confounded with condition "
+                         "(utils/loudness.py). Pass 0 to disable.")
     ap.add_argument("--workdir", default=os.environ.get("TMPDIR") or
                     os.path.join(PROJ, "experiments", "results", "_qual_tmp"))
     ap.add_argument("--out", default=OUT)
@@ -227,6 +288,10 @@ def main():
     PROV = provenance(a.prereg)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     os.makedirs(a.workdir, exist_ok=True)
+    if a.match_lufs == 0:
+        a.match_lufs = None
+        print("[Q] WARNING: loudness matching OFF. Level is confounded with "
+              "condition here; see load_for_scoring.")
 
     from experiments.librispeech import (list_librispeech, reference_items,
                                          load_flac, cross_session_split)
@@ -300,12 +365,10 @@ def main():
     # MOS predictors plus NISQA do not fit beside it on a 6 GB card.
     print(f"[Q] pass 1/3  ASR {a.asr}", flush=True)
     transcribe, asr_model = load_asr(device, a.asr)
-    hyp, refs = {}, {}
+    hyp, refs, levels = {}, {}, {}
     for i, (key, (path, ref_spk)) in enumerate(sorted(work.items(), key=str)):
-        y, sr = sf.read(path, dtype="float32")
-        if y.ndim > 1:
-            y = y.mean(axis=1)
-        y = y[: int(CROP_SEC * SR)]
+        y, lufs_before, gain_db, clamped = load_for_scoring(path, a.match_lufs)
+        levels[key] = (lufs_before, gain_db, clamped)
         hyp[key] = transcribe(y)
         gt = ground_truth_words(align, utt_id(ref_spk))
         refs[key] = gt
@@ -328,10 +391,7 @@ def main():
     rows = []
     for key, (path, ref_spk) in sorted(work.items(), key=str):
         cond, spk = key
-        y, sr = sf.read(path, dtype="float32")
-        if y.ndim > 1:
-            y = y.mean(axis=1)
-        y = y[: int(CROP_SEC * SR)]
+        y, lufs_before, gain_db, clamped = load_for_scoring(path, a.match_lufs)
         w = torch.from_numpy(y).reshape(1, -1).float().to(device)
         with torch.no_grad():
             mos = float(utmos(w, SR))
@@ -349,6 +409,8 @@ def main():
             condition=cond, speaker=spk, wer_reference_speaker=ref_spk,
             is_clone=cond.startswith("clone:"),
             utmos=round(mos, 3), **sq,
+            lufs_before=round(lufs_before, 2), gain_db=round(gain_db, 2),
+            lufs_clamped=clamped, matched_lufs=a.match_lufs,
             wer=round(wer, 4) if wer == wer else np.nan,
             n_ref_words=(len(gt) if gt else 0), n_hyp_words=len(h.split()),
             flat=f"{cond.replace(':', '-')}__spk{spk}.wav", path=path, **PROV))
@@ -363,7 +425,18 @@ def main():
             del squim
         if device.type == "cuda":
             torch.cuda.empty_cache()
-        nis = run_nisqa(dict(zip(df.flat, df.path)), a.workdir)
+        # NISQA reads files, so it must read the LOUDNESS-MATCHED audio, not the
+        # originals -- otherwise its loud_pred (and its MOS) would be scored on
+        # a different signal than UTMOS was.
+        matched_dir = os.path.join(a.workdir, "matched")
+        os.makedirs(matched_dir, exist_ok=True)
+        flat_to_matched = {}
+        for flat, src in zip(df.flat, df.path):
+            y, _, _, _ = load_for_scoring(src, a.match_lufs)
+            mp = os.path.join(matched_dir, flat)
+            sf.write(mp, y, SR)
+            flat_to_matched[flat] = mp
+        nis = run_nisqa(flat_to_matched, a.workdir)
         if nis is not None:
             df = df.merge(nis, left_on="flat", right_index=True, how="left")
 
