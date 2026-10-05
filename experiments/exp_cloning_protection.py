@@ -50,7 +50,7 @@ discards most of the evidence (RESULTS section 10).
 Run:
   python experiments/exp_cloning_protection.py --n-files 20 --purifiers none,diffwave
 """
-import sys, io, os, argparse, time
+import sys, io, os, argparse, time, zlib
 
 if not getattr(sys.stdout, "_nvp_utf8", False):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8",
@@ -188,6 +188,11 @@ def main():
                          "results/purifier_aware/clones/ so the ATTACKER's "
                          "output can be quality-scored (council #6). ~22 MB for "
                          "a 29-speaker run.")
+    ap.add_argument("--clone-seed", type=int, default=None, dest="clone_seed",
+                    help="seed DiffVC's diffusion sampler per (speaker, arm, "
+                         "purifier) so this run is reproducible. Default off: "
+                         "every cloning CSV on disk was written unseeded and "
+                         "passing a seed would change those numbers.")
     ap.add_argument("--out", default=OUT)
     add_prereg_arg(ap)
     args = ap.parse_args()
@@ -285,6 +290,20 @@ def main():
                 else:
                     with torch.no_grad():
                         ref_pur = pur(ref_wav)
+                # DiffVC is a DIFFUSION model: generator.forward draws noise for
+                # each of its 30 timesteps from the global RNG, so two runs of
+                # this script produce different clones and different binary
+                # rates (RESULTS 31b measured 32 % of unprotected cells flipping
+                # between identical runs). Every cloning CSV in the project was
+                # written unseeded, which is why --clone-seed defaults to off:
+                # passing it would change v1's numbers.
+                #
+                # When given, the seed is mixed with (speaker, arm, purifier) so
+                # each clone is reproducible on its own, independent of loop
+                # order or of which arms a run happened to include.
+                if args.clone_seed is not None:
+                    h = zlib.crc32(f"{spk}|{arm}|{pname}".encode()) & 0xFFFFFFFF
+                    torch.manual_seed((args.clone_seed * 1000003 + h) % (2 ** 63))
                 clone = vc.clone(src, ref_pur).to(device)
                 # Keep the clone. Council #6: there is no quality evidence on
                 # what the ATTACKER actually produces, only on what we ship. A
