@@ -213,12 +213,21 @@ def main():
     rows = []
     for n in names:
         tgt, non = [], []
+        # Speaker ids per trial, so a bootstrap can resample SPEAKERS rather
+        # than trials (council #19). Trials from one speaker are not
+        # independent -- every trial that speaker appears in shares their voice
+        # -- so a trial-level bootstrap would report an interval several times
+        # too narrow.
+        tgt_spk, non_spk = [], []
         for a in range(len(lab_e)):
             for b in range(len(lab_t)):
                 if same_list and a == b:
                     continue
                 s = cs(embs[n][a], embs_ch[n][b])
-                (tgt if lab_e[a] == lab_t[b] else non).append(s)
+                if lab_e[a] == lab_t[b]:
+                    tgt.append(s); tgt_spk.append((lab_e[a], lab_t[b]))
+                else:
+                    non.append(s); non_spk.append((lab_e[a], lab_t[b]))
         tgt, non = np.array(tgt), np.array(non)
         eer, thr = eer_threshold(tgt, non)
         # Fix 2f (PLAN_V3 W1). Only the MEANS were written, so every
@@ -258,10 +267,13 @@ def main():
             safe = "".join(c if c.isalnum() else "_" for c in n)
             sp = os.path.join(os.path.dirname(OUT),
                               f"trialscores_{tag}_{safe}.csv")
+            pairs = tgt_spk + non_spk
             pd.DataFrame(dict(
                 score=np.concatenate([tgt, non]),
                 is_target=np.concatenate([np.ones(len(tgt), dtype=int),
                                           np.zeros(len(non), dtype=int)]),
+                spk_enrol=[int(p[0]) for p in pairs],
+                spk_test=[int(p[1]) for p in pairs],
             )).to_csv(sp, index=False)
             print(f"    raw trial scores -> {os.path.basename(sp)}")
     pd.DataFrame(rows).to_csv(OUT, index=False)
