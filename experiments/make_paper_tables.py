@@ -530,9 +530,11 @@ def _quality_status():
                 out["nisqa"] = (f"**Partially measured.** UTMOS {a} on the "
                                 f"shipping arm against {b} clean; NISQA column "
                                 f"absent from this run.")
-        a = fmt(ship, "wer")
-        if a:
-            out["wer"] = (f"**Measured per arm.** WER {float(a) * 100:.1f} % on the "
+        # NOT fmt(): that rounds to 2 dp and the x100 then shows 0.088 as 9.0 %.
+        a = (ship["wer"].dropna().mean()
+             if "wer" in ship.columns and len(ship) else None)
+        if a is not None and a == a:
+            out["wer"] = (f"**Measured per arm.** WER {a * 100:.1f} % on the "
                           f"shipping arm against LibriSpeech ground truth "
                           f"(MFA-clipped), not an ASR transcript of the original.")
         if len(clones):

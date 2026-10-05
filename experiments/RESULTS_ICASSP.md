@@ -3068,3 +3068,125 @@ The disclosure is unchanged and still conservative in our favour:
 > Ship-iterate selection used raw cosine rather than threshold margin, and
 > selected on a single purification draw; reported protection is therefore a
 > lower bound for this recipe.
+
+---
+
+## 40. Council #6 — the quality evidence, including on the attacker's output (2026-10-05)
+
+`experiments/eval_clone_quality.py --n-files 29 --asr openai/whisper-large-v3`;
+`clone_quality.csv`; 174 files = 29 speakers x 6 conditions;
+`code_sha=470b702bb6ff`. Paired per speaker, BCa 95 % CI (2000 resamples),
+Wilcoxon signed-rank, Holm within each family.
+
+### 40a. What was wrong with the old evidence, and what changed
+
+Four defects, all named by the council:
+
+| | defect | now |
+|---|---|---|
+| 6a | no no-reference score on the arm the paper ships | `fullnsT_tc_m30_seg`, the cross-session 29 |
+| 6b | no NISQA; SQUIM read as naturalness | NISQA v2 (vendored, MIT, commit `fe84f0f2`) beside UTMOS; SQUIM labelled as the PESQ/STOI predictor it is |
+| 6c | WER referenced to Whisper-small's own transcript | LibriSpeech ground truth, MFA word timings clipped to the 4-s crop by midpoint, `EnglishTextNormalizer` both sides, whisper-large-v3 |
+| 6d | **no quality evidence on what the ATTACKER produces** | 116 DiffVC clones scored |
+
+One methodological point had to be fixed before any number was trustworthy.
+**Level was confounded with condition.** Measured here: the protected files sit
+at **−18.8 LUFS** against **−24.3** for the clean originals, a 5.4 dB gap, so
+the shipping arm was systematically the loudest thing in the comparison. NISQA
+reports a loudness dimension and UTMOS is not level-invariant, so that gap alone
+could have appeared as a naturalness difference. Every file is matched to
+−23 LUFS before scoring (`utils/loudness.py`, the BS.1770-4 meter written for
+the listening test), in both passes and in the copies NISQA reads.
+**3 of 174** files hit the peak ceiling and did not reach the target; they are
+flagged `lufs_clamped` in the CSV rather than dropped.
+
+A second trap, in 6d itself: a DiffVC clone speaks the **attacker's** words in
+the victim's voice, so a clone's WER reference is the **source** speaker's
+transcript, read from the cloning CSV's `source_speaker`. Scoring clones
+against the victim's transcript would have returned ~100 % WER for every clone,
+protected or not, and looked like a finding.
+
+### 40b. What we publish: one UTMOS point, and no intelligibility cost
+
+Protected minus clean original, paired, n = 29, Holm over the four metrics:
+
+| metric | protected | original | Δ | 95 % CI | lower in | p_holm |
+|---|---|---|---|---|---|---|
+| UTMOS | 3.073 | 4.152 | **−1.079** | [−1.219, −0.950] | 29/29 | 1.5e−08 |
+| NISQA MOS | 3.266 | 4.054 | **−0.787** | [−0.912, −0.647] | 28/29 | 2.2e−08 |
+| **WER** | 0.088 | 0.079 | **+0.009** | [+0.000, +0.022] | 0/29 | **0.157** |
+| SQUIM-PESQ | 2.635 | 3.532 | −0.898 | [−1.071, −0.733] | 28/29 | 2.2e−08 |
+
+The shape of this is the useful part. Naturalness costs about **one point of
+UTMOS and 0.79 of NISQA** — consistent, 28–29 of 29 speakers, not a tail — and
+lands at 3.07 / 3.27, i.e. "fair", not broken. **Intelligibility costs nothing
+measurable**: +0.9 points of WER with a CI touching zero and the only
+non-significant cell in the table. So the protection degrades perceived quality
+without damaging content, which is the trade the paper should claim, and it is
+now claimable from a no-reference measure instead of from PESQ 2.2, which
+§eval_quality_nr's docstring already explained cannot decide anything here.
+
+This replaces the "**Not run**" rows in Table 7 for NISQA and per-arm WER. MOS
+and PSD stay absent: these are MOS *predictors*, and `FRAME_v6` §4 now forbids
+calling them MOS.
+
+### 40c. 6d — the attacker's clone is modestly less natural, and equally intelligible
+
+Protected clone minus unprotected clone, paired per speaker, n = 29, Holm
+within each purifier:
+
+| purifier | metric | Δ | 95 % CI | lower in | p_holm |
+|---|---|---|---|---|---|
+| none | UTMOS | **−0.323** | [−0.444, −0.194] | 23/29 | 1.2e−04 |
+| none | NISQA | **−0.442** | [−0.618, −0.275] | 25/29 | 4.1e−05 |
+| none | WER | −0.001 | [−0.091, +0.048] | 5/29 | 1.00 |
+| DiffWave | UTMOS | **−0.145** | [−0.262, −0.033] | 20/29 | 0.039 |
+| DiffWave | NISQA | **−0.203** | [−0.357, −0.056] | 20/29 | 0.039 |
+| DiffWave | WER | −0.029 | [−0.069, +0.025] | 11/29 | 0.155 |
+
+**The answer is "yes, a little", and it has to be reported.** Protection does
+make the attacker's output measurably less natural: 0.32 UTMOS / 0.44 NISQA
+unpurified. So part of what the similarity numbers call protection coincides
+with a modest degradation of the clone. A reviewer would have asked, and
+"we did not measure it" would have been the wrong answer.
+
+Three things bound it:
+
+* **It is small beside the identity effect.** 0.3 of 5 points, while the same
+  files move clone success from 100 % to 0 / 30 / 6 % (§cloning_tc_m30_seg_qual).
+* **Intelligibility is untouched** in both purifier conditions (WER CIs span
+  zero). The clone is slightly less natural, not unusable — so "the protection
+  merely breaks the audio" is not what is happening.
+* **DiffVC already costs more than the protection adds.** The *unprotected*
+  clone is itself −0.374 UTMOS [−0.515, −0.229] below the clean original; the
+  protected clone is −0.698 [−0.831, −0.548]. Protection roughly doubles a
+  penalty the cloner was already paying.
+
+And one observation offered as suggestive only: the degradation **halves** under
+the attacker's purifier (−0.323 → −0.145) in the same cells where protection
+also weakens. If the mechanism of protection were clone damage, a purifier that
+removes the damage should remove the protection with it; instead both shrink
+but protection persists on two encoders. That is consistent with identity
+displacement being the operative effect rather than damage, but it is one
+sample of 29 and is not claimed as a test of it.
+
+### 40d. The two predictors are not interchangeable
+
+Across the six conditions UTMOS and NISQA agree well (Pearson r = 0.87,
+Spearman rho = 0.77, n = 6). **Per file they agree only moderately**
+(r = 0.53, n = 174), and they disagree on which condition is best: UTMOS puts
+the clean original top (4.15 vs NISQA 4.05), NISQA puts both unprotected clones
+there (4.18). So a single no-reference score should not be quoted as *the*
+naturalness number; both are reported, and the listening test remains the only
+thing that can adjudicate between them.
+
+This is also why 40b's conclusion is stated as a *direction with a consistent
+sign across 28–29 of 29 speakers* rather than as a MOS value.
+
+### 40e. What is still missing
+
+Human ratings. The stimuli, the blinded page and the screener are built and the
+panel is an unpaid colleague group (`FRAME_v6` §6, decided today), which changes
+what the 20 Jan gate can conclude: the venue decision reads off the **naive
+subgroup alone**. Until then MOS and PSD remain "not run" in Table 7, and that
+table now reads its own status off these files instead of asserting it.
