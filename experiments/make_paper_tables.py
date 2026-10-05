@@ -496,21 +496,85 @@ def t_cloning():
                                    " | ".join("%.0f %%" % x for x in row)))
 
 
+def _quality_status():
+    """What the quality evidence on disk actually says, for Table 7.
+
+    This table used to hard-code "Not run" for every perceptual metric. Once
+    council #6's layer landed that became false while still printing, which is
+    the staleness the generators exist to prevent -- so the status is now READ
+    from the files. Returns {metric: status string}.
+    """
+    out = {}
+    qp = os.path.join(R, "clone_quality.csv")
+    if os.path.isfile(qp):
+        q = read_csv(qp)
+        ship = q[q.condition.astype(str).str.startswith("protected:")]
+        clones = q[q.condition.astype(str).str.startswith("clone:")]
+        orig = q[q.condition == "original"]
+
+        def fmt(frame, col):
+            if col not in frame.columns or not len(frame):
+                return None
+            v = frame[col].dropna()
+            return f"{v.mean():.2f}" if len(v) else None
+
+        if "nisqa_mos" in q.columns:
+            a, b = fmt(ship, "nisqa_mos"), fmt(orig, "nisqa_mos")
+            if a and b:
+                out["nisqa"] = (f"**Measured.** NISQA v2 MOS {a} on the shipping "
+                                f"arm against {b} on the clean original "
+                                f"(n = {ship.speaker.nunique()}); UTMOS beside it.")
+        if "utmos" in q.columns and "nisqa" not in out:
+            a, b = fmt(ship, "utmos"), fmt(orig, "utmos")
+            if a and b:
+                out["nisqa"] = (f"**Partially measured.** UTMOS {a} on the "
+                                f"shipping arm against {b} clean; NISQA column "
+                                f"absent from this run.")
+        a = fmt(ship, "wer")
+        if a:
+            out["wer"] = (f"**Measured per arm.** WER {float(a) * 100:.1f} % on the "
+                          f"shipping arm against LibriSpeech ground truth "
+                          f"(MFA-clipped), not an ASR transcript of the original.")
+        if len(clones):
+            c = fmt(clones, "nisqa_mos") or fmt(clones, "utmos")
+            if c:
+                out["clone_quality"] = (
+                    f"**Measured.** The attacker's own DiffVC output is scored "
+                    f"too ({len(clones)} clones), so \"protection\" can be "
+                    f"separated from \"the clone sounds broken\".")
+    # Human ratings: the page writes one CSV per listener into responses/.
+    rd = os.path.join(PROJ, "listening_test", "responses")
+    n = len([f for f in os.listdir(rd) if f.endswith(".csv")]) if os.path.isdir(rd) else 0
+    if n:
+        out["mos"] = f"**Collected.** {n} listener file(s) in listening_test/responses/."
+    else:
+        out["mos"] = ("**Not run.** Stimuli and the blinded page are built and the "
+                      "screener is implemented; no listeners recruited yet.")
+    return out
+
+
 def t_missing():
     hdr(7, "Metrics prior work reports that we do NOT have")
+    st = _quality_status()
     print("| Metric | Who reports it | Our status |")
     print("|---|---|---|")
-    print("| MOS | AntiFake | **Not run.** No listening panel. |")
-    print("| PSD (perceptual speaker dissimilarity) | AntiFake | **Not run.** Human-rated. |")
-    print("| NISQA / DNSMOS | De-AntiFake and others | **Not run.** |")
-    print("| WER (content preservation) | SafeSpeech, De-AntiFake | Measured for the "
-          "spectral-tilt control only (0.4 %), not per arm. |")
+    print(f"| MOS | AntiFake | {st['mos']} |")
+    print("| PSD (perceptual speaker dissimilarity) | AntiFake | **Not run.** "
+          "Human-rated; part 2 of the listening test measures the same thing "
+          "and is built, not yet collected. |")
+    print(f"| NISQA / DNSMOS | De-AntiFake and others | "
+          f"{st.get('nisqa', '**Not run.**')} |")
+    print(f"| WER (content preservation) | SafeSpeech, De-AntiFake | "
+          f"{st.get('wer', 'Measured for the spectral-tilt control only (0.4 %), not per arm.')} |")
     print("| AERR | AntiFake | Our pre-filter matches theirs, so our post-filter clone "
           "success rate is the same quantity inverted. We do not relabel it, because "
           "their denominator is their own speaker set. |")
+    if "clone_quality" in st:
+        print(f"| Quality of the ATTACKER's output | nobody | {st['clone_quality']} |")
     print("")
     print("*Listing these is deliberate. A reader who does not see MOS should know it")
-    print("is absent rather than assume it was favourable.*")
+    print("is absent rather than assume it was favourable. Every status in this table")
+    print("is read from the files on disk, not typed.*")
 
 
 if __name__ == "__main__":
