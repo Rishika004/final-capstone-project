@@ -3631,3 +3631,180 @@ the only thing it would buy is pairability for a table that does not need it.
 **Still open in #8:** the sign-test reframing of floor p-values, log-ratio plus
 BCa for retention, TOST for §30, the mixed model, and the missing
 `analyse_mismatch_final.py`. Those are W8 items and are untouched here.
+
+---
+
+## 45. #5 — C2 is directionally reproduced out of sample, and underpowered at n = 31 (2026-10-06)
+
+The pre-registered out-of-sample replication. `run_devclean_replication.sh`
+executing `PREREG_05_devclean_replication.md`; 31 cross-session dev-clean
+speakers, recipe v1 unchanged, BPDA, thresholds calibrated on test-clean;
+`main_table_dc_m30_seg_bpda.csv`, `dc5_foreign_*.csv`, `dc5_cells.csv`.
+`prereg_sha=7b2e245ae936`.
+
+**VERDICT: OUTCOME B.** Written as the pre-registration requires:
+*directionally reproduced out of sample, underpowered at n = 31.* **Not
+"replicated".**
+
+### 45a. The 12 cells
+
+Paired per speaker, (fullnsT − full) margin. **Negative = the constraint
+improves protection.** `pred` is the test-clean point estimate from §27a, fixed
+as the prediction before the run. Holm over all 12.
+
+| # | purifier | t | encoder | pred | Δ | 95 % CI | k/n | p_holm | |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | DW-Libri | 1 | WavLM-SV | −0.076 | −0.0553 | [−0.0848, −0.0208] | 23/31 | .023 | * |
+| 2 | DW-Libri | 1 | ECAPA | −0.046 | −0.0620 | [−0.0952, −0.0252] | 21/31 | .023 | * |
+| 3 | DW-Libri | 1 | d-vector | **+0.071** | **+0.0596** | [+0.0330, +0.0892] | 4/31 | 4.9e−04 | * |
+| 4 | DW-Libri | 3 | WavLM-SV | −0.026 | −0.0232 | [−0.0419, −0.0007] | 22/31 | .055 | ~ |
+| 5 | DW-Libri | 3 | ECAPA | −0.029 | −0.0133 | [−0.0322, +0.0086] | 17/31 | .67 | |
+| 6 | DW-Libri | 3 | d-vector | +0.014 | +0.0127 | [−0.0013, +0.0325] | 14/31 | .67 | ~ |
+| 7 | DW-SC09 | 1 | WavLM-SV | −0.078 | −0.0596 | [−0.0958, −0.0273] | 24/31 | .014 | * |
+| 8 | DW-SC09 | 1 | ECAPA | −0.038 | −0.0605 | [−0.0944, −0.0249] | 22/31 | .023 | * |
+| 9 | DW-SC09 | 1 | d-vector | **+0.075** | **+0.0664** | [+0.0400, +0.0965] | 3/31 | 2.4e−04 | * |
+| 10 | DW-SC09 | 3 | WavLM-SV | −0.046 | −0.0300 | [−0.0551, −0.0078] | 19/31 | .074 | |
+| 11 | DW-SC09 | 3 | ECAPA | −0.034 | −0.0249 | [−0.0457, −0.0035] | 21/31 | .17 | |
+| 12 | DW-SC09 | 3 | d-vector | +0.014 | +0.0102 | [−0.0075, +0.0308] | 12/31 | .67 | ~ |
+
+`*` = CI excludes 0 **and** Holm p < .05. `~` = pre-declared underpowered in
+§5, so non-significance there is uninformative by prior agreement.
+
+### 45b. The three predictions
+
+| | | result |
+|---|---|---|
+| **P1** | WavLM negative in all four cells | **4/4 negative**, 2/4 significant |
+| **P2** | d-vector positive at t = 1, both purifiers | **2/2 positive, 2/2 significant** |
+| **P3** | ECAPA keeps the sign in all four cells | **4/4 negative** |
+
+Outcome A required P1 at ≥3 of 4 significant. It is 2 of 4. **That single
+shortfall is the whole reason this is B rather than A**, and the pre-registered
+action follows without discretion.
+
+### 45c. How closely the pattern reproduced
+
+Every cell has the predicted sign — **12 of 12** — which under a coin-flip null
+is p = 4.9e−04. Across the 12 cells, the dev-clean estimate against the
+test-clean prediction:
+
+| | |
+|---|---|
+| Pearson r | **0.961** (p = 6.8e−07) |
+| Spearman ρ | 0.902 |
+| regression slope, observed on predicted | **0.850** |
+| mean \|observed\| / mean \|predicted\| | 0.873 |
+
+So the *shape* of C2 transferred almost exactly to speakers never crafted
+against, at about 85 % of the magnitude. That is a stronger statement than the
+verdict label carries, and it is reportable — but it is a descriptive
+agreement, not a significance claim, and it does not upgrade B to A.
+
+### 45d. Where the power went: entirely to t = 3
+
+| timestep | significant | mean \|Δ\| |
+|---|---|---|
+| t = 1 | **6 of 6** | 0.0606 |
+| t = 3 | **0 of 6** | 0.0190 |
+
+At the mild purifier setting the replication is complete: all six cells, both
+purifiers, all three encoders, every sign right and every cell clearing Holm.
+At t = 3 the effects are a third the size and nothing clears.
+
+Three of the six t = 3 cells (4, 6, 12) were pre-declared underpowered in §5,
+so their silence was anticipated. **Three were not** — cells 5, 10 and 11, at
+−0.013, −0.030 and −0.025 against a pre-stated detectable effect of
+0.030–0.045. Cell 10 sits exactly on that boundary; cells 5 and 11 are below
+it. That is the honest accounting: the run resolved what it predicted it could,
+and the t = 3 WavLM cells were on the edge rather than comfortably inside.
+
+The t = 1 / t = 3 split is a design factor of the fixed 12-cell grid, not a
+subgroup chosen after the fact, and §5 already flagged t = 3 as the weak half.
+
+### 45e. The reversal — the prediction C1 exists to explain — replicated outright
+
+| purifier | Δ | 95 % CI | speakers improved | p_holm |
+|---|---|---|---|---|
+| DiffWave-LibriSpeech t=1 | +0.0596 | [+0.0330, +0.0892] | **4 of 31** | 4.9e−04 |
+| DiffWave-SC09 t=1 | +0.0664 | [+0.0400, +0.0965] | **3 of 31** | 2.4e−04 |
+
+On test-clean this was +0.071 and +0.075 with 3 of 29 improved. On 31 speakers
+never crafted against, scored at an operating point set on a different cohort,
+it is +0.060 and +0.066 with 4 and 3 of 31. **This is the single most
+transferable thing in the paper**, and it is the cell α(g_dvec) was measured to
+account for (§32, §43).
+
+### 45f. The control, which is NOT one of the 12 cells, and does not match test-clean
+
+Unpurified, mean paired (fullnsT − full), n = 31:
+
+| encoder | dev-clean | test-clean (§27c) |
+|---|---|---|
+| WavLM-SV | +0.0174 | null (p = .77) |
+| ECAPA-TDNN | **+0.0418** | null (p = .26) |
+| d-vector | +0.0765 | +0.079 |
+
+The d-vector reproduces almost exactly. **ECAPA does not**: test-clean found no
+unpurified cost, dev-clean finds +0.042. So `FRAME_v6`'s ledger row — "there is
+no cost term on the new base (§27c)" — is **test-clean-specific and must not be
+stated as a general property.** On dev-clean the constraint does cost something
+unpurified on all three encoders. This is a control rather than an endpoint, so
+it carries no Holm correction and no verdict, but it is the kind of thing a
+reviewer finds and it is cheaper to say first.
+
+### 45g. The sensitivity check was vacuous, and that is a defect in the pre-registration
+
+§2.2 fixed a check: re-score the same 12 cells against thresholds calibrated on
+dev-clean itself; if the verdict flips, call it "threshold-dependent" and report
+neither scoring. It was run (`run_devclean_sensitivity.sh`) and the verdict is
+unchanged — **but not because the result is robust to the threshold choice.
+Because it cannot depend on it.**
+
+The endpoint is a *paired difference of margins*:
+
+> (cos_nsT − τ) − (cos_full − τ) = cos_nsT − cos_full
+
+τ cancels algebraically. Verified rather than argued: across all 12 cells the
+two scorings agree to **0.0 exactly** — identical Δ, identical CIs, identical
+Holm p — while the thresholds genuinely differ (WavLM 0.8892 vs 0.8769, ECAPA
+0.3253 vs 0.2774, d-vector 0.7016 vs 0.6753).
+
+So **§2.2 provides no evidence either way, and I wrote it believing it could.**
+It would bite on any *absolute* quantity — per-arm margins, binary protection
+rates — and the mean per-arm margin does move materially with the calibration
+(libri t=1 ECAPA: −0.216 against −0.168). The pre-registration excluded exactly
+those as endpoints (§6), which is why the check it specified could not fire.
+The check was unnecessary, not reassuring, and the correct statement is that
+**the primary endpoint is threshold-invariant by construction**.
+
+**A real finding fell out of it anyway.** dev-clean's own calibration is far
+looser than test-clean's at the same protocol:
+
+| channel | WavLM-SV | ECAPA | d-vector |
+|---|---|---|---|
+| test-clean EER | 5.85 % | **0.86 %** | 3.84 % |
+| dev-clean EER | 8.67 % | **4.84 %** | 6.05 % |
+
+dev-clean is a harder verification cohort — ECAPA's EER is 5.6× worse. So while
+the *paired deltas* are comparable across the two samples, any **absolute**
+protection number is not, and the two corpora must never be pooled or compared
+on rates. That reinforces §6's "do not pool them" for a reason the
+pre-registration did not anticipate.
+
+### 45h. What C2 may now claim
+
+* **Write:** "the per-encoder pattern reproduces directionally on 31 speakers
+  never crafted against, scored at an operating point calibrated on a disjoint
+  cohort: 12 of 12 cells with the predicted sign (r = 0.96 against the
+  first sample), all six mild-purifier cells significant under Holm, and the
+  d-vector reversal significant on both purifiers. At the stronger purifier
+  setting the effects are a third the size and none of the six cells resolves
+  at n = 31."
+* **Do not write:** "replicated". C1 keeps the lead. C2 remains a supported
+  hypothesis with two samples behind it rather than one.
+* **Limitations must say:** the confirmatory evidence is 29 + 31 speakers from
+  one corpus family, read out as two samples and never pooled; the t = 3 half
+  is unresolved at this n; and the unpurified control disagrees with test-clean
+  on ECAPA.
+* **No re-run** at another budget, timestep, purifier or speaker subset. §6
+  forbids it and nothing here invites it.

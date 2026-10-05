@@ -77,15 +77,15 @@ is same-sign but mostly non-significant on ECAPA (1/4 at m = 24), and **worsens*
 the d-vector at mild purification (+0.071, +0.075; 3/29). Unpurified it is null
 on WavLM and ECAPA (p = .77, .26) and worse on the d-vector (+0.079, 0/29).
 
-Stated as a **hypothesis supported by one sample of 29 speakers**, insensitive
-to crafting mode and gradient estimator (§27, §30e) — that is analysis-choice
-insensitivity, not replication. C1 is the explanation, generated after observing
-the reversal, not a prediction.
-**[#5 RUNNING 2026-10-06 — pre-registered out-of-sample replication on the 31
-cross-session dev-clean speakers, thresholds calibrated on test-clean;
-`PREREG_05_devclean_replication.md` fixes the 12 cells and the outcome→action
-table, and outcome C (not replicated) is pre-held. Until it reads out, C2 stays
-"a hypothesis supported by one sample".]**
+Stated as a **hypothesis supported by two samples**, 29 test-clean and 31
+dev-clean, read out separately and **never pooled**. §45: directionally
+reproduced out of sample — 12 of 12 cells with the predicted sign, r = 0.96
+against the first sample, all six mild-purifier cells significant under Holm,
+and the d-vector reversal significant on both purifiers — but **underpowered at
+n = 31**, with none of the six t = 3 cells resolving. **Do not write
+"replicated".** §27/§30e remain analysis-choice insensitivity, not replication.
+C1 is the explanation, generated after observing the reversal, not a prediction.
+**#5 DONE (§45) — OUTCOME B of the three pre-registered branches: directionally reproduced out of sample, underpowered at n = 31. The pre-registration's own sensitivity check turned out to be vacuous (the paired endpoint is threshold-invariant by construction, §45g).**
 **[PENDING #13b CAM++ prospective test makes C1 a prediction]**
 
 ### C3 — The paradigm's measured ceiling (§22b, §30, §29)
@@ -143,7 +143,7 @@ the one architecturally different purifier (§29) breaks it. **#2 DONE
 | "purification-invariant subspace"; "null space" once, defined against Shallow Diffuse | "null space" as the name of our object |
 | "at t = 50, WavLM-SV > ECAPA > {x-vector, d-vector}, all ten pairs in one Holm family"; "at t = 200 only WavLM-SV separates" (§44) | "WavLM > ECAPA > x-vector > d-vector"; the t = 50 ordering without its timestep; any order inside {x-vector, d-vector} |
 | "an explanation generated after observing the reversal" | "retro-validation", "predicted", "without being told" |
-| "a hypothesis supported by one sample of 29 speakers" | "replicated across three conditions" |
+| "two samples, 29 + 31 speakers, read out separately and never pooled"; "directionally reproduced out of sample, underpowered at n = 31" (§45) | "replicated"; "a hypothesis supported by one sample"; any pooling of the two corpora, or any comparison of ABSOLUTE rates between them (§45g: dev-clean EER is up to 5.6x worse) |
 | "reduced, not removed, by full PhonePuRe" | "reverses De-AntiFake"; "survives purification" without "stage 1" |
 | "no advantage over BPDA (equivalence tested)" | "exact gradients are why prior work failed" |
 | "single-sample stochastic gradient (EOT size 1)" | bare "EOT" beside baselines' 1/5/10/15 sweeps |
@@ -152,7 +152,7 @@ the one architecturally different purifier (§29) breaks it. **#2 DONE
 | "matched-encoder (upper bound)" / "held-out (realistic)" | "deployment" for the matched-encoder setting |
 | "k of n speakers; sign test at its attainable minimum" | floor p-values quoted as strength |
 | ranges pooled over three seeds, n stated, n ≥ 12 | any single-seed binary rate as a point estimate |
-| "null unpurified on WavLM and ECAPA" (after #8) | "a trade" — there is no cost term on the new base (§27c) |
+| "null unpurified on WavLM and ECAPA **on test-clean**" (§27c); "on dev-clean the constraint costs +0.017/+0.042/+0.077 unpurified" (§45f) | "there is no cost term", stated as a general property — it is test-clean-specific |
 | "n unpaid colleagues, k of them naive to the method", with the recruitment route in the same sentence | "a listening test with n listeners"; any bare MOS from this panel |
 | "UTMOS / NISQA are MOS *predictors*" | "MOS" for an automated score |
 
