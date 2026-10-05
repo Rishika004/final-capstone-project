@@ -50,11 +50,14 @@ R = os.path.join(PROJ, "experiments", "results")
 FULL, NST = "full_dc_m30_seg_bpda", "fullnsT_dc_m30_seg_bpda"
 ENC_ORDER = ["WavLM-SV", "ECAPA-TDNN", "Resemblyzer d-vector"]
 
-# (purifier, t) -> results file. Fixed here; these are the only four blocks.
-BLOCKS = [("DiffWave-LibriSpeech", 1, "dc5_foreign_libri_t1.csv"),
-          ("DiffWave-LibriSpeech", 3, "dc5_foreign_libri_t3.csv"),
-          ("DiffWave-SC09", 1, "dc5_foreign_sc09_t1.csv"),
-          ("DiffWave-SC09", 3, "dc5_foreign_sc09_t3.csv")]
+# (purifier, t) -> results file stem. Fixed here; these are the only four
+# blocks. `--suffix` selects the pre-specified sensitivity scoring (§2.2),
+# which reads the SAME crafted files re-scored against thresholds calibrated on
+# dev-clean itself. It is a robustness check on the verdict, never the result.
+BLOCK_STEMS = [("DiffWave-LibriSpeech", 1, "dc5_foreign_libri_t1"),
+               ("DiffWave-LibriSpeech", 3, "dc5_foreign_libri_t3"),
+               ("DiffWave-SC09", 1, "dc5_foreign_sc09_t1"),
+               ("DiffWave-SC09", 3, "dc5_foreign_sc09_t3")]
 
 # The test-clean point estimates from RESULTS §27a, i.e. the predictions.
 PRED = {("DiffWave-LibriSpeech", 1, "WavLM-SV"): -0.076,
@@ -88,9 +91,23 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n-boot", type=int, default=2000, dest="n_boot")
     ap.add_argument("--alpha", type=float, default=0.05)
-    ap.add_argument("--out", default=os.path.join(R, "dc5_cells.csv"))
+    ap.add_argument("--suffix", default="",
+                    help="read the sensitivity scoring instead, e.g. '_dcthr' "
+                         "for the dev-clean-threshold re-scoring (prereg §2.2)")
+    ap.add_argument("--out", default="")
     a = ap.parse_args()
+    if not a.out:
+        a.out = os.path.join(R, f"dc5_cells{a.suffix}.csv")
 
+    BLOCKS = [(p, t, stem + a.suffix + ".csv") for p, t, stem in BLOCK_STEMS]
+    if a.suffix:
+        print("=" * 100)
+        print(f"SENSITIVITY SCORING ({a.suffix.lstrip('_')}) -- prereg 2.2.")
+        print("This is NOT the result. If the verdict differs from the")
+        print("test-clean-threshold scoring, the verdict is "
+              "'threshold-dependent'")
+        print("and NEITHER scoring is reported as the result.")
+        print("=" * 100)
     cells, missing = [], []
     for pur, t, fname in BLOCKS:
         p = os.path.join(R, fname)
@@ -213,10 +230,19 @@ def main():
         print("  lead, and the limitation section says the confirmatory sample")
         print("  is 29 + 31 speakers from one corpus.")
     print("=" * 100)
-    print("\nStill required before this verdict is final (prereg §2.2 / §6):")
-    print("  the sensitivity check -- the same 12 cells re-scored against")
-    print("  thresholds calibrated on dev-clean itself. If the verdict flips,")
-    print("  it is 'threshold-dependent' and NEITHER scoring is the result.")
+    if a.suffix:
+        print("\nThis was the SENSITIVITY scoring. Compare its verdict with the")
+        print("primary one (no --suffix). Same verdict -> the primary stands.")
+        print("Different verdict -> 'threshold-dependent', and neither is")
+        print("reported as the result (prereg 2.2).")
+    else:
+        print("\nStill required before this verdict is final (prereg 2.2 / 6):")
+        print("  the sensitivity check -- the same 12 cells re-scored against")
+        print("  thresholds calibrated on dev-clean itself:")
+        print("    bash experiments/run_devclean_sensitivity.sh")
+        print("    python experiments/analyse_devclean.py --suffix _dcthr")
+        print("  If the verdict flips, it is 'threshold-dependent' and NEITHER")
+        print("  scoring is the result.")
     print(f"\nsaved {a.out}")
 
 
