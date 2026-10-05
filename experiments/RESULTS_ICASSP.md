@@ -2815,3 +2815,108 @@ freezes the base: *the base never moves*. They are listed here, ship as the
 Note what the fix would *not* do: switching the selection statistic from cosine
 to margin does not address selecting on noise. Those are two independent
 defects that happen to live on adjacent lines.
+
+---
+
+## 37. Council #3 — C1 survives the matched controls (2026-10-05)
+
+**The C1 gate. It clears.** Pre-registered in `core/matched_random.py` and
+hashed into every output row (`prereg_sha=ac0c2ba6c97e`, `code_sha=464986d262ce`);
+29 speakers, purifier v7 DDIM, `encoder_subspace_matched.csv`;
+`python experiments/analyse_matched_control.py`.
+
+### 37a. Why the gate existed
+
+Every α in §32b was read against **isotropic white noise**, and purifier v7 is a
+denoiser trained to remove exactly that (council #3, R1). So
+"encoder identity directions live outside the purifier's invariant subspace"
+could have been nothing more than "they are not smooth", especially once §33d
+showed the pass-through margin is 1.22× and not the 2× the old draft implied.
+
+Two norm-matched controls, one per alternative explanation:
+
+* **`band_matched:<enc>`** — white noise carrying *that encoder direction's own*
+  per-mel-band power profile. Matched on spectral envelope, random in direction.
+* **`pca_span`** — every frame inside the top-20 principal components of clean
+  log-mel frames (95.5 % of clean variance), basis built from **dev-clean**,
+  disjoint from the test-clean speakers it controls for.
+
+### 37b. The result: the spectral envelope explains none of the gap
+
+α at t=50, n=29, and the paired difference against each encoder's own control:
+
+| direction | α t=50 | α t=200 | Δ vs band-matched (t=50) | 95 % CI | below |
+|---|---|---|---|---|---|
+| WavLM-SV | 0.573 | 0.375 | **−0.134** | [−0.160, −0.100] | 26/29 |
+| ECAPA-TDNN | 0.490 | 0.320 | **−0.225** | [−0.264, −0.184] | 28/29 |
+| x-vector | 0.434 | 0.297 | **−0.273** | [−0.314, −0.230] | 29/29 |
+| d-vector | 0.406 | 0.280 | **−0.295** | [−0.353, −0.238] | 27/29 |
+| `band_matched` (mean of the four) | 0.707 | 0.465 | — | — | — |
+| `pca_span` | **0.843** | 0.617 | — | — | — |
+| `random` (white noise) | 0.713 | 0.463 | — | — | — |
+
+All four encoders are **CONFIRMED** against both controls at both timesteps — 8
+of 8 cells, every CI excluding zero, Holm-adjusted p ≤ 2 × 10⁻⁶. The gate's
+calibration is on record: the CI alone false-confirms at 0.035 under a global
+null at this n, the implemented conjunction at 0.030 family-wise and 0.007 per
+encoder.
+
+**The decisive number is in the control row, not the encoder rows.** The
+envelope-matched controls land at **0.701–0.715**, statistically
+indistinguishable from white noise at **0.713**. Giving a random direction an
+encoder's exact spectral envelope buys it *nothing*. So the encoder-vs-random
+gap is **not** a spectral-smoothness artefact, which is precisely what council
+#3 asked.
+
+### 37c. The ordering survives, which is what C1 actually claims
+
+C1 is an *ordering* claim, not a sign claim. Ranking by raw α and by α minus
+each encoder's own matched control gives the **same order**:
+
+> WavLM-SV > ECAPA-TDNN > x-vector > d-vector
+
+identical to §32b. The per-encoder differences are therefore not an artefact of
+per-encoder spectral envelope either. **C1 holds as written** — the first of the
+three pre-registered branches.
+
+### 37d. What the controls newly teach: the invariant subspace is speech-shaped
+
+`pca_span` survives at **0.843**, far above white noise (0.713) and above every
+encoder direction. So "smooth, speech-like directions survive better" is a
+**real effect** — it just does not explain the encoder ordering. The purifier's
+invariant subspace is approximately *the subspace clean speech occupies*, and
+every speaker encoder's identity direction points substantially out of it.
+
+That sharpens C1's mechanism from "encoder directions are purifier-hostile" to:
+
+> A speech denoiser preserves the subspace clean speech lives in. Speaker
+> identity, as every encoder tested reads it, is largely **not** in that
+> subspace — which is why protection and survival conflict, and why they
+> conflict most for the d-vector.
+
+**An open question this raises, flagged not answered:** §33d puts the optimised
+pass-through direction at α = 0.867 and `pca_span` here reads 0.843. If those
+are comparable, a *free* random direction in the clean-speech subspace survives
+almost as well as a 300-step optimised one, and the optimisation buys ≈0.02.
+**They are not yet comparable** — see §37e — so this is not claimed. Settling it
+needs the `exp_nullspace_survival.py` re-run with controls (the script now takes
+them), where both quantities would be paired per speaker in one file.
+
+### 37e. A cohort discrepancy found while checking that comparison
+
+`exp_encoder_subspace.py` selected `sorted(ref)[:29]`, while every other script
+in the project takes the **cross-session-filtered** set. The two cohorts overlap
+in **21 of 29**; 8 of the α speakers are not in the cohort §27 and §33 report.
+
+* **The gate is unaffected.** Each encoder is compared to *its own* control on
+  *the same* speakers, and α is pure geometry — no enrolment, no thresholds, no
+  second session — so cross-session usability is irrelevant to its validity.
+* **Cross-section pairing is affected.** §32/§37 rows may **not** be paired
+  per-speaker with §27/§33 rows, and no text may say "the same 29 speakers" of
+  both.
+
+This is the §25 failure mode once more: a run that silently changed the speaker
+set. `exp_encoder_subspace.py` now takes `--cross-session` and **prints the
+overlap with the reported cohort on every run**, so it cannot hide again.
+Re-running the α table on the reported cohort costs ~1.5 GPU-h and is the
+cheapest way to make the two sections pairable.

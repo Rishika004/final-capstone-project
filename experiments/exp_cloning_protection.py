@@ -183,6 +183,11 @@ def main():
     ap.add_argument("--ours-ckpt", default="", dest="ours_ckpt",
                     help="purifier checkpoint for the 'ours' condition "
                          "(default: purifier_v3.pt)")
+    ap.add_argument("--save-clones", action="store_true", dest="save_clones",
+                    help="write each generated clone to "
+                         "results/purifier_aware/clones/ so the ATTACKER's "
+                         "output can be quality-scored (council #6). ~22 MB for "
+                         "a 29-speaker run.")
     ap.add_argument("--out", default=OUT)
     add_prereg_arg(ap)
     args = ap.parse_args()
@@ -281,6 +286,19 @@ def main():
                     with torch.no_grad():
                         ref_pur = pur(ref_wav)
                 clone = vc.clone(src, ref_pur).to(device)
+                # Keep the clone. Council #6: there is no quality evidence on
+                # what the ATTACKER actually produces, only on what we ship. A
+                # protection that merely makes the clone unusable-sounding is a
+                # different (weaker) claim than one that moves the speaker
+                # identity, and the two cannot be told apart without these
+                # files. ~22 MB for the full run; scored afterwards by
+                # eval_quality_nr.py. Off by default so v1 reruns are unchanged.
+                if args.save_clones:
+                    cdir = os.path.join(WAV_DIR, "clones")
+                    os.makedirs(cdir, exist_ok=True)
+                    sf.write(os.path.join(
+                        cdir, f"{name}__{arm}__{pname}__clone.wav"),
+                        clone.detach().cpu().reshape(-1).numpy(), 16000)
                 e_cl = real_embed_all(encs, clone)
                 for n in e_enr:
                     sim = cs(e_cl[n], e_enr[n])

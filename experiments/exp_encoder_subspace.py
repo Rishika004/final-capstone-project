@@ -118,6 +118,11 @@ def main():
     ap.add_argument("--with-xvector", action="store_true", dest="with_xvector",
                     help="include x-vector, the retro-validation case (RESULTS 24b)")
     ap.add_argument("--subset", default="test-clean")
+    ap.add_argument("--cross-session", action="store_true", dest="cross_session",
+                    help="restrict to the CROSS-SESSION speaker set, which is "
+                         "what every other script in this project reports. "
+                         "Without it this script takes sorted(ref)[:n_files], a "
+                         "different cohort -- see the overlap line it prints.")
     ap.add_argument("--pca-k", type=int, default=DEFAULT_K, dest="pca_k",
                     help="components the pca_span control is confined to")
     ap.add_argument("--pca-subset", default="dev-clean", dest="pca_subset",
@@ -167,7 +172,30 @@ def main():
     items = list_librispeech(os.path.join(PROJ, "data", "librispeech"),
                              a.subset, min_sec=4.0)
     ref = reference_items(items, min_sec=4.0)
-    spks = sorted(ref)[: a.n_files]
+
+    # Speaker-cohort check (found 2026-10-05, PLAN_V3 W1). This script took
+    # sorted(ref)[:n_files] while every other script takes the CROSS-SESSION
+    # filtered set, so the alpha table was measured on a different cohort than
+    # RESULTS 27 and 33: 21 of its 29 speakers overlap, 8 do not. alpha is pure
+    # geometry -- no enrolment, no thresholds, no second session -- so the
+    # measurement is valid on its own terms, but per-speaker pairing with any
+    # other section is NOT, and "the same 29 speakers" would be false.
+    # The overlap is printed every run so this cannot hide again.
+    from experiments.librispeech import cross_session_split
+    ok = set(cross_session_split(items, min_sec=4.0))
+    if a.cross_session:
+        spks = [s for s in sorted(ref) if s in ok][: a.n_files]
+    else:
+        spks = sorted(ref)[: a.n_files]
+    _ov = sum(1 for s in spks if s in ok)
+    print(f"[A2] cohort: {len(spks)} speakers, cross_session="
+          f"{bool(a.cross_session)}; {_ov}/{len(spks)} are in the cross-session "
+          f"set the rest of the paper reports")
+    if _ov < len(spks):
+        print(f"[A2] WARNING: {len(spks) - _ov} speaker(s) here are NOT in the "
+              f"reported cohort. Valid for alpha (pure geometry), but do NOT "
+              f"pair these rows per-speaker with RESULTS 27/33. Pass "
+              f"--cross-session to match.")
     print(f"[A2] {len(spks)} speakers | purifier {os.path.basename(a.ckpt)} "
           f"({a.sampler}) t={ts} | encoders: {[e.name for e in encs]}")
     print(f"[A2] code_sha={PROV['code_sha']} prereg_sha={PROV['prereg_sha'] or '-'}")
