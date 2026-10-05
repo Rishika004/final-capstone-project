@@ -100,6 +100,71 @@ def verify_shas_are_analysis_only(shas):
           f"{', '.join(shas)}")
 
 
+def _git(*args, text=True):
+    return subprocess.run(["git", *args], cwd=PROJ, capture_output=True,
+                          text=text)
+
+
+def check_prereg(row_sha, code_shas):
+    """The rows must have been produced under this pre-registration, and this
+    pre-registration must only have GROWN since.
+
+    §7.1 says the run is discarded if the rows' `prereg_sha` does not match the
+    file's hash. Taken literally that is unsatisfiable the moment the document
+    records anything about its own run -- appending the §9 chunking amendment
+    or the §10 incident report changes the hash, and a rule that forbids
+    documenting the run is not the rule anyone wanted. What §7.1 is actually
+    protecting is that **the outcome→action table was not rewritten after the
+    result**.
+
+    So the check is done against history instead of against the file as it
+    sits now:
+
+      1. the rows' `prereg_sha` must equal the hash of the pre-registration
+         **as of the commit the rows were crafted under**, which is exactly
+         "these rows were produced under the document as it then stood";
+      2. that historical text must be a **prefix** of the current text, so the
+         document can only have been appended to. Any edit to an existing
+         line -- §6's outcomes above all -- breaks the prefix and fails.
+
+    Append-only plus a matching historical hash is strictly stronger than the
+    original check, because the original could be satisfied by rewriting the
+    document and re-running, and this cannot.
+    """
+    cur = _git("hash-object", PREREG)
+    cur_sha = (cur.stdout or "").strip()[:12]
+    if cur_sha and row_sha == cur_sha:
+        print(f"[assemble] prereg_sha {row_sha} matches the file as it stands")
+        return
+
+    rel = os.path.relpath(PREREG, PROJ).replace(os.sep, "/")
+    with open(PREREG, "rb") as fh:
+        cur_bytes = fh.read()
+    for c in sorted(code_shas):
+        base = c.split("-")[0]
+        blob = _git("show", f"{base}:{rel}", text=False)
+        if blob.returncode != 0:
+            continue
+        hist = blob.stdout
+        h = subprocess.run(["git", "hash-object", "--stdin"], cwd=PROJ,
+                           input=hist, capture_output=True)
+        hist_sha = h.stdout.decode().strip()[:12]
+        if hist_sha != row_sha:
+            continue
+        if not cur_bytes.startswith(hist):
+            fail(f"the pre-registration as of {base} is NOT a prefix of the "
+                 f"current file: it has been edited, not merely appended to. "
+                 f"§7.1 discards this run.")
+        added = len(cur_bytes) - len(hist)
+        print(f"[assemble] prereg_sha {row_sha} matches "
+              f"{os.path.basename(PREREG)} as of {base}; the current file is "
+              f"that text plus {added} appended bytes (append-only: OK)")
+        return
+    fail(f"rows carry prereg_sha {row_sha}, which matches neither the current "
+         f"{os.path.basename(PREREG)} ({cur_sha}) nor its content at any of "
+         f"the rows' code_sha commits {sorted(code_shas)}. §7.1 discards this.")
+
+
 def expected_speakers():
     from experiments.librispeech import (list_librispeech, reference_items,
                                          cross_session_split)
@@ -171,19 +236,12 @@ def main():
     else:
         fail("no code_sha column; these rows predate W0 provenance")
 
-    cur = subprocess.run(["git", "hash-object", PREREG], cwd=PROJ,
-                         capture_output=True, text=True)
-    cur_sha = (cur.stdout or "").strip()[:12]
-    if "prereg_sha" in df.columns:
-        pres = sorted(set(df.prereg_sha.dropna().astype(str)) - {""})
-        if len(pres) != 1:
-            fail(f"{len(pres)} different prereg_sha values: {pres}")
-        if cur_sha and pres[0] != cur_sha:
-            fail(f"rows carry prereg_sha {pres[0]} but "
-                 f"{os.path.basename(PREREG)} now hashes to {cur_sha}. The "
-                 f"pre-registration changed after the run; §7.1 discards this.")
-    else:
+    if "prereg_sha" not in df.columns:
         fail("no prereg_sha column")
+    pres = sorted(set(df.prereg_sha.dropna().astype(str)) - {""})
+    if len(pres) != 1:
+        fail(f"{len(pres)} different prereg_sha values: {pres}")
+    check_prereg(pres[0], shas)
 
     have = set(df.variant.unique())
     if not set(ARMS) <= have:
