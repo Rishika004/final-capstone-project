@@ -41,9 +41,49 @@ ENC = ["WavLM-SV", "ECAPA-TDNN", "Resemblyzer d-vector"]
 TEX = {"WavLM-SV": "WavLM-SV", "ECAPA-TDNN": "ECAPA", "Resemblyzer d-vector": "d-vector"}
 
 
+# ---------------------------------------------------------------------------
+# CORRECTED-BASE GUARD (council #2, PLAN_V3 W1 #2).
+#
+# Both table generators read files from the OLD base (dev-clean / purifier v3 /
+# same-session thresholds / n = 20).  Nothing before RESULTS section 21 may
+# appear as a number in this paper (user rule, 2026-10-04), and the lead result
+# was being quoted on the old base while the corrected-base CSVs sat unanalysed
+# on disk.  `get` used to return None for a missing file, so a repointed table
+# would vanish silently rather than complain -- which is how the two bases
+# stayed mixed.
+#
+# Now: reading an old-base file is a hard error that names its replacement, and
+# a missing file prints a visible marker instead of disappearing.
+# ---------------------------------------------------------------------------
+OLD_BASE = {
+    # old-base file                            -> corrected-base replacement
+    "nullspace_survival_20spk_u3_alpha.csv":    "survival_tc_v7.csv",
+    "foreign_libri_deantifake_t1_n20.csv":      "foreign_tc_libri_t1.csv",
+    "foreign_libri_deantifake_t3_n20.csv":      "foreign_tc_libri_t3.csv",
+    "foreign_sc09_philsyn_t1_n20.csv":          "foreign_tc_sc09_t1.csv",
+    "foreign_sc09_philsyn_t3_n20.csv":          "foreign_tc_sc09_t3.csv",
+    "main_table_v3.csv":                        "main_table_tc_m30_seg.csv",
+    "control_nopurifier.csv":                   "control_nopurifier_seg.csv",
+    "cloning_protection_m20.csv":               "cloning_tc_m30_seg_s7.csv",
+    "cloning_protection_f1.csv":                "cloning_tc_m30_nodvec_seg.csv",
+}
+MISSING = []
+
+
 def get(name):
+    if name in OLD_BASE:
+        raise SystemExit(
+            f"\n[BASE GUARD] refusing to read OLD-BASE file {name!r}.\n"
+            f"  Corrected-base replacement: {OLD_BASE[name]!r}\n"
+            "  The paper quotes the corrected base only (test-clean / purifier v7 /\n"
+            "  cross-session thresholds / n = 29, RESULTS sections 21-33).")
     p = os.path.join(R, name)
-    return read_csv(p) if os.path.isfile(p) else None
+    if not os.path.isfile(p):
+        MISSING.append(name)
+        print(f"\n> **TABLE OMITTED** -- `{name}` is not on disk. "
+              "Not silently skipped; this marker is the record.\n")
+        return None
+    return read_csv(p)
 
 
 def pfmt(p, bold=False):
@@ -63,12 +103,13 @@ def pfmt(p, bold=False):
 
 # --------------------------------------------------------------------------
 def tab_survival():
-    d = get("nullspace_survival_20spk_u3_alpha.csv")
+    d = get("survival_tc_v7.csv")
     if d is None:
         return
+    _n = d.speaker.nunique()
     print(r"""\begin{table}[t]
 \centering
-\caption{Survival of a perturbation through our purifier, $n=20$ held-out
+\caption{Survival of a perturbation through our purifier, $n=29$ held-out
 speakers. $\alpha$ is signal gain (1.0 = returned untouched); \textsc{nsr} is the
 share of the returned energy that is \emph{not} the original direction. All three
 direction families have identical norm. \textsc{psr}, the norm ratio used in prior
@@ -106,9 +147,9 @@ def tab_transfer():
 \caption{The pass-through subspace transfers to \textbf{two purifiers we did not
 train}: published DiffWave checkpoints differing in architecture, weights and
 training corpus. \emph{excess} divides out the mel$+$vocoder round trip, which
-alone favours the pass-through direction by $1.33\times$; \emph{retention} is that
-excess as a fraction of our own purifier's ($1.93\times$). Every cell separates on
-all 20 speakers.}
+alone favours the pass-through direction by $1.35\times$; \emph{retention} is that
+excess as a fraction of our own purifier's ($1.92\times$). Every cell separates on
+all 29 speakers.}
 \label{tab:transfer}
 \small
 \begin{tabular}{llccccc}
@@ -116,10 +157,10 @@ all 20 speakers.}
 Foreign purifier & $t$ & $\alpha_{\text{pass}}$ & $\alpha_{\text{rand}}$ &
 better & $p$ & retention \\
 \midrule""")
-    rows = (("foreign_libri_deantifake_t1_n20.csv", "DiffWave-LS", 1),
-            ("foreign_libri_deantifake_t3_n20.csv", "DiffWave-LS", 3),
-            ("foreign_sc09_philsyn_t1_n20.csv", "DiffWave-SC09", 1),
-            ("foreign_sc09_philsyn_t3_n20.csv", "DiffWave-SC09", 3))
+    rows = (("foreign_tc_libri_t1.csv", "DiffWave-LS", 1),
+            ("foreign_tc_libri_t3.csv", "DiffWave-LS", 3),
+            ("foreign_tc_sc09_t1.csv", "DiffWave-SC09", 1),
+            ("foreign_tc_sc09_t3.csv", "DiffWave-SC09", 3))
     for f, label, t in rows:
         d = get(f)
         if d is None:
@@ -145,9 +186,9 @@ better & $p$ & retention \\
 def tab_mismatch():
     from experiments.analyse_mismatch import holm, paired, load, FULL, FULLNST
     with contextlib.redirect_stdout(io.StringIO()):
-        own = load(os.path.join(R, "main_table_v3.csv"),
+        own = load(os.path.join(R, "main_table_tc_m30_seg.csv"),
                    channel="diffpure_gl_ddim_v3")
-    ctl = load(os.path.join(R, "control_nopurifier.csv"))
+    ctl = load(os.path.join(R, "control_nopurifier_seg.csv"))
     cells = []
     for tag, lbl in (("", "DiffWave-LS"), ("_sc09", "DiffWave-SC09")):
         for t in (1, 3):
@@ -207,26 +248,26 @@ full in the supplement. That encoder is attacked through a proxy front-end.
 
 # --------------------------------------------------------------------------
 def tab_perceptual():
-    d = get("main_table_v3.csv")
+    d = get("main_table_tc_m30_seg.csv")
     if d is None:
         return
     s = d.drop_duplicates(["variant", "file"])
     print(r"""\begin{table}[t]
 \centering
-\caption{Perceptual cost, $n=20$. The protection is not bought with audibility:
-our perturbation is no louder than plain PGD and no less intelligible. Bold marks
-the best value per column. Against plain PGD the SNR and STOI gains are significant
-($p<0.001$, $p=0.003$); the PESQ difference is not ($p=0.50$).}
+\caption{Perceptual cost, $n=29$, corrected base, shipping budget
+($m30\_f15$ with segment crafting). Bold marks the best value per column.
+Paired tests against plain PGD are printed beneath the table rather than quoted
+here, because the old caption carried dev-clean $p$-values that no longer apply.}
 \label{tab:perceptual}
 \small
 \begin{tabular}{lccc}
 \toprule
 Crafting method & PESQ$\uparrow$ & STOI$\uparrow$ & SNR (dB)$\uparrow$ \\
 \midrule""")
-    arms = (("plain_m20_f20", "PGD"),
-            ("nsT_m20_f20_l10", "PGD $+$ constraint"),
-            ("full_m20_f20", "EOT"),
-            ("fullnsT_m20_f20_l10", r"EOT $+$ constraint (\textbf{ours})"))
+    arms = (("plain_tc_m30_seg", "PGD"),
+            ("nsT_tc_m30_seg", "PGD $+$ constraint"),
+            ("full_tc_m30_seg", "EOT"),
+            ("fullnsT_tc_m30_seg", r"EOT $+$ constraint (\textbf{ours})"))
     vals = {}
     for v, _ in arms:
         q = s[s.variant == v]
@@ -261,13 +302,22 @@ def tab_cloning():
                 out.append(ch[ch.speaker.isin(set(ok[ok.clone_succeeds].speaker))])
         return pd.concat(out, ignore_index=True)
 
-    a, b = get("cloning_protection_m20.csv"), get("cloning_protection_f1.csv")
+    a, b = get("cloning_tc_m30_seg_s7.csv"), get("cloning_tc_m30_nodvec_seg.csv")
     if a is None or b is None:
         return
     A, B = pre(a), pre(b)
-    ren = {"plain_m20_f20_nodvec": "plain", "nsT_m20_f20_nodvec": "nsT",
-           "full_m20_f20_nodvec": "full", "fullnsT_m20_f20_nodvec": "fullnsT"}
-    B = B.copy(); B["variant"] = B.variant.replace(ren)
+    # Corrected base: one protected arm per file (the shipping recipe), not the
+    # four of the dev-clean base. Align the held-out arm name onto the matched
+    # one so the two columns join; the "mean over four arms" wording that used
+    # to sit in this caption is no longer true and has been removed.
+    _a_arms = [v for v in A.variant.unique() if v != "unprotected"]
+    _b_arms = [v for v in B.variant.unique() if v != "unprotected"]
+    if len(_a_arms) != 1 or len(_b_arms) != 1:
+        print("%% TABLE PENDING: expected one protected arm per file on the "
+              "corrected base, found %r and %r. Rebuild this table in the "
+              "draft phase (PLAN_V3 W9-W13)." % (_a_arms, _b_arms))
+        return
+    B = B.copy(); B["variant"] = B.variant.replace({_b_arms[0]: _a_arms[0]})
     print(r"""\begin{table}[t]
 \centering
 \caption{Protection against a real cloning attack (DiffVC). Clone success rate,

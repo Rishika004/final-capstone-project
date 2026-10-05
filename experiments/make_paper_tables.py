@@ -63,15 +63,58 @@ from utils.thresholds import rethreshold
 R = os.path.join(PROJ, "experiments", "results")
 ENC = ["WavLM-SV", "ECAPA-TDNN", "Resemblyzer d-vector"]
 SHORT = {"WavLM-SV": "WavLM-SV", "ECAPA-TDNN": "ECAPA", "Resemblyzer d-vector": "d-vector"}
-ARMS = [("plain_m20_f20", "PGD (purifier not in loop)"),
-        ("nsT_m20_f20_l10", "+ pass-through constraint"),
-        ("full_m20_f20", "EOT (purifier-aware)"),
-        ("fullnsT_m20_f20_l10", "EOT + constraint (ours)")]
+# Corrected base, shipping recipe: loud budget m30_f15 + --seg-partials
+# (RESULTS sections 21-28).  The old m20_f20 arm names belonged to the dev-clean
+# base and are listed in OLD_BASE below.
+ARMS = [("plain_tc_m30_seg", "PGD (purifier not in loop)"),
+        ("nsT_tc_m30_seg", "+ pass-through constraint"),
+        ("full_tc_m30_seg", "EOT (purifier-aware)"),
+        ("fullnsT_tc_m30_seg", "EOT + constraint (ours)")]
+
+
+# ---------------------------------------------------------------------------
+# CORRECTED-BASE GUARD (council #2, PLAN_V3 W1 #2).
+#
+# Both table generators read files from the OLD base (dev-clean / purifier v3 /
+# same-session thresholds / n = 20).  Nothing before RESULTS section 21 may
+# appear as a number in this paper (user rule, 2026-10-04), and the lead result
+# was being quoted on the old base while the corrected-base CSVs sat unanalysed
+# on disk.  `get` used to return None for a missing file, so a repointed table
+# would vanish silently rather than complain -- which is how the two bases
+# stayed mixed.
+#
+# Now: reading an old-base file is a hard error that names its replacement, and
+# a missing file prints a visible marker instead of disappearing.
+# ---------------------------------------------------------------------------
+OLD_BASE = {
+    # old-base file                            -> corrected-base replacement
+    "nullspace_survival_20spk_u3_alpha.csv":    "survival_tc_v7.csv",
+    "foreign_libri_deantifake_t1_n20.csv":      "foreign_tc_libri_t1.csv",
+    "foreign_libri_deantifake_t3_n20.csv":      "foreign_tc_libri_t3.csv",
+    "foreign_sc09_philsyn_t1_n20.csv":          "foreign_tc_sc09_t1.csv",
+    "foreign_sc09_philsyn_t3_n20.csv":          "foreign_tc_sc09_t3.csv",
+    "main_table_v3.csv":                        "main_table_tc_m30_seg.csv",
+    "control_nopurifier.csv":                   "control_nopurifier_seg.csv",
+    "cloning_protection_m20.csv":               "cloning_tc_m30_seg_s7.csv",
+    "cloning_protection_f1.csv":                "cloning_tc_m30_nodvec_seg.csv",
+}
+MISSING = []
 
 
 def get(name):
+    if name in OLD_BASE:
+        raise SystemExit(
+            f"\n[BASE GUARD] refusing to read OLD-BASE file {name!r}.\n"
+            f"  Corrected-base replacement: {OLD_BASE[name]!r}\n"
+            "  The paper quotes the corrected base only (test-clean / purifier v7 /\n"
+            "  cross-session thresholds / n = 29, RESULTS sections 21-33).")
     p = os.path.join(R, name)
-    return read_csv(p) if os.path.isfile(p) else None
+    if not os.path.isfile(p):
+        MISSING.append(name)
+        print(f"\n> **TABLE OMITTED** -- `{name}` is not on disk. "
+              "Not silently skipped; this marker is the record.\n")
+        return None
+    return read_csv(p)
 
 
 def hdr(n, title):
@@ -87,16 +130,20 @@ def t_headline():
     print("")
     print("| # | What we claim | Evidence | Strength |")
     print("|---|---|---|---|")
+    # Corrected base (RESULTS section 33).  The old row read "86-107 %",
+    # "20 of 20" and "p = 1.9e-06" -- the last being the n=20 Wilcoxon FLOOR
+    # (2/2^20), i.e. a restatement of "every speaker separates" and not a
+    # strength (council #8).  State the count, not the floor.
     print("| 1 | The perturbation survives purification by models **we did not "
-          "train** | 86-107 % of its strength on our own purifier, across **two** "
-          "independently published models | **20 of 20 speakers in all 4 cells**, "
-          "p = 1.9e-06 each |")
+          "train** | 89-128 % of its strength on our own purifier, across **two** "
+          "independently published models | **29 of 29 speakers in all 4 cells** "
+          "(sign test, the Wilcoxon p is at its n=29 floor) |")
     print("| 2 | It survives because of where it points, not how loud it is | "
           "signal gain **0.87** vs **0.74** for random noise of identical loudness; "
-          "noise ratio 0.23 vs 0.51 | n = 20 held-out speakers |")
+          "noise ratio 0.22 vs 0.54 | n = 29 held-out speakers |")
     print("| 3 | The purifier really does have a blind end and a vicious end | "
           "deliberately bad directions return at **0.21** with **7x** more junk "
-          "than signal | n = 20, same protocol |")
+          "than signal | n = 29, same protocol |")
     # RESULTS section 25 -> 26. The m20 rebase failed to reproduce these rows AND
     # was confounded (budget + --seg-partials both changed). Section 26 replicated on the corrected base at the LOUD budget
     # with n=29; null at the tight budget; two d-vector cells reverse. Section
@@ -165,11 +212,11 @@ def t_channels():
 
 
 def t_survival():
-    hdr(2, "Does the perturbation survive purification? (n = 20 held-out speakers)")
-    d = get("nullspace_survival_20spk_u3_alpha.csv")
+    d = get("survival_tc_v7.csv")
     if d is None:
-        print("*(nullspace_survival_20spk_u3_alpha.csv not found)*")
         return
+    hdr(2, "Does the perturbation survive purification? (n = %d held-out speakers)"
+        % d.speaker.nunique())
     print("Signal gain **alpha** = fraction of the original direction that returns")
     print("(1.0 = untouched). **nsr** = how much of what returns is NOT the original")
     print("direction (0 = clean survival). PSR is the norm ratio prior work reports;")
@@ -177,8 +224,14 @@ def t_survival():
     print("")
     print("| Direction | t | alpha | nsr | PSR (comparison only) |")
     print("|---|---|---|---|---|")
-    for kind, label in (("null", "pass-through (ours)"), ("random", "random"),
-                        ("range", "range (worst case)")):
+    # The matched controls (council #3) appear automatically once a run with
+    # them lands in this file; until then the white-noise `random` row is the
+    # only baseline, which is the defect, and the note below says so.
+    fams = [("null", "pass-through (ours)"), ("random", "random (white noise)"),
+            ("band_matched:null", "random, matched envelope"),
+            ("pca_span", "random, clean-PCA span"),
+            ("range", "range (worst case)")]
+    for kind, label in fams:
         s = d[d.kind == kind]
         if not len(s):
             continue
@@ -187,6 +240,12 @@ def t_survival():
                 label, t, s["alpha_t%d" % t].mean(), s["nsr_t%d" % t].mean(),
                 s["psr_t%d" % t].mean()))
     print("")
+    if not len(d[d.kind.astype(str).str.startswith(("band_matched", "pca_span"))]):
+        print("> **Matched control PENDING (council #3).** The only baseline in this")
+        print("> table is isotropic white noise, which is what this purifier was")
+        print("> trained to remove. Re-run `exp_nullspace_survival.py` without")
+        print("> `--no-controls` to add the envelope-matched and clean-PCA-span rows.")
+        print("")
     print("**Why PSR is not the headline.** It is a norm ratio, so it cannot")
     print("distinguish a direction that survived from one destroyed and replaced by")
     print("noise of equal size. In our own data two conditions differ by 0.001 in PSR")
@@ -199,21 +258,37 @@ def t_foreign():
     print("Two published DiffWave checkpoints: different architecture, weights and")
     print("training corpus.")
     print("")
+    # The vocoder floor and the plain-ratio comparison are COMPUTED from the
+    # corrected-base files, not quoted: both were old-base constants (1.33x and
+    # "89/67/91/69 %") that survived two rebases unchanged.
+    _cells = [get(f) for f in ("foreign_tc_libri_t1.csv", "foreign_tc_libri_t3.csv",
+                               "foreign_tc_sc09_t1.csv", "foreign_tc_sc09_t3.csv")]
+    _cells = [c for c in _cells if c is not None]
+    def _voc(c):
+        p = c[c.direction == "pass_through"]; r = c[c.direction == "random"]
+        return p.alpha_vocoder.mean() / r.alpha_vocoder.mean()
+    def _plain(c):
+        p = c[c.direction == "pass_through"]; r = c[c.direction == "random"]
+        return 100 * (p.alpha_foreign.mean() / r.alpha_foreign.mean()) / (
+            p.alpha_ours.mean() / r.alpha_ours.mean())
+    _vocs = [_voc(c) for c in _cells]
     print("**Retention is defined carefully, and the naive definition is wrong.** The")
     print("separation between the pass-through and random directions is not all due to")
     print("the purifier: the mel + vocoder round trip alone favours the pass-through")
-    print("direction by 1.33x, because it is smoother and survives mel inversion")
+    print("direction by %.2fx, because it is smoother and survives mel inversion" %
+          (sum(_vocs) / len(_vocs) if _vocs else float("nan")))
     print("better (RESULTS section 6). `excess` divides that floor out. `ours` is our")
-    print("v3 at t=200 through the identical lossy pipeline, and retention is the")
-    print("foreign excess as a fraction of ours. Taking a plain ratio of alphas")
-    print("instead gives 89/67/91/69 %, which understates t=3 by nearly 40 points.")
+    print("purifier v7 at t=200 through the identical lossy pipeline, and retention is")
+    print("the foreign excess as a fraction of ours. Taking a plain ratio of alphas")
+    print("instead gives %s %%, which mis-states the t=3 cells." %
+          "/".join("%.0f" % _plain(c) for c in _cells))
     print("")
     print("| Foreign purifier | t | alpha pass | alpha random | better | excess | ours | retention |")
     print("|---|---|---|---|---|---|---|---|")
-    for f, label in (("foreign_libri_deantifake_t1_n20.csv", "DiffWave-LibriSpeech"),
-                     ("foreign_libri_deantifake_t3_n20.csv", "DiffWave-LibriSpeech"),
-                     ("foreign_sc09_philsyn_t1_n20.csv", "DiffWave-SC09"),
-                     ("foreign_sc09_philsyn_t3_n20.csv", "DiffWave-SC09")):
+    for f, label in (("foreign_tc_libri_t1.csv", "DiffWave-LibriSpeech"),
+                     ("foreign_tc_libri_t3.csv", "DiffWave-LibriSpeech"),
+                     ("foreign_tc_sc09_t1.csv", "DiffWave-SC09"),
+                     ("foreign_tc_sc09_t3.csv", "DiffWave-SC09")):
         d = get(f)
         if d is None:
             continue
@@ -233,8 +308,9 @@ def t_foreign():
 
 
 def t_quality():
-    hdr(4, "Perceptual cost of protection (n = 20, m20_f20 budget)")
-    d = get("main_table_v3.csv")
+    hdr(4, "Perceptual cost of protection (corrected base, m30_f15 + segment "
+        "crafting)")
+    d = get("main_table_tc_m30_seg.csv")
     if d is None:
         return
     s = d.drop_duplicates(["variant", "file"])
@@ -252,7 +328,7 @@ def t_quality():
 
 def t_asv():
     hdr(5, "Protection against speaker verification (n = 20, per encoder)")
-    d = get("main_table_v3.csv")
+    d = get("main_table_tc_m30_seg.csv")
     if d is None:
         return
     d = rethreshold(d, "diffpure_gl_ddim_v3", verbose=False)
@@ -281,7 +357,7 @@ def t_mismatch():
     from experiments.analyse_mismatch import holm, paired, load, FULL, FULLNST
     import contextlib
     with contextlib.redirect_stdout(io.StringIO()):
-        own = load(os.path.join(R, "main_table_v3.csv"),
+        own = load(os.path.join(R, "main_table_tc_m30_seg.csv"),
                    channel="diffpure_gl_ddim_v3")
     cells = []
     for tag, lbl in (("", "DiffWave-LibriSpeech"), ("_sc09", "DiffWave-SC09")):
@@ -311,7 +387,7 @@ def t_mismatch():
         print("| %s (MISMATCHED) | %s | %s%+.4f%s | %d/%d | %s%.4f%s |" % (
             head, SHORT[e], star, r["delta"], star, r["better"], r["n"],
             star, r["p_adj"], star))
-    ctl = load(os.path.join(R, "control_nopurifier.csv"))
+    ctl = load(os.path.join(R, "control_nopurifier_seg.csv"))
     if ctl is not None:
         for e in ENC:
             r = paired(ctl, FULL, FULLNST, enc=e)
@@ -342,13 +418,14 @@ def _pre(df):
 
 def t_cloning():
     hdr(6, "Protection against a real cloning attack (DiffVC)")
-    pub, f1 = get("cloning_protection_m20.csv"), get("cloning_protection_f1.csv")
+    pub, f1 = get("cloning_tc_m30_seg_s7.csv"), get("cloning_tc_m30_nodvec_seg.csv")
     if pub is None:
         return
     print("**Clone success rate** -- the attack WORKED, so lower is better for the")
     print("defender. Following AntiFake, only speakers whose UNPROTECTED audio cloned")
     print("are scored, so the unprotected row is 100 % by construction. Figures are")
-    print("the mean across the four protected arms.")
+    print("for the shipping arm; the corrected base carries one protected arm per")
+    print("file, not the four of the dev-clean base.")
     print("")
     print("The two result columns are the paper's central methodological point.")
     print("*Matched* crafts against all three encoders, one of which is byte-identical")
@@ -357,13 +434,19 @@ def t_cloning():
     print("")
     A = _pre(pub)
     B = _pre(f1) if f1 is not None else None
-    ren = {"plain_m20_f20_nodvec": "plain_m20_f20",
-           "nsT_m20_f20_nodvec": "nsT_m20_f20_l10",
-           "full_m20_f20_nodvec": "full_m20_f20",
-           "fullnsT_m20_f20_nodvec": "fullnsT_m20_f20_l10"}
+    # Corrected base: one protected arm per file (the shipping recipe). The old
+    # four-arm rename map belonged to the dev-clean base.
     if B is not None:
-        B = B.copy()
-        B["variant"] = B.variant.replace(ren)
+        _a = [v for v in A.variant.unique() if v != "unprotected"]
+        _b = [v for v in B.variant.unique() if v != "unprotected"]
+        if len(_a) == 1 and len(_b) == 1:
+            B = B.copy()
+            B["variant"] = B.variant.replace({_b[0]: _a[0]})
+        else:
+            print("> **TABLE PENDING** -- expected one protected arm per file on "
+                  "the corrected base, found %r and %r. Rebuild in the draft "
+                  "phase (PLAN_V3 W9-W13).\n" % (_a, _b))
+            B = None
     print("| Attacker's purifier | Encoder | Matched (white-box) | Held out (honest) | n |")
     print("|---|---|---|---|---|")
     for p, plabel in (("none", "none"), ("diffwave", "DiffWave (foreign)"),
