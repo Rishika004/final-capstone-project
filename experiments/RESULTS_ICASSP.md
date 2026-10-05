@@ -2516,3 +2516,97 @@ WavLM > ECAPA +0.083, 25/29, p=3.6e-05; random > WavLM +0.140, 27/29, p=2e-07.
   on the foreign waveform purifier (DiffWave t=1). Same measurement through
   DiffWave needs a waveform-domain survival adapter — the natural next check,
   and purifier transfer (§E9) makes the same ordering likely.
+
+---
+
+## 33. Purifier transfer on the corrected base (2026-10-05)
+
+The lead claim, finally measured on the base the paper actually reports.
+`foreign_tc_libri_t{1,3}.csv`, `foreign_tc_sc09_t{1,3}.csv`,
+`survival_tc_v7.csv`; all numbers regenerable with
+`python experiments/analyse_transfer.py`.
+
+Until now this result was quoted at n = 20 on the dev-clean base with purifier
+v3 and same-session thresholds, while the corrected-base files sat on disk
+unanalysed (council #2, "do first"). Both table generators also read the old
+files, and their loader returned `None` for a missing one, so a repointed table
+would have vanished silently instead of complaining. That is fixed: reading an
+old-base file is now a hard error naming its replacement.
+
+### 33a. A perturbation aimed at the pass-through subspace survives purifiers we did not train
+
+α = signal gain of the direction through the foreign purifier (1.0 = returned
+untouched); `random` is a white-noise direction of identical norm.
+
+| Foreign purifier | t | α pass | α random | separates | retention | 95 % CI |
+|---|---|---|---|---|---|---|
+| DiffWave-LibriSpeech | 1 | 0.822 | 0.356 | 29/29 | 89 % | [81, 98] |
+| DiffWave-LibriSpeech | 3 | 0.699 | 0.212 | 29/29 | 128 % | [111, 149] |
+| DiffWave-SC09 | 1 | 0.838 | 0.359 | 29/29 | 91 % | [82, 100] |
+| DiffWave-SC09 | 3 | 0.694 | 0.214 | 29/29 | 126 % | [110, 144] |
+
+Both purifiers are independently published DiffWave checkpoints, neither
+trained by us, one on LibriSpeech and one on SC09 — a different corpus and a
+different task.
+
+`retention` divides out the mel + Griffin-Lim round trip, which on its own
+favours the smoother pass-through direction by **1.35×** (the old tables
+hard-coded 1.33× from the dev-clean base), and expresses the foreign excess as
+a fraction of our own purifier's 1.92×.
+
+### 33b. What "128 % retention" does and does not mean
+
+The two t = 3 cells exceed 100 % with intervals that exclude it, so the effect
+is real rather than noise. **It is not amplification.** α pass itself *falls*
+from 0.822 to 0.699 as the foreign purifier gets stronger: the perturbation
+survives t = 3 *less* well in absolute terms. Retention rises because its
+denominator falls faster — the random direction collapses from 0.356 to 0.212.
+Retention is a ratio of separations, so it can exceed 1 while absolute survival
+drops, and the only honest reading is:
+
+> the *advantage* of pointing into the pass-through subspace over pointing
+> anywhere is larger against stronger foreign purification, while the absolute
+> amount that survives is smaller.
+
+Do not write "survives better at t = 3", and do not write "exceeds 100 %" for
+SC09 t = 1, whose interval [82, 100] includes it.
+
+### 33c. The p-value here carries no information, and is not quoted as strength
+
+All four cells separate on **every** speaker. A Wilcoxon or sign test then sits
+at its floor, 2/2²⁹ = 3.7 × 10⁻⁹, which is a restatement of "29 of 29" and not
+a measure of effect size. The old headline quoted p = 1.9 × 10⁻⁶, the same floor
+at n = 20 (council #8). **Report the count.**
+
+### 33d. Survival through our own purifier, corrected base
+
+`survival_tc_v7.csv`, n = 29, purifier v7:
+
+| direction | α t=50 | nsr t=50 | α t=200 | nsr t=200 |
+|---|---|---|---|---|
+| pass-through (optimised) | 0.867 | 0.22 | 0.525 | 0.53 |
+| pass-through, noise-matched t=200 | 0.989 | 0.07 | 0.976 | 0.10 |
+| random (white noise) | 0.713 | 0.54 | 0.466 | 0.77 |
+| range (worst case) | 0.185 | 8.79 | 0.172 | 7.20 |
+
+Pass-through beats white-noise random on 29/29 speakers at t = 50. The draft's
+old figures for this table were 0.97 vs 0.49; on the corrected base the contrast
+is 0.867 vs 0.713, a ratio of 1.22× rather than the 1.98× the old numbers imply.
+**The corrected base weakens this contrast substantially, and the paper must
+quote 0.867 / 0.713.**
+
+### 33e. The caveat that outranks everything above
+
+`random` here is **isotropic white noise**, and purifier v7 is a denoiser
+trained to remove exactly that. So "the pass-through direction survives better
+than random" may be no more than "it is smoother than white noise", especially
+once §33d shows the margin is 1.22× and not 2×. This is council #3, and it is
+the same defect that governs §32's per-encoder α ordering.
+
+The matched controls now exist (`core/matched_random.py`: an envelope-matched
+random direction and a clean-PCA-span random direction, both norm-matched) and
+the §32 measurement is being re-run against them. **Until that lands, every
+number in §33a and §33d is reported against a baseline that flatters it, and
+no claim of the form "survives because of where it points" is settled.**
+`exp_nullspace_survival.py` now takes the controls too; this table is owed a
+re-run.
