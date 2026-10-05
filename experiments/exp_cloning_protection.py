@@ -188,6 +188,10 @@ def main():
                          "results/purifier_aware/clones/ so the ATTACKER's "
                          "output can be quality-scored (council #6). ~22 MB for "
                          "a 29-speaker run.")
+    ap.add_argument("--reuse-clones", action="store_true", dest="reuse_clones",
+                    help="resume: embed and score any clone wav already on disk "
+                         "instead of regenerating it. Requires --clone-seed, "
+                         "because an unseeded clone is not reproducible.")
     ap.add_argument("--clone-seed", type=int, default=None, dest="clone_seed",
                     help="seed DiffVC's diffusion sampler per (speaker, arm, "
                          "purifier) so this run is reproducible. Default off: "
@@ -258,7 +262,12 @@ def main():
         print("[clone] SAME-SESSION (legacy): enrolment may share a chapter with "
               "the reference; see fix S1.")
 
-    rows, t_start = [], time.time()
+    if args.reuse_clones and args.clone_seed is None:
+        raise SystemExit(
+            "[clone] --reuse-clones needs --clone-seed: without a seed the "
+            "clones on disk came from an RNG state this run cannot reproduce, "
+            "so reusing them would mix two runs in one CSV.")
+    rows, t_start, n_reused = [], time.time(), 0
     for i, spk in enumerate(spks):
         src_spk = spks[(i + 1) % len(spks)]
         it = ref_of[spk]
@@ -279,6 +288,37 @@ def main():
 
         for pname, pur in purs.items():
             for arm, ref_wav in arms.items():
+                # Resume. A clone is a deterministic function of
+                # (speaker, arm, purifier) once --clone-seed is given, so a run
+                # that was interrupted can reuse the wavs it already wrote
+                # instead of re-running DiffVC's 30 diffusion steps and the
+                # attacker's purifier for them. The rows are still produced --
+                # the saved wav is embedded and scored exactly as a fresh clone
+                # would be -- so the output CSV is complete either way.
+                #
+                # Refused without --clone-seed: unseeded clones are NOT
+                # reproducible, so reusing one would silently mix a wav from an
+                # earlier RNG state with rows computed in this one.
+                cdir = os.path.join(WAV_DIR, "clones")
+                cpath = os.path.join(cdir, f"{name}__{arm}__{pname}__clone.wav")
+                if args.reuse_clones and os.path.isfile(cpath):
+                    y, _ = sf.read(cpath, dtype="float32")
+                    clone = torch.from_numpy(y).reshape(1, -1).to(device)
+                    n_reused += 1
+                    e_cl = real_embed_all(encs, clone)
+                    for n in e_enr:
+                        sim = cs(e_cl[n], e_enr[n])
+                        tau = THR[n]
+                        rows.append(dict(speaker=spk, source_speaker=src_spk,
+                                         variant=arm, purifier=pname, encoder=n,
+                                         clone_sim=round(sim, 4),
+                                         threshold=round(tau, 4),
+                                         margin=round(sim - tau, 4),
+                                         clone_succeeds=bool(sim > tau),
+                                         succeeds_at_025=bool(sim > FIELD_CONVENTION_THRESHOLD)
+                                         if n == "ECAPA-TDNN" else None,
+                                         reused_clone=True, **PROV))
+                    continue
                 if pur is None:                                   # phonepure: pre-purified on disk
                     utt = name.replace("spk", "", 1).replace("_", "-")   # spk1089_134686_0000 -> 1089-134686-0000
                     pp = os.path.join(PROJ, "external", "De-AntiFake", "data", f"ours_{arm}",
@@ -313,11 +353,9 @@ def main():
                 # files. ~22 MB for the full run; scored afterwards by
                 # eval_quality_nr.py. Off by default so v1 reruns are unchanged.
                 if args.save_clones:
-                    cdir = os.path.join(WAV_DIR, "clones")
                     os.makedirs(cdir, exist_ok=True)
-                    sf.write(os.path.join(
-                        cdir, f"{name}__{arm}__{pname}__clone.wav"),
-                        clone.detach().cpu().reshape(-1).numpy(), 16000)
+                    sf.write(cpath, clone.detach().cpu().reshape(-1).numpy(),
+                             16000)
                 e_cl = real_embed_all(encs, clone)
                 for n in e_enr:
                     sim = cs(e_cl[n], e_enr[n])
@@ -330,7 +368,7 @@ def main():
                                      # ECAPA only: the field convention, for comparability
                                      succeeds_at_025=bool(sim > FIELD_CONVENTION_THRESHOLD)
                                      if n == "ECAPA-TDNN" else None,
-                                     **PROV))
+                                     reused_clone=False, **PROV))
         el = time.time() - t_start
         print(f"  [{i+1}/{len(spks)}] spk{spk}  ({el/60:.1f} min elapsed, "
               f"~{el/(i+1)*(len(spks)-i-1)/60:.0f} min left)", flush=True)
@@ -338,6 +376,9 @@ def main():
 
     df = pd.DataFrame(rows)
     df.to_csv(args.out, index=False)
+    if args.reuse_clones:
+        print(f"[clone] reused {n_reused} clone wavs already on disk; "
+              f"{len(df) // max(len(THR), 1) - n_reused} were generated")
 
     # ---- AntiFake pre-filter, PER (ENCODER, PURIFIER).
     #
