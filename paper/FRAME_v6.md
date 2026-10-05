@@ -54,8 +54,16 @@ d-vector's noise-to-signal ratio exceeds 1.
 
 Claim it as a **two-group separation plus d-vector nsr > 1**, never as a
 four-way ranking.
-**[PENDING #3 spectrally-matched random control · #8 all 10 pairs under Holm ·
-#13c the same measurement through DiffWave]**
+**#3 DONE (§37, §43)** — spectrally-matched and clean-PCA-span controls, 8 of
+8 cells confirmed; the envelope-matched controls land at 0.701–0.715 against
+white noise 0.713, so the gap is not a spectral artefact. **Front-end
+robustness DONE (§43)** — α through the d-vector's real front end moves
++0.003, CI straddling zero, and §41 closes the same objection at the
+protection level. **Cohort DONE (§43)** — the α table is now on the
+cross-session cohort and is pairable with §27/§33; quote
+`encoder_subspace_xsess_fe.csv`, and restate §32's α as 0.568 / 0.463 / 0.388.
+**[PENDING #8 all 10 pairs under Holm · #13c the same measurement through
+DiffWave]**
 
 ### C2 — What it explains: the constraint's encoder-dependent effect (§27, §30e)
 Under purifier mismatch at the loud budget the invariance constraint improves
@@ -68,8 +76,12 @@ Stated as a **hypothesis supported by one sample of 29 speakers**, insensitive
 to crafting mode and gradient estimator (§27, §30e) — that is analysis-choice
 insensitivity, not replication. C1 is the explanation, generated after observing
 the reversal, not a prediction.
-**[PENDING #5 pre-registered replication on disjoint speakers makes this a
-finding · #13b CAM++ prospective test makes C1 a prediction]**
+**[#5 RUNNING 2026-10-06 — pre-registered out-of-sample replication on the 31
+cross-session dev-clean speakers, thresholds calibrated on test-clean;
+`PREREG_05_devclean_replication.md` fixes the 12 cells and the outcome→action
+table, and outcome C (not replicated) is pre-held. Until it reads out, C2 stays
+"a hypothesis supported by one sample".]**
+**[PENDING #13b CAM++ prospective test makes C1 a prediction]**
 
 ### C3 — The paradigm's measured ceiling (§22b, §30, §29)
 1. **Coverage, not generalisation** (§22b). Same files, same thresholds, one
@@ -85,9 +97,14 @@ finding · #13b CAM++ prospective test makes C1 a prediction]**
    collapse concentrates on the d-vector, C1's lowest-α encoder. ASV acceptance
    of the purified reference overstates what DiffVC actually clones, which is a
    methodological warning for proxy-scored protection papers.
-   **[PENDING #4 pre-filter fix and pooled-seed ranges: these rates are
-   single-seed on n = 16/11/24 and §31c forbids shipping them as point
-   estimates]**
+   **#4 DONE (W1)** — the pre-filter is keyed per (encoder, purifier); the
+   union made protection look better everywhere it mattered. The rates are
+   still single-seed on small n, so §31c still forbids shipping them as point
+   estimates: quote ranges pooled over seeds, with n.
+   **Quality of the attacker's output DONE (§40)** — the protected clone is
+   0.32 UTMOS / 0.44 NISQA less natural unpurified, halving under the
+   purifier, with WER untouched. Report it: part of what the similarity
+   numbers call protection coincides with modest damage to the clone.
 
 ### Not a contribution
 The crafting recipe (purifier-in-the-loop optimisation at EOT size 1,
@@ -101,15 +118,16 @@ moves to §2 as "the protection we analyse".
 | § | Content | Pages | Source | Gate |
 |---|---|---|---|---|
 | 1 | Intro: purification defeats protection; our question; C1–C3 | 0.6 | related_work §0, §0b | — |
-| 2 | Setup: rewritten threat model, corpus, disjoint calibration, encoders, purifiers with denoise gain and conditioning disclosed, the protection analysed, metrics, operating point | 0.6 | §21, §23, §26d | #2 #6 #7 #11 #19 |
-| 3 | **C1.** Fig. 1: α per encoder vs matched random at t = 50/200 | 0.9 | §32, `encoder_subspace.csv` | #3 #8 #13c |
+| 2 | Setup: rewritten threat model, corpus, disjoint calibration, encoders, purifiers with denoise gain and conditioning disclosed, the protection analysed, metrics, operating point | 0.6 | §21, §23, §26d, §40, §42 | ~~#2~~ ~~#6~~ ~~#7~~ #11 #19 (clean channel done, purified channels open) |
+| 3 | **C1.** Fig. 1: α per encoder vs matched random at t = 50/200 | 0.9 | §32, §37, §43, `encoder_subspace_xsess_fe.csv` | ~~#3~~ #8 #13c |
 | 4 | **C2.** Table 1: 4 cells × 3 encoders, paired Δ with CI and Holm, plus the unpurified row | 0.7 | §27a–c, §30e | #5 #8 |
-| 5 | **C3.** Table 2: coverage contrast and the PhonePuRe two-number row; BPDA in one sentence | 0.8 | §22b, §29, §30 | #4 #8 |
+| 5 | **C3.** Table 2: coverage contrast and the PhonePuRe two-number row; BPDA in one sentence | 0.8 | §22b, §29, §30, §40 | ~~#4~~ #8 |
 | 6 | Limitations and conclusion | 0.4 | council §B | — |
 
 Purifier transfer (the new-base figures from `foreign_tc_*.csv`) is supporting
 context in §2–3, not a headline: it is two checkpoints of one architecture, and
-the one architecturally different purifier (§29) breaks it. **[PENDING #2]**
+the one architecturally different purifier (§29) breaks it. **#2 DONE
+(§33).**
 
 ---
 
