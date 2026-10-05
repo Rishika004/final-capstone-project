@@ -77,7 +77,7 @@ OUT = os.path.join(PROJ, "experiments", "results", "cloning_protection.csv")
 THR_CLEAN = os.path.join(PROJ, "experiments", "results", "thresholds_clean.csv")
 
 
-def load_thresholds(path=None):
+def load_thresholds(path=None, cross_session=None, subset=None):
     """Per-encoder EER thresholds calibrated on the clean channel.
 
     `path` overrides the default file. Under --cross-session the run must use the
@@ -108,14 +108,23 @@ def load_thresholds(path=None):
     as a caveat, do not "fix" it by calibrating on clones -- that would treat clones
     as a legitimate enrolment class and define the attack away.
     """
-    path = path or THR_CLEAN
-    if not os.path.isfile(path):
+    # Council #19 / PLAN_V3 W2. The default used to be THR_CLEAN, the LEGACY
+    # same-session calibration, and nothing checked it: its WavLM threshold is
+    # 0.911 against the cross-session 0.8926, i.e. 0.018 in the defender's
+    # favour, which is the size of every effect this paper reports. The
+    # docstring above said the cross-session file "must" be used; now the code
+    # enforces it instead of asking.
+    from utils.thresholds import require_matching_base
+    if path is None:
         raise SystemExit(
-            f"missing {os.path.basename(path)} -- run: python "
-            "experiments/calibrate_thresholds.py --channel clean "
-            "--cross-session --subset test-clean --n-spk 29 --n-utt 4")
-    d = read_csv(path)
-    return {r.encoder: float(r.threshold) for r in d.itertuples()}
+            "[clone] --thresholds is now required. There is no safe default: "
+            f"the old one was {os.path.basename(THR_CLEAN)}, a same-session "
+            "calibration whose WavLM threshold is 0.018 too permissive.\n"
+            "  Pass experiments/results/thresholds_clean_xsess_tc.csv for a "
+            "cross-session test-clean run.")
+    return require_matching_base(
+        path, cross_session=cross_session, subset=subset,
+        what="this cloning run")
 
 
 DW_LIBRI = os.path.join(PROJ, "checkpoints", "foreign", "diffwave_libri_deantifake.pkl")
@@ -205,7 +214,9 @@ def main():
     variants = [v for v in args.variants.split(",") if v]
     pur_names = [p for p in args.purifiers.split(",") if p]
 
-    THR = load_thresholds(args.thresholds or None)
+    THR = load_thresholds(args.thresholds or None,
+                          cross_session=args.cross_session,
+                          subset=(args.subset or EVAL_SUBSET))
     print("per-encoder EER thresholds (clean channel): " +
           ", ".join(f"{k}={v:.3f}" for k, v in THR.items()))
     from models.diffvc_clone import DiffVCCloner

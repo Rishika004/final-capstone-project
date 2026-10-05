@@ -64,6 +64,11 @@ say "crafting done -- starting cloning evaluation"
 python experiments/exp_cloning_protection.py \
   --subset dev-clean --n-files 20 --spk-offset 20 --ref-utt 3 --enroll-utt 0 \
   --purifiers none,ours,diffwave --dw-t 1 \
+  `# W2 / council #19: thresholds_clean.csv used to be the SILENT default.` \
+  `# It is the LEGACY same-session calibration (WavLM 0.911 against the` \
+  `# cross-session 0.8926). Named here so this old-base dev-clean arm stays` \
+  `# reproducible -- not because it is right for anything new.` \
+  --thresholds experiments/results/thresholds_clean.csv \
   --variants plain_m20_f20_nodvec,nsT_m20_f20_nodvec,full_m20_f20_nodvec,fullnsT_m20_f20_nodvec \
   --out experiments/results/cloning_protection_f1.csv \
   > experiments/results/f1_cloning.log 2>&1
