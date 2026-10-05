@@ -115,3 +115,51 @@ def rethreshold(df, channel, t_col="eval_t", verbose=True):
     elif verbose:
         print(f"  [S2] thresholds already matched for channel {channel}")
     return d
+
+
+def encoder_scales(channel, t, prefer="nontarget_sd"):
+    """{encoder: score scale} for one channel, for PLAN_V3 2e.
+
+    WHY (2e). `lse` in exp_purifier_aware.py smooth-maxes raw cosine margins
+    `(c - thr)` across encoders. Those are NOT commensurable: each encoder has
+    its own score spread, so "whichever encoder is closest to threshold" is
+    being decided in an arbitrary unit. Measured consequence: the identity of
+    the binding encoder changes for 4 of 29 speakers once margins are divided
+    by each encoder's impostor SD. Raising `tau_lse` therefore concentrates the
+    budget on an artefact of scale.
+
+    The impostor (nontarget) SD is the right divisor: a margin of one impostor
+    SD means the same thing on every encoder -- one step out of the accept
+    region in units of how spread the impostor scores are.
+
+    Falls back to inferring sigma from the EER under an equal-variance Gaussian
+    when the SD columns are absent, which is every threshold file calibrated
+    before PLAN_V3 2f added them. The fallback is what the project did
+    implicitly all along; it is now explicit and it says so.
+    """
+    if channel not in CHANNELS:
+        raise KeyError(f"unknown channel {channel!r}; known: {sorted(CHANNELS)}")
+    table = CHANNELS[channel]
+    if t not in table:
+        raise KeyError(f"no calibration for channel {channel!r} at t={t}")
+    path = os.path.join(R, table[t])
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"{path} missing; run calibrate_thresholds.py")
+    from utils.csvio import read_csv
+    d = read_csv(path).set_index("encoder")
+
+    if prefer in d.columns and d[prefer].notna().all():
+        return dict(d[prefer].astype(float)), "measured"
+
+    # Equal-variance Gaussian: EER = Phi(-d'/2), and thr sits midway, so the
+    # separation in sigma units is 2*Phi^-1(1-EER) and
+    # sigma = (target_mean - nontarget_mean) / that.
+    from statistics import NormalDist
+    nd = NormalDist()
+    out = {}
+    for enc, row in d.iterrows():
+        eer = float(row["eer"])
+        sep = float(row["target_mean"]) - float(row["nontarget_mean"])
+        z = 2.0 * nd.inv_cdf(min(max(1.0 - eer, 0.5 + 1e-9), 1 - 1e-9))
+        out[enc] = sep / z if z > 0 else float("nan")
+    return out, "inferred-from-eer"
