@@ -1,0 +1,49 @@
+stim_id,speaker,utterance,condition,arm,source,lufs_before,gain_db,lufs_after,peak,clamped
+c624e90b17ff00a2,1284,spk1284_1180_0000,original,,data\librispeech\LibriSpeech\test-clean\1284\1180\1284-1180-0000.flac,-22.5,-0.5,-23.0,0.4456,False
+8cd7eca9237c3beb,1284,spk1284_1180_0000,anchor_noise,,data\librispeech\LibriSpeech\test-clean\1284\1180\1284-1180-0000.flac +0dB noise,-18.11,-4.89,-23.0,0.3423,False
+0ef5e170ada94fc2,1284,spk1284_1180_0000,plain,plain_tc_m30_seg,experiments\results\purifier_aware\spk1284_1180_0000_plain_tc_m30_seg.wav,-16.94,-6.06,-23.0,0.4607,False
+75edfaea454422d5,1284,spk1284_1180_0000,nsT,nsT_tc_m30_seg,experiments\results\purifier_aware\spk1284_1180_0000_nsT_tc_m30_seg.wav,-16.89,-6.11,-23.0,0.4676,False
+06a6989d0479a269,1284,spk1284_1180_0000,full,full_tc_m30_seg,experiments\results\purifier_aware\spk1284_1180_0000_full_tc_m30_seg.wav,-16.94,-6.06,-23.0,0.4572,False
+d25da42d8a3890c8,1284,spk1284_1180_0000,fullnsT,fullnsT_tc_m30_seg,experiments\results\purifier_aware\spk1284_1180_0000_fullnsT_tc_m30_seg.wav,-16.78,-6.22,-23.0,0.4737,False
+12055deac1e6fff9,1580,spk1580_141083_0000,original,,data\librispeech\LibriSpeech\test-clean\1580\141083\1580-141083-0000.flac,-26.77,3.77,-23.0,0.7717,False
+c2cc3179c928bba3,1580,spk1580_141083_0000,anchor_noise,,data\librispeech\LibriSpeech\test-clean\1580\141083\1580-141083-0000.flac +0dB noise,-23.33,0.33,-23.0,0.5602,False
+510e4d8606461cb2,1580,spk1580_141083_0000,plain,plain_tc_m30_seg,experiments\results\purifier_aware\spk1580_141083_0000_plain_tc_m30_seg.wav,-21.84,-1.16,-23.0,0.7098,False
+0f19fdf0d7fb07d5,1580,spk1580_141083_0000,nsT,nsT_tc_m30_seg,experiments\results\purifier_aware\spk1580_141083_0000_nsT_tc_m30_seg.wav,-21.69,-1.31,-23.0,0.7205,False
+a287e3dbb0f1dc13,1580,spk1580_141083_0000,full,full_tc_m30_seg,experiments\results\purifier_aware\spk1580_141083_0000_full_tc_m30_seg.wav,-21.74,-1.26,-23.0,0.7453,False
+8724400a4d512606,1580,spk1580_141083_0000,fullnsT,fullnsT_tc_m30_seg,experiments\results\purifier_aware\spk1580_141083_0000_fullnsT_tc_m30_seg.wav,-21.69,-1.31,-23.0,0.7692,False
+aadcba87bc23158f,1995,spk1995_1826_0000,original,,data\librispeech\LibriSpeech\test-clean\1995\1826\1995-1826-0000.flac,-23.25,0.25,-23.0,0.4283,False
+d69d373a7a1e7259,1995,spk1995_1826_0000,anchor_noise,,data\librispeech\LibriSpeech\test-clean\1995\1826\1995-1826-0000.flac +0dB noise,-18.45,-4.55,-23.0,0.3017,False
+e68ebb39d204d2ad,1995,spk1995_1826_0000,plain,plain_tc_m30_seg,experiments\results\purifier_aware\spk1995_1826_0000_plain_tc_m30_seg.wav,-16.58,-6.42,-23.0,0.4434,False
+195edc5bd5c072e6,1995,spk1995_1826_0000,nsT,nsT_tc_m30_seg,experiments\results\purifier_aware\spk1995_1826_0000_nsT_tc_m30_seg.wav,-16.49,-6.51,-23.0,0.4347,False
+718df6dd190b3ac5,1995,spk1995_1826_0000,full,full_tc_m30_seg,experiments\results\purifier_aware\spk1995_1826_0000_full_tc_m30_seg.wav,-16.58,-6.42,-23.0,0.4066,False
+f2bd8b348066ffcc,1995,spk1995_1826_0000,fullnsT,fullnsT_tc_m30_seg,experiments\results\purifier_aware\spk1995_1826_0000_fullnsT_tc_m30_seg.wav,-16.51,-6.49,-23.0,0.4344,False
+fb96d7cb272da4e7,237,spk237_126133_0000,original,,data\librispeech\LibriSpeech\test-clean\237\126133\237-126133-0000.flac,-28.96,5.96,-23.0,0.5803,False
+e956213964265a81,237,spk237_126133_0000,anchor_noise,,data\librispeech\LibriSpeech\test-clean\237\126133\237-126133-0000.flac +0dB noise,-25.1,2.1,-23.0,0.4198,False
+8bb1052bb47d2ba7,237,spk237_126133_0000,plain,plain_tc_m30_seg,experiments\results\purifier_aware\spk237_126133_0000_plain_tc_m30_seg.wav,-19.29,-3.71,-23.0,0.5788,False
+c75467ad2d3a16df,237,spk237_126133_0000,nsT,nsT_tc_m30_seg,experiments\results\purifier_aware\spk237_126133_0000_nsT_tc_m30_seg.wav,-19.14,-3.86,-23.0,0.5661,False
+e969f87a6ab4ff9a,237,spk237_126133_0000,full,full_tc_m30_seg,experiments\results\purifier_aware\spk237_126133_0000_full_tc_m30_seg.wav,-19.35,-3.65,-23.0,0.6106,False
+36e31155c3fe0023,237,spk237_126133_0000,fullnsT,fullnsT_tc_m30_seg,experiments\results\purifier_aware\spk237_126133_0000_fullnsT_tc_m30_seg.wav,-19.15,-3.85,-23.0,0.5864,False
+3def2efc9bea9ec2,2961,spk2961_960_0000,original,,data\librispeech\LibriSpeech\test-clean\2961\960\2961-960-0000.flac,-28.17,5.17,-23.0,0.7222,False
+477e2b3e85f7342a,2961,spk2961_960_0000,anchor_noise,,data\librispeech\LibriSpeech\test-clean\2961\960\2961-960-0000.flac +0dB noise,-24.34,1.34,-23.0,0.5046,False
+768327cbe98d68f0,2961,spk2961_960_0000,plain,plain_tc_m30_seg,experiments\results\purifier_aware\spk2961_960_0000_plain_tc_m30_seg.wav,-21.17,-1.83,-23.0,0.664,False
+5703e1a78f4611bc,2961,spk2961_960_0000,nsT,nsT_tc_m30_seg,experiments\results\purifier_aware\spk2961_960_0000_nsT_tc_m30_seg.wav,-21.1,-1.9,-23.0,0.6946,False
+a2eb2924297d3250,2961,spk2961_960_0000,full,full_tc_m30_seg,experiments\results\purifier_aware\spk2961_960_0000_full_tc_m30_seg.wav,-21.11,-1.89,-23.0,0.6742,False
+a1bf26026346c047,2961,spk2961_960_0000,fullnsT,fullnsT_tc_m30_seg,experiments\results\purifier_aware\spk2961_960_0000_fullnsT_tc_m30_seg.wav,-21.03,-1.97,-23.0,0.6985,False
+ae8e253166d84cca,4077,spk4077_13751_0000,original,,data\librispeech\LibriSpeech\test-clean\4077\13751\4077-13751-0000.flac,-24.41,1.41,-23.0,0.945,False
+4cf67c52b3dfcd2f,4077,spk4077_13751_0000,anchor_noise,,data\librispeech\LibriSpeech\test-clean\4077\13751\4077-13751-0000.flac +0dB noise,-20.38,-2.62,-23.0,0.5896,False
+8109a7e10727ee33,4077,spk4077_13751_0000,plain,plain_tc_m30_seg,experiments\results\purifier_aware\spk4077_13751_0000_plain_tc_m30_seg.wav,-23.58,0.58,-23.0,0.9582,False
+12cd1f89183cb34c,4077,spk4077_13751_0000,nsT,nsT_tc_m30_seg,experiments\results\purifier_aware\spk4077_13751_0000_nsT_tc_m30_seg.wav,-23.48,0.48,-23.0,0.9456,False
+1932032f8dcab0b8,4077,spk4077_13751_0000,full,full_tc_m30_seg,experiments\results\purifier_aware\spk4077_13751_0000_full_tc_m30_seg.wav,-23.49,0.49,-23.0,0.9417,False
+b39bbe962881413f,4077,spk4077_13751_0000,fullnsT,fullnsT_tc_m30_seg,experiments\results\purifier_aware\spk4077_13751_0000_fullnsT_tc_m30_seg.wav,-23.46,0.46,-23.0,0.939,False
+25a02809d6431589,5142,spk5142_33396_0001,original,,data\librispeech\LibriSpeech\test-clean\5142\33396\5142-33396-0001.flac,-28.13,5.13,-23.0,0.7509,False
+26986e653436435a,5142,spk5142_33396_0001,anchor_noise,,data\librispeech\LibriSpeech\test-clean\5142\33396\5142-33396-0001.flac +0dB noise,-24.05,1.05,-23.0,0.5589,False
+ed80042094d16b78,5142,spk5142_33396_0001,plain,plain_tc_m30_seg,experiments\results\purifier_aware\spk5142_33396_0001_plain_tc_m30_seg.wav,-21.53,-1.47,-23.0,0.7612,False
+089969a5acaafd53,5142,spk5142_33396_0001,nsT,nsT_tc_m30_seg,experiments\results\purifier_aware\spk5142_33396_0001_nsT_tc_m30_seg.wav,-21.3,-1.7,-23.0,0.765,False
+126aa31fcfe5f621,5142,spk5142_33396_0001,full,full_tc_m30_seg,experiments\results\purifier_aware\spk5142_33396_0001_full_tc_m30_seg.wav,-21.51,-1.49,-23.0,0.7947,False
+310635b4b84177d1,5142,spk5142_33396_0001,fullnsT,fullnsT_tc_m30_seg,experiments\results\purifier_aware\spk5142_33396_0001_fullnsT_tc_m30_seg.wav,-21.28,-1.72,-23.0,0.812,False
+7329fb88ce5afd4c,7127,spk7127_75947_0000,original,,data\librispeech\LibriSpeech\test-clean\7127\75947\7127-75947-0000.flac,-23.36,0.36,-23.0,0.4401,False
+c77bf285ffe5d29b,7127,spk7127_75947_0000,anchor_noise,,data\librispeech\LibriSpeech\test-clean\7127\75947\7127-75947-0000.flac +0dB noise,-19.74,-3.26,-23.0,0.3759,False
+6c96aff6fb4bee8f,7127,spk7127_75947_0000,plain,plain_tc_m30_seg,experiments\results\purifier_aware\spk7127_75947_0000_plain_tc_m30_seg.wav,-16.83,-6.17,-23.0,0.448,False
+44e4defab3bf923a,7127,spk7127_75947_0000,nsT,nsT_tc_m30_seg,experiments\results\purifier_aware\spk7127_75947_0000_nsT_tc_m30_seg.wav,-16.72,-6.28,-23.0,0.4243,False
+6d2e446d07f6dddb,7127,spk7127_75947_0000,full,full_tc_m30_seg,experiments\results\purifier_aware\spk7127_75947_0000_full_tc_m30_seg.wav,-16.92,-6.08,-23.0,0.447,False
+23644de900cd558d,7127,spk7127_75947_0000,fullnsT,fullnsT_tc_m30_seg,experiments\results\purifier_aware\spk7127_75947_0000_fullnsT_tc_m30_seg.wav,-16.79,-6.21,-23.0,0.4326,False

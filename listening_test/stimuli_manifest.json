@@ -1,0 +1,56 @@
+{
+  "target_lufs": -23.0,
+  "sample_rate": 16000,
+  "max_sec": 4.0,
+  "seed": 20261005,
+  "n_speakers": 8,
+  "speakers": [
+    "spk1284",
+    "spk1580",
+    "spk1995",
+    "spk237",
+    "spk2961",
+    "spk4077",
+    "spk5142",
+    "spk7127"
+  ],
+  "conditions": [
+    {
+      "name": "original",
+      "arm": null,
+      "note": "high anchor: must be rated >= 4"
+    },
+    {
+      "name": "anchor_noise",
+      "arm": null,
+      "note": "low anchor, 0 dB SNR: must be rated <= 2"
+    },
+    {
+      "name": "plain",
+      "arm": "plain_tc_m30_seg",
+      "note": "PGD, purifier not in the loop"
+    },
+    {
+      "name": "nsT",
+      "arm": "nsT_tc_m30_seg",
+      "note": "constraint without EOT"
+    },
+    {
+      "name": "full",
+      "arm": "full_tc_m30_seg",
+      "note": "EOT, purifier-aware"
+    },
+    {
+      "name": "fullnsT",
+      "arm": "fullnsT_tc_m30_seg",
+      "note": "EOT + constraint (the shipping arm)"
+    }
+  ],
+  "n_stimuli": 48,
+  "blinded": true,
+  "key_file": "stimuli_blind_key.txt",
+  "key_csv": "stimuli_key.csv",
+  "lufs_spread_db": 0.0,
+  "clamped": 0,
+  "warnings": []
+}
