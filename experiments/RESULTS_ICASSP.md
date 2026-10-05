@@ -2748,3 +2748,70 @@ The two-line change to `lse` itself is **not** applied to the shipping recipe.
 It would alter v1, and PLAN_V3 freezes the base. It ships as an
 implementation-notes disclosure beside the selection note in §36, and as an
 ablation if there is GPU left.
+
+---
+
+## 36. The shipped iterate is selected on a single purification draw (2026-10-05)
+
+PLAN_V3 2d, confirmed in the source and in the data. This is a defect in our own
+method that works **in the paper's favour**, and it is a transferable
+methodological point for any purifier-in-the-loop paper.
+
+### 36a. What the code does
+
+`exp_purifier_aware.py`, crafting loop:
+
+```
+score = score_acc                 # mean of c_after.max() over n_eot draws
+...
+if score < best_score:
+    best_score, best_delta = score, delta.detach().clone()
+```
+
+`c_after` comes from `diffpure_grad`, which draws **fresh noise on every call**.
+So `score` is a stochastic estimate of the iterate's quality, and `best_delta`
+is the arg-min of that estimate over all optimisation steps.
+
+Two facts make this a winner's curse rather than a rounding detail:
+
+* **`n_eot` is 1.** Confirmed in the data, not just the default:
+  `main_table_tc_m30_seg.csv` and its BPDA counterpart both carry `n_eot = 1`
+  for every row. So each iterate is scored on **one** purification draw.
+* **`steps` is 200.** The shipped delta is the luckiest of ~200 single draws.
+
+The selection statistic is also `c_after.max()` — a **raw cosine**, not a
+threshold margin (PLAN_V3 2.1/2.2) — and §35 shows raw cosines are not
+commensurable across encoders, so the max is taken in an arbitrary unit too.
+
+### 36b. The asymmetry, and why it is conservative for us
+
+The defender selects its shipped iterate on **1** draw. The attacker, in §28c,
+selects its best attempt from **5** draws, which was measured to be worth
+**+0.020 to +0.037** of recovered cosine. So the two sides of the reported
+contest are not optimised with equal care, and the inequality runs against us:
+
+> Protection as reported is a **lower bound for this recipe**.
+
+### 36c. The disclosure, for the paper
+
+> Ship-iterate selection used raw cosine rather than threshold margin
+> (`exp_purifier_aware.py:393`, `:412`) and selected on a single purification
+> draw (`n_eot = 1`) over 200 optimisation steps, while the attacker in §28c
+> selects best-of-5. Reported protection is therefore a lower bound for this
+> recipe.
+
+This pre-empts the objection and makes C3.1's coverage contrast **conservative
+in our favour**: a reviewer cannot argue the 75–92 % held-out column is an
+artefact of under-optimisation once we have said the optimiser was handicapped.
+
+### 36d. Not fixed, deliberately
+
+Three fixes exist (select on a running mean; ship the final delta; re-score the
+top-k at `n_eot = 5`). **None is applied.** Any of them changes v1, and PLAN_V3
+freezes the base: *the base never moves*. They are listed here, ship as the
+§36c paragraph, and are candidates for the W6 `--n-eot 5` parity ablation
+(PLAN_V3 #9) if GPU remains.
+
+Note what the fix would *not* do: switching the selection statistic from cosine
+to margin does not address selecting on noise. Those are two independent
+defects that happen to live on adjacent lines.
