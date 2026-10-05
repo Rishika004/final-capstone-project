@@ -3190,3 +3190,137 @@ panel is an unpaid colleague group (`FRAME_v6` §6, decided today), which change
 what the 20 Jan gate can conclude: the venue decision reads off the **naive
 subgroup alone**. Until then MOS and PSD remain "not run" in Table 7, and that
 table now reads its own status off these files instead of asserting it.
+
+---
+
+## 41. Council #10 — the front-end confound is dead where the claims live, and real where they do not (2026-10-06)
+
+`experiments/eval_frontend.py --n-files 29`, decided by
+`experiments/analyse_frontend.py`. `frontend_rescore.csv`,
+`frontend_summary.csv`; 29 cross-session speakers, 2088 rows,
+`code_sha=d417ba226f85`. **Evaluation only — nothing re-crafted, the base does
+not move.**
+
+### 41a. The objection, and why §23a and §38 did not answer it
+
+R1: WavLM-SV and ECAPA are scored through the exact function the optimiser
+differentiated through, while the d-vector alone is scored through
+`preprocess_wav` (volume normalise + VAD trim) and a partial average — and the
+d-vector is the one that fails. On that evidence the per-encoder pattern could
+be a property of the encoders or an artefact of who is scored through what.
+
+§23a and §38 measured how far the **d-vector's own** embedding moves under its
+front end (cos 0.977, 0.985). #10 is the complementary question about the other
+two, and it needs the swap run in both directions:
+
+* WavLM / ECAPA **gain** `preprocess_wav`;
+* the d-vector **loses** it, scored instead through the torch-mel partial
+  average its neighbours effectively use.
+
+Both the clean reference and the arm pass through the same front end on every
+row, because that is what a verifier does. A ±2 % resample round trip is
+included as a third front end: the benign channel a real upload applies, which
+nothing was crafted against.
+
+### 41b. Result: the answer depends on the purifier, and that is the finding
+
+Paired per speaker, n = 29, swapped minus native on the **shipping arm**, BCa
+95 % CI, Wilcoxon, Holm within encoder:
+
+| purifier | encoder | Δ swapped − native | 95 % CI | p_holm | protection effect | ratio |
+|---|---|---|---|---|---|---|
+| **DiffWave t=3** | WavLM-SV | −0.0020 | [−0.0064, +0.0014] | 1.00 | +0.134 | 66× |
+| | ECAPA-TDNN | −0.0053 | [−0.0144, +0.0041] | 0.39 | +0.442 | 84× |
+| | d-vector *(front end removed)* | −0.0041 | [−0.0120, +0.0134] | 0.43 | +0.166 | 41× |
+| **none** | WavLM-SV | **+0.1207** | [+0.0843, +0.1610] | 1.8e−07 | +0.704 | 5.8× |
+| | ECAPA-TDNN | **+0.0344** | [+0.0218, +0.0583] | 2.6e−07 | +1.283 | 37× |
+| | d-vector *(front end removed)* | **−0.0272** | [−0.0397, −0.0029] | 6.2e−04 | +0.468 | 17× |
+
+A **positive** Δ on a protected arm means the swap moved the arm back towards
+the speaker, i.e. less protection. "Protection effect" is
+`cos(clean, unprotected) − cos(clean, protected)` in the same cell, so "ratio"
+is how many times larger the thing being explained is than the shift offered to
+explain it.
+
+**Under the attacker's purifier — the cell every claim in the paper lives in —
+nothing moves.** All three shifts are ≤ 0.005, every CI spans zero, no cell
+survives Holm, and the protection effect is 41–84× larger. That is the
+pre-registered branch 1: **the confound is dead there**, and C1's per-encoder
+ordering is a property of the encoders rather than of their evaluation paths.
+
+**Unpurified, the front end matters.** WavLM loses 0.121 and ECAPA 0.034 when
+given the d-vector's front end — branch 2, and it must be reported. So the
+front ends are **not** interchangeable in general, and no sentence in the paper
+may say they are.
+
+### 41c. What the unpurified row actually shows: the constraint buys front-end robustness
+
+The unpurified shift is much larger on the **unconstrained** arm than on the
+shipping arm:
+
+| encoder | plain PGD | shipping (`fullnsT`) | ratio |
+|---|---|---|---|
+| WavLM-SV | +0.4890 | +0.1207 | 4.1× |
+| ECAPA-TDNN | +0.2520 | +0.0344 | 7.3× |
+
+Plain PGD loses roughly half of its WavLM protection the moment the verifier
+trims silence and renormalises, which is a thing any deployed verifier does.
+The purification-invariance constraint cuts that sensitivity four- to
+sevenfold. That is a **new and favourable property of the constraint** which no
+experiment here was designed to find: a perturbation tuned to survive a
+purifier also survives a front end it never saw. Stated as an observation on
+one sample, not as a claim about invariance in general.
+
+It also explains the purifier split without any extra assumption. Unpurified,
+the fine time-frequency structure the front end disturbs is still present.
+After DiffWave has run, that structure is largely gone for every arm, so there
+is nothing left for the front end to disturb and all six cells collapse to
+zero.
+
+### 41d. Removing the d-vector's front end does not rescue it
+
+This is the branch the whole objection rests on, and it fails:
+
+* Unpurified: **−0.0272** — the d-vector protects *slightly better* without its
+  front end. Directionally what the confound hypothesis predicts, and 17×
+  too small to matter.
+* Under DiffWave, **where the d-vector actually fails**: **−0.0041**, CI
+  [−0.0120, +0.0134], p_holm 0.43. Nothing. The d-vector still sits at cos
+  0.779 against 0.945 unprotected, with or without its own front end.
+
+So the d-vector's collapse under purification is **not** attributable to its
+evaluation path. §38 predicted this from the other side — the partial average
+absorbed the window misalignment at cos 0.985 — and the prediction was on
+record before this run.
+
+### 41e. Resample robustness, the cheap half of the cut 2.4
+
+A ±2 % resample round trip moves the shipping arm by at most 0.018:
+
+| encoder | unpurified | DiffWave |
+|---|---|---|
+| WavLM-SV | +0.0055 | −0.0003 |
+| ECAPA-TDNN | +0.0177 | +0.0059 |
+| d-vector | −0.0014 | −0.0011 |
+
+ECAPA is the only encoder with a consistent, Holm-significant sensitivity, and
+even there it is a fortieth of the protection effect. The protection is
+effectively resample-robust, which is worth one sentence in the setup section
+because no prior work in this line reports it.
+
+### 41f. What the paper must say, and must not
+
+* **Say:** "under the attacker's purifier, re-scoring every encoder through the
+  others' front end changes the paired margin by ≤0.005 with CIs spanning zero,
+  so the per-encoder ordering is not an artefact of the evaluation path."
+* **Say:** "unpurified, the front end does matter, and it matters four to seven
+  times less for the constrained arm than for plain PGD."
+* **Do not say:** "the front ends are interchangeable", or quote the purified
+  null without the unpurified row beside it.
+* **§27c consequence:** the unpurified null row ("no cost term on the new base")
+  is measured on the raw front end, where WavLM is 0.121 front-end sensitive.
+  That row now needs the qualifier; its *sign* is unaffected because both arms
+  in the paired difference move together.
+
+Council #10 is closed. The remaining front-end question — whether a matched
+front end changes α — is the C1 robustness row scheduled beside it.
