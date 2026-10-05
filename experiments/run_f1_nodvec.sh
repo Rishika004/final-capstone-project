@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+. "$(dirname "$0")/skipguard.sh"   # W0: refuse to skip rows written by other code
 # F1 -- drop Resemblyzer from CRAFTING, keep it in EVALUATION.
 #
 # WHY. DiffVC's speaker conditioner is a GE2E checkpoint byte-identical to the
@@ -43,7 +44,7 @@ run() {
   # `variant` is the FIRST csv column, so a leading comma never matches. Anchor
   # at line start instead. Getting this wrong re-ran a completed arm and would
   # have appended a duplicate set of rows to the results file.
-  if grep -q "^$tag," experiments/results/main_table_f1.csv 2>/dev/null; then
+  if skip_guard "$tag" experiments/results/main_table_f1.csv; then
     say "skip $tag (already in main_table_f1.csv)"; return
   fi
   say "start $tag"

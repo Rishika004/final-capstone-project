@@ -32,6 +32,7 @@ from evaluation.evaluate import wav_to_logmel
 from models.real_diffpure import load_real_diffpure, MelDiffPure
 from experiments.exp_purifier_aware import build_encoders, real_embed_all, cs, attacker_resynth, WAV_DIR
 from experiments.librispeech import list_librispeech, per_speaker, load_flac, EVAL_SUBSET
+from utils.provenance import provenance, add_prereg_arg
 
 OUT = os.path.join(PROJ, "experiments", "results", "eval_saved.csv")
 # EER thresholds calibrated through each channel (see thresholds_*.csv)
@@ -66,7 +67,9 @@ def main():
     ap.add_argument("--thresholds", default="",
                     help="wavlmsv,ecapa,dvec EER thresholds for this channel; "
                          "applied to every t>0 (t=0 keeps the Griffin-Lim-only values)")
+    add_prereg_arg(ap)
     args = ap.parse_args()
+    PROV = provenance(args.prereg)   # code_sha / prereg_sha / argv per row (W0)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ts = [int(v) for v in args.t.split(",")]
     seeds = [int(v) for v in args.seeds.split(",")]
@@ -171,7 +174,7 @@ def main():
                                      clone_fails_after=bool(ca < tau), ctrl_identity_kept=bool(cc >= tau),
                                      fails_all_seeds=bool(cmax < tau),
                                      defence_valid=bool(ca < tau and cc >= tau),
-                                     n_seeds=len(after[n])))
+                                     n_seeds=len(after[n]), **PROV))
         print(f"{name} done", flush=True)
     df = pd.DataFrame(rows)
     df.to_csv(args.out, index=False)

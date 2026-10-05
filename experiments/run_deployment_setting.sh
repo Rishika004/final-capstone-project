@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+. "$(dirname "$0")/skipguard.sh"   # W0: refuse to skip rows written by other code
 # ============================================================================
 # THE DEPLOYMENT SETTING — craft against every encoder a real defender can get,
 # including the one DiffVC uses. This is the number that answers "does this stop
@@ -66,7 +67,7 @@ BASE="--dataset librispeech --subset $SUBSET --cross-session --spk-offset 0 --ut
 
 run() {
   tag=$1; shift
-  if grep -q "^$tag," $OUT 2>/dev/null; then say "skip $tag"; return; fi
+  if skip_guard "$tag" "$OUT"; then say "skip $tag"; return; fi
   say "start $tag"
   python experiments/exp_purifier_aware.py $BASE --tag $tag "$@" > $R/dep_${tag}.log 2>&1
   say "done  $tag (exit $?)"

@@ -71,6 +71,7 @@ from experiments.exp_purifier_aware import build_encoders, real_embed_all, cs, W
 from experiments.librispeech import list_librispeech, per_speaker, load_flac, EVAL_SUBSET
 from evaluation.cloning_attack import FIELD_CONVENTION_THRESHOLD
 from utils.csvio import read_csv
+from utils.provenance import provenance, add_prereg_arg
 
 OUT = os.path.join(PROJ, "experiments", "results", "cloning_protection.csv")
 THR_CLEAN = os.path.join(PROJ, "experiments", "results", "thresholds_clean.csv")
@@ -183,7 +184,9 @@ def main():
                     help="purifier checkpoint for the 'ours' condition "
                          "(default: purifier_v3.pt)")
     ap.add_argument("--out", default=OUT)
+    add_prereg_arg(ap)
     args = ap.parse_args()
+    PROV = provenance(args.prereg)   # code_sha / prereg_sha / argv per row (W0)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     variants = [v for v in args.variants.split(",") if v]
     pur_names = [p for p in args.purifiers.split(",") if p]
@@ -289,7 +292,8 @@ def main():
                                      clone_succeeds=bool(sim > tau),
                                      # ECAPA only: the field convention, for comparability
                                      succeeds_at_025=bool(sim > FIELD_CONVENTION_THRESHOLD)
-                                     if n == "ECAPA-TDNN" else None))
+                                     if n == "ECAPA-TDNN" else None,
+                                     **PROV))
         el = time.time() - t_start
         print(f"  [{i+1}/{len(spks)}] spk{spk}  ({el/60:.1f} min elapsed, "
               f"~{el/(i+1)*(len(spks)-i-1)/60:.0f} min left)", flush=True)

@@ -53,6 +53,7 @@ if PROJ not in sys.path:
 import numpy as np
 import pandas as pd
 from utils.csvio import read_csv as read_csv_safe
+from utils.provenance import provenance, add_prereg_arg
 import torch
 import torch._dynamo  # noqa: F401  (must load BEFORE speechbrain: its lazy k2 import breaks dynamo's module scan)
 import transformers  # noqa: F401  (same reason: transformers registers torch ops on import)
@@ -720,7 +721,10 @@ def main():
     ap.add_argument("--thresholds", default="", help="wavlmsv,ecapa,dvec override")
     ap.add_argument("--tag", default="")
     ap.add_argument("--out", default=os.path.join(OUT_DIR, "purifier_aware.csv"))
+    add_prereg_arg(ap)
     args = ap.parse_args()
+    PROV = provenance(args.prereg)   # code_sha / prereg_sha / argv, stored per row (W0)
+    print(f"[PA] code_sha={PROV['code_sha']} prereg_sha={PROV['prereg_sha'] or '-'}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[PA] device={device} variant={args.variant} dataset={args.dataset} "
@@ -800,7 +804,8 @@ def main():
                              seg_partials=bool(args.seg_partials),
                              craft_stride=args.craft_stride,
                              held_out=("|".join(held_out) or "none"),
-                             purifier=os.path.basename(args.purifier_ckpt)))
+                             purifier=os.path.basename(args.purifier_ckpt),
+                             **PROV))
             print(f"  {enc_name:12s} tau={r['threshold']:.2f} | before={r['cos_before']:+.3f} "
                   f"after={r['cos_after_purify']:+.3f} (max {r['cos_after_max']:+.3f}) "
                   f"ctrl={r['cos_ctrl_unprot']:+.3f} | "

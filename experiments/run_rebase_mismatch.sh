@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+. "$(dirname "$0")/skipguard.sh"   # W0: refuse to skip rows written by other code
 # ============================================================================
 # REBASE THE MISMATCH TRADE -- the paper's actual contribution -- onto the
 # corrected evaluation base. This is the last claim still on the old protocol.
@@ -62,7 +63,7 @@ BASE="--dataset librispeech --subset $SUBSET --cross-session --spk-offset 0 \
 
 run() {
   tag=$1; shift
-  if grep -q "^$tag," $OUT 2>/dev/null; then say "skip $tag"; return; fi
+  if skip_guard "$tag" "$OUT"; then say "skip $tag"; return; fi
   say "start $tag"
   python experiments/exp_purifier_aware.py $BASE --tag $tag "$@" \
     > $R/mm_${tag}.log 2>&1

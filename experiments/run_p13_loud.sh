@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+. "$(dirname "$0")/skipguard.sh"   # W0: refuse to skip rows written by other code
 # ============================================================================
 # ROADMAP P1.3 — the LOUD budget with the cloner's encoder HELD OUT.
 #
@@ -56,7 +57,7 @@ BASE="--dataset librispeech --subset $SUBSET --cross-session --spk-offset 0 --ut
 
 run() {
   tag=$1; shift
-  if grep -q "^$tag," $OUT 2>/dev/null; then
+  if skip_guard "$tag" "$OUT"; then
     say "skip $tag (already present)"; return
   fi
   say "start $tag"

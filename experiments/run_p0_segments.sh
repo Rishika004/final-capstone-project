@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+. "$(dirname "$0")/skipguard.sh"   # W0: refuse to skip rows written by other code
 # ============================================================================
 # P0 RERUN — segment-level crafting, both settings, so the fix is ATTRIBUTABLE.
 #
@@ -60,7 +61,7 @@ COMMON="--dataset librispeech --subset $SUBSET --cross-session --spk-offset 0 \
  --thresholds $THR --eval-t 50,200 --thr-aware --weights 1,1,1 --seg-partials"
 
 craft() {   # $1 = out csv, $2 = craft-encoders, $3 = tag
-  if grep -q "^$3," "$1" 2>/dev/null; then say "skip $3"; return; fi
+  if skip_guard "$3" "$1"; then say "skip $3"; return; fi
   say "start $3"
   python experiments/exp_purifier_aware.py $COMMON --craft-encoders "$2" \
     --out "$1" --tag "$3" \
