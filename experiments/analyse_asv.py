@@ -36,9 +36,10 @@ THE BOOTSTRAP, AND WHY IT IS OVER SPEAKERS
 Each resample draws |S| speakers with replacement and keeps every trial whose
 *enrolment* speaker is drawn, which preserves the trial structure that speaker
 contributes (their targets and their impostor attempts) instead of shredding
-it. A trial-level bootstrap on the same data gives intervals several times
-narrower and is wrong for the same reason a per-rating listening-test interval
-is wrong.
+it. MEASURED on this data: the speaker-clustered interval is **1.7x wider** than a
+trial-level one, on all three encoders. Not an order of magnitude -- 29
+speakers x 16 trials each is not a severe clustering -- but enough to change
+whether an interval contains zero, and it is the honest one.
 
 Run:
   python experiments/analyse_asv.py
@@ -156,9 +157,18 @@ def main():
 
     rows = []
     for f in files:
-        m = re.match(r"trialscores_(.+)_([A-Za-z0-9_]+)\.csv$",
-                     os.path.basename(f))
-        tag, enc = (m.group(1), m.group(2)) if m else (os.path.basename(f), "?")
+        # The encoder name is sanitised into the filename with the same
+        # non-alphanumeric -> "_" rule calibrate_thresholds.py uses, and it can
+        # itself contain underscores ("Resemblyzer_d_vector"), so a greedy
+        # split on "_" gets it wrong ("clean_xsess_tc_v2_ECAPA" / "TDNN").
+        # Match the known encoders off the END of the name instead.
+        base = os.path.basename(f)[len("trialscores_"):-len(".csv")]
+        tag, enc = base, "?"
+        for cand in ("WavLM_SV", "ECAPA_TDNN", "Resemblyzer_d_vector",
+                     "x_vector"):
+            if base.endswith("_" + cand):
+                tag, enc = base[: -(len(cand) + 1)], cand
+                break
         d = pd.read_csv(f)
         if not {"score", "is_target"} <= set(d.columns):
             print(f"[ASV] skip {os.path.basename(f)}: no score/is_target")
@@ -208,10 +218,10 @@ def main():
             print(f"  {r.encoder[:22]:22s} {fmt('eer', 100):>16s} "
                   f"{fmt('mindcf_p0.01'):>20s} {fmt('mindcf_p0.05'):>20s}")
     print("\nHOW TO READ THIS")
-    print("  The CI is a cluster bootstrap over SPEAKERS, so it carries the")
-    print("  right kind of uncertainty: resampling trials instead would give an")
-    print("  interval several times too narrow, because every trial a speaker")
-    print("  appears in shares that speaker's voice.")
+    print("  The CI is a cluster bootstrap over SPEAKERS, because every trial a")
+    print("  speaker appears in shares that speaker's voice. Measured on this")
+    print("  data, a trial-level bootstrap would report an interval 1.7x")
+    print("  narrower on all three encoders.")
     print("  A minDCF near 1.0 means the system is no better than the trivial")
     print("  one at that operating point, whatever its EER says.")
     print(f"\nsaved {a.out}")

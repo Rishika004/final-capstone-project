@@ -3324,3 +3324,110 @@ because no prior work in this line reports it.
 
 Council #10 is closed. The remaining front-end question — whether a matched
 front end changes α — is the C1 robustness row scheduled beside it.
+
+---
+
+## 42. Council #19 — the operating points, with intervals, and what minDCF reveals that EER hid (2026-10-06)
+
+`experiments/calibrate_thresholds.py --channel clean --cross-session --subset
+test-clean --n-spk 29 --n-utt 4 --dump-scores --tag xsess_tc_v2`, then
+`experiments/analyse_asv.py`. 464 target and 12 992 non-target trials over 29
+speakers; `asv_operating_points.csv`, `det_clean_xsess_tc_v2_*.csv`.
+
+### 42a. A free reproducibility check, taken first
+
+The recalibration was written to a **new tag** so the frozen
+`thresholds_clean_xsess_tc.csv` could not move. It reproduces it exactly:
+
+| encoder | frozen τ | recomputed τ | Δ | EER then | EER now |
+|---|---|---|---|---|---|
+| WavLM-SV | 0.8926 | 0.8926 | 0.0000 | 5.20 % | 5.20 % |
+| ECAPA-TDNN | 0.3358 | 0.3358 | 0.0000 | 0.62 % | 0.62 % |
+| d-vector | 0.7029 | 0.7029 | 0.0000 | 3.45 % | 3.45 % |
+
+So the operating point the whole paper is scored against is bit-reproducible
+from HEAD, two weeks and one `recipe-v1` tag later. The new file additionally
+carries the SD columns PLAN_V3 2f added (`target_sd`, `nontarget_sd`,
+`pooled_sd`, `dprime`, `speaker_set`), which is why it was worth re-running at
+all.
+
+### 42b. The operating points
+
+Cluster bootstrap over **speakers**, 2000 resamples, 95 %. minDCF is
+normalised by the better trivial system, C_miss = C_fa = 1.
+
+| encoder | EER % | minDCF p=0.01 | minDCF p=0.05 |
+|---|---|---|---|
+| ECAPA-TDNN | **0.62** [0.00, 0.84] | **0.02** [0.00, 0.04] | **0.02** [0.00, 0.04] |
+| Resemblyzer d-vector | 3.45 [1.99, 4.74] | 0.39 [0.26, 0.49] | 0.27 [0.17, 0.36] |
+| WavLM-SV | 5.20 [3.69, 6.73] | **0.77** [0.62, 0.85] | 0.51 [0.38, 0.61] |
+
+### 42c. The finding: our three "encoders" are not three comparable verifiers
+
+EER alone says WavLM-SV (5.2 %) and the d-vector (3.5 %) are merely a few
+points worse than ECAPA (0.6 %). **minDCF says something far stronger.** At
+p_target = 0.01, the operating point a verifier facing mostly impostors
+actually sits at:
+
+* ECAPA is an excellent verifier — **0.02**, i.e. it costs 2 % of what the
+  trivial system costs.
+* The d-vector is mediocre — **0.39**.
+* **WavLM-SV is barely better than trivial — 0.77**, with the CI reaching 0.85.
+
+That reframes a sentence the paper was going to write. "Protection holds on
+WavLM-SV and ECAPA, and fails on the d-vector" is true, but the three columns
+do not carry equal weight: the encoder where protection is strongest (ECAPA)
+is also the only one whose accept/reject decisions are trustworthy at a
+realistic operating point, and the encoder with the most comfortable-looking
+protection margin (WavLM-SV) is the weakest verifier of the three. Both
+directions of that have to be said, because a reviewer who computes minDCF
+will find it in a minute.
+
+It also explains an oddity already on record: §23b/§27 repeatedly show WavLM-SV
+moving by large cosine amounts for small changes in behaviour. An encoder whose
+target and impostor distributions overlap this much (d' = 2.48, against 6.16
+for ECAPA) has a compressed, noisy decision scale, so large cosine excursions
+there mean less than they appear to.
+
+### 42d. The council's actual complaint, quantified
+
+> "EER 0.62 % = ~3 errors with no CI."
+
+Correct, and now measurable: ECAPA's EER interval is **[0.00, 0.84] %** — it
+*includes zero*. The point estimate 0.62 % is three errors out of 464 target
+trials, and the honest statement is "below about 0.9 %", not "0.62 %". Any
+table quoting ECAPA's EER to two decimals without the interval is overclaiming
+precision, and the project did that in five places.
+
+### 42e. The bootstrap has to cluster on speakers, and here is the price
+
+Every trial a speaker appears in shares that speaker's voice, so trials are not
+independent and a trial-level bootstrap understates the spread. Measured on
+this data, the speaker-clustered interval is **1.7× wider** than the
+trial-level one, consistently across all three encoders:
+
+| encoder | speaker-clustered width | trial-level width |
+|---|---|---|
+| ECAPA-TDNN | 0.84 pts | 0.50 |
+| d-vector | 2.75 | 1.61 |
+| WavLM-SV | 3.04 | 1.80 |
+
+1.7×, not an order of magnitude — 29 speakers × 16 trials each is not severe
+clustering. But it is the difference between ECAPA's interval containing zero
+and not, so it is the one to report. (An earlier draft of this section said
+"several times narrower"; that was a guess, and the measurement replaces it.)
+
+### 42f. What this adds to the paper
+
+* §2 gains the real operating-point table: EER **and** minDCF at two p_target
+  values **and** speaker-bootstrap CIs, which is the convention
+  `FRAME_v6` §3 lists against council #19.
+* DET curves are on disk per encoder, so the low-false-alarm region can be
+  plotted without re-running anything.
+* The per-encoder weighting above is a limitation to state in §6, not a result
+  to bury: with one strong verifier and two weak ones, a three-encoder
+  "coverage" claim is less uniform than it looks.
+* Still open from #19: the same treatment for the **purified** channels
+  (diffpure t=50, DiffWave t=1/t=3). Only the clean channel has raw scores so
+  far; the others need the same `--dump-scores` re-run, which is ~1 GPU-h and
+  is the remaining piece of this item.

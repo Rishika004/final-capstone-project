@@ -1,0 +1,4 @@
+tag,encoder,n_target,n_nontarget,n_speakers,eer,eer_threshold,mindcf_p0.01,mindcf_p0.01_threshold,mindcf_p0.05,mindcf_p0.05_threshold,eer_lo,eer_hi,mindcf_p0.01_lo,mindcf_p0.01_hi,mindcf_p0.05_lo,mindcf_p0.05_hi,det_file
+clean_xsess_tc_v2,ECAPA_TDNN,464,12992,29,0.006235,0.335808,0.024861,0.434439,0.018011,0.4292,3.8e-05,0.00839,0.002155,0.044258,0.001462,0.0381,det_clean_xsess_tc_v2_ECAPA_TDNN.csv
+clean_xsess_tc_v2,Resemblyzer_d_vector,464,12992,29,0.034483,0.702859,0.3877,0.784297,0.272552,0.756778,0.019856,0.047376,0.259383,0.487304,0.173245,0.357299,det_clean_xsess_tc_v2_Resemblyzer_d_vector.csv
+clean_xsess_tc_v2,WavLM_SV,464,12992,29,0.051955,0.892551,0.770628,0.955136,0.512931,0.937397,0.036868,0.067272,0.622522,0.845905,0.381687,0.608072,det_clean_xsess_tc_v2_WavLM_SV.csv
