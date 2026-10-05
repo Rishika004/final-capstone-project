@@ -3532,3 +3532,102 @@ Still open for C1, both scheduled: **#13c**, the same α measurement through
 DiffWave, so the explanation and the phenomenon live on the same purifier; and
 **#13b**, the prospective test on CAM++ and ERes2Net that turns C1 from an
 explanation into a prediction.
+
+---
+
+## 44. Council #8, the C1 half: all ten α pairs under one Holm family (2026-10-06)
+
+`experiments/analyse_alpha_pairs.py` on `encoder_subspace_matched.csv` (the
+file §32/§37 report). Zero GPU. `alpha_pairs.csv`.
+
+### 44a. Why the five p-values in §32b were not enough
+
+§32b quotes five pairwise α comparisons with unadjusted p-values. With five
+directions there are **ten** pairs, so five of them were selected after the
+means were visible, and the multiplicity was unaccounted. `FRAME_v6` §2 already
+hedges against this by restricting C1 to "a two-group separation plus d-vector
+nsr > 1, never a four-way ranking" — a sensible guess, made without the
+arithmetic. This section does the arithmetic: all ten pairs, one Holm family
+per timestep, paired per speaker, BCa CI plus Wilcoxon, with a Friedman omnibus
+first.
+
+### 44b. t = 50 — nine of ten pairs separate
+
+Friedman χ² = 71.5, p = 1.1e−14, so the five directions are not interchangeable.
+
+| A − B | Δ | 95 % CI | A>B | p_holm |
+|---|---|---|---|---|
+| d-vector − random | −0.3065 | [−0.3644, −0.2452] | 0/29 | 3.7e−08 |
+| random − x-vector | +0.2791 | [+0.2318, +0.3268] | 29/29 | 3.7e−08 |
+| ECAPA − random | −0.2227 | [−0.2637, −0.1786] | 2/29 | 2.1e−07 |
+| d-vector − WavLM | −0.1665 | [−0.2202, −0.1104] | 5/29 | 3.2e−05 |
+| WavLM − random | −0.1400 | [−0.1657, −0.1042] | 2/29 | 1.4e−06 |
+| WavLM − x-vector | +0.1391 | [+0.1012, +0.1789] | 25/29 | 2.5e−06 |
+| ECAPA − d-vector | +0.0838 | [+0.0277, +0.1429] | 21/29 | **3.2e−02** |
+| ECAPA − WavLM | −0.0827 | [−0.1196, −0.0506] | 4/29 | 1.3e−04 |
+| ECAPA − x-vector | +0.0564 | [+0.0148, +0.0976] | 19/29 | **3.2e−02** |
+| d-vector − x-vector | −0.0274 | [−0.0926, +0.0371] | 14/29 | 0.54 |
+
+Structure at t = 50, stated at the resolution the Holm column supports:
+
+> **random > WavLM-SV > ECAPA-TDNN > { x-vector ≈ d-vector }**
+
+### 44c. t = 200 — seven of ten, and the middle collapses
+
+| not separated at t = 200 | Δ | p_holm |
+|---|---|---|
+| ECAPA − d-vector | +0.0400 | 0.15 |
+| ECAPA − x-vector | +0.0227 | 0.23 |
+| d-vector − x-vector | −0.0174 | 0.47 |
+
+Structure at t = 200:
+
+> **random > WavLM-SV > { ECAPA ≈ x-vector ≈ d-vector }**
+
+### 44d. What C1 may now claim, and it is more than FRAME_v6 allowed
+
+`FRAME_v6` §2 and §4 currently say "WavLM separates from the other three" and
+forbid any ordering. That is **exactly right at t = 200 and too conservative at
+t = 50**, where ECAPA separates from both low encoders with Holm-adjusted
+p = 0.032 on each side.
+
+The claim the data support, with the timestep attached:
+
+* **At t = 50: a three-group separation** — WavLM-SV, then ECAPA, then
+  x-vector and the d-vector together, every step surviving Holm over all ten
+  pairs.
+* **At t = 200: a two-group separation** — WavLM-SV against the rest; the
+  middle is no longer resolvable.
+* **At both: x-vector and the d-vector are never distinguishable** (p = 0.54,
+  0.47). The pair at the bottom is a tie, and any sentence implying an order
+  within it is unsupported.
+* **At both: every encoder direction sits below random**, which is C1's actual
+  content and the most robust thing in the table.
+
+The two timesteps disagreeing is itself informative rather than awkward:
+stronger purification compresses the differences between encoders, which is
+what §37d's "the invariant subspace is the subspace clean speech occupies"
+predicts — push harder and everything that is not clean speech is removed
+alike.
+
+### 44e. Consequence for the claims ledger
+
+`FRAME_v6` §4's row should be timestep-specific rather than blanket:
+
+| write this | not this |
+|---|---|
+| "at t = 50, WavLM-SV > ECAPA > {x-vector, d-vector}, all ten pairs under one Holm family" | "WavLM-SV > ECAPA > x-vector > d-vector" |
+| "at t = 200 only WavLM-SV separates" | quoting the t = 50 ordering without its timestep |
+| "x-vector and the d-vector are not distinguishable at either timestep" | any order within that pair |
+
+Note the x-vector rows are available only on the §37 cohort: the
+cross-session re-run (§43) was done without `--with-xvector`. The pairs above
+are therefore reported from `encoder_subspace_matched.csv`, and §43's cohort
+caveat applies — they may not be paired per speaker with §27/§33. Re-running
+the pairs on the cross-session cohort with the x-vector would cost ~1.5 GPU-h
+and is **not** scheduled; the ordering is unchanged between cohorts (§43d), so
+the only thing it would buy is pairability for a table that does not need it.
+
+**Still open in #8:** the sign-test reframing of floor p-values, log-ratio plus
+BCa for retention, TOST for §30, the mixed model, and the missing
+`analyse_mismatch_final.py`. Those are W8 items and are untouched here.
