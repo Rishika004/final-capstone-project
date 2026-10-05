@@ -101,6 +101,36 @@ import transformers    # noqa: F401
 from core.matched_random import clean_mel_basis, controls_for, DEFAULT_K
 from utils.provenance import provenance, add_prereg_arg
 
+
+class FrozenVADDvec:
+    """The d-vector behind a FROZEN voice-activity trim, differentiably.
+
+    PLAN_V3 W2's C1 robustness row. alpha(g_dvec) in §32/§37 is computed
+    through `DvecEnc.embed` -- the torch-mel partial average with NO
+    `preprocess_wav`. The real evaluation path trims silence first, so a
+    reviewer can ask whether the d-vector's low alpha is a property of the
+    encoder or of the front end it was measured without.
+
+    `preprocess_wav` is not differentiable because the VAD decision is a hard
+    threshold. Freezing that decision on the CLEAN signal makes the rest of it
+    differentiable -- the trim becomes a fixed index selection, and §38
+    measured the volume-normalisation gain at exactly 0.000 dB on all 29
+    speakers of this cohort, so there is nothing else to model. Freezing on the
+    clean signal is legitimate here precisely because the direction being
+    measured is a property of the clean utterance.
+    """
+
+    def __init__(self, inner, keep_idx):
+        self.inner = inner
+        self.keep = keep_idx
+        self.name = inner.name + " (frozen VAD)"
+        self.threshold = getattr(inner, "threshold", 0.0)
+
+    def embed(self, wav):
+        w = wav if wav.dim() == 2 else wav.unsqueeze(0)
+        k = self.keep[self.keep < w.shape[-1]]
+        return self.inner.embed(w[:, k])
+
 OUT = os.path.join(PROJ, "experiments", "results", "encoder_subspace.csv")
 
 
@@ -128,6 +158,13 @@ def main():
     ap.add_argument("--pca-subset", default="dev-clean", dest="pca_subset",
                     help="corpus for the clean-mel PCA basis; MUST be disjoint "
                          "from --subset or the control sees the eval speakers")
+    ap.add_argument("--dvec-frozen-vad", action="store_true",
+                    dest="dvec_frozen_vad",
+                    help="ALSO measure alpha for the d-vector's identity "
+                         "direction computed through a FROZEN VAD trim, i.e. "
+                         "its real evaluation front end made differentiable. "
+                         "PLAN_V3 W2's C1 robustness row: is alpha(g_dvec) an "
+                         "artefact of scoring it without preprocess_wav?")
     ap.add_argument("--no-controls", action="store_true", dest="no_controls",
                     help="omit the council #3 matched controls, reproducing the "
                          "2026-10-01 run exactly")
@@ -225,8 +262,26 @@ def main():
             """Scale a mel direction to the protocol's per-element RMS."""
             return v / (v.pow(2).mean().sqrt() + 1e-12) * a.rms
 
+        # The frozen-VAD twin is per speaker: the keep-set is a property of
+        # this utterance. Built here so it sees the same wav_o the directions
+        # are measured on.
+        enc_list = list(encs)
+        if a.dvec_frozen_vad:
+            from experiments.diag_dvec_proxy import vad_keep_mask
+            from resemblyzer.audio import normalize_volume
+            from resemblyzer.hparams import audio_norm_target_dBFS
+            from experiments.multi_encoders import DvecEnc as _Dvec
+            arr = wav_o.detach().squeeze().cpu().numpy().astype(np.float32)
+            _, mask = vad_keep_mask(normalize_volume(
+                arr, audio_norm_target_dBFS, increase_only=True))
+            keep = torch.from_numpy(np.flatnonzero(mask)).long().to(device)
+            for e in encs:
+                if isinstance(e, _Dvec):
+                    enc_list.append(FrozenVADDvec(e, keep))
+                    break
+
         dirs = {}
-        for e in encs:
+        for e in enc_list:
             with torch.no_grad():
                 o = e.embed(wav_o).detach()
             m = mel_o.clone().requires_grad_(True)
@@ -247,7 +302,7 @@ def main():
         # same per-element RMS, so one norm-matched span draw serves them all.
         controls = {}
         if basis is not None:
-            for e in encs:
+            for e in enc_list:
                 c = controls_for(dirs[e.name], None, seed=spk)
                 controls[f"band_matched:{e.name}"] = c["band_matched"]
             controls["pca_span"] = controls_for(
@@ -277,12 +332,12 @@ def main():
                if x["speaker"] == spk}
         print(f"  [{i + 1}/{len(spks)}] spk{spk}")
         print("        encoder " + "  ".join(
-            f"{e.name.split()[0][:9]}={got[e.name]:+.3f}" for e in encs)
+            f"{e.name.split()[0][:9]}={got[e.name]:+.3f}" for e in enc_list)
             + f"  random={got['random']:+.3f}")
         if basis is not None:
             print("        control " + "  ".join(
                 f"{e.name.split()[0][:9]}={got[f'band_matched:{e.name}']:+.3f}"
-                for e in encs) + f"  pca_span={got['pca_span']:+.3f}")
+                for e in enc_list) + f"  pca_span={got['pca_span']:+.3f}")
         sys.stdout.flush()
         pd.DataFrame(rows).to_csv(a.out, index=False)
 
@@ -305,7 +360,7 @@ def main():
         print("=" * 74)
         print(f"  {'encoder':22s} {'alpha':>7s} {'matched':>8s} {'delta':>8s} "
               f"{'below':>7s}  {'vs pca_span':>11s}")
-        for e in encs:
+        for e in enc_list:
             bm = f"band_matched:{e.name}"
             if e.name not in piv or bm not in piv:
                 continue
