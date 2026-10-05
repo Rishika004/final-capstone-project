@@ -268,3 +268,62 @@ here — before any result was seen — rather than chosen afterwards.
 **Union check, run before the concatenation is accepted:** the 31 speakers in
 the combined CSV must equal the 31 cross-session-usable dev-clean speakers
 exactly. A mismatch means the run is discarded under §7.4.
+
+---
+
+## 10. Incident: two `code_sha` values in one run (2026-10-06, before any cell was scored)
+
+**What happened.** Crafting completed all eight chunks cleanly (31 speakers × 2
+arms, 02:19 wall clock). The assembler then **refused**, under §7.5, because the
+rows carry two `code_sha` values: `2fd23a02ea02` on the `full` arm's first chunk
+(8 speakers) and `79aae4857cc3` on everything else.
+
+**Why.** Five commits landed between chunk 1 and chunk 2 — while the GPU was
+busy, analysis scripts and write-ups were being committed. `code_sha` is
+computed over `utils/provenance.CODE_DIRS`, which includes the whole of
+`experiments/`, so committing an *analysis* script, or even a results CSV,
+moves it. That is an own goal: §7.6 forbids a second GPU job beside the
+crafting, and the spirit of §7.5 is "do not merge arms computed by two
+versions", but nothing said "do not commit during the run". **It does now.**
+
+**What was checked, rather than assumed.** The diff between the two shas is:
+
+```
+experiments/RESULTS_ICASSP.md                     (prose)
+experiments/analyse_alpha_pairs.py                (new, analysis only)
+experiments/analyse_devclean.py                   (analysis only)
+experiments/results/alpha_pairs.csv               (output)
+experiments/results/encoder_subspace_xsess_fe.csv (output)
+experiments/run_devclean_sensitivity.sh           (new, runs after this)
+paper/FRAME_v6.md                                 (prose)
+```
+
+Nothing on the crafting import path. That path was enumerated empirically — by
+importing `experiments/exp_purifier_aware.py` and listing every repo module
+that ended up in `sys.modules` — and it is 21 files under `core/`, `models/`,
+`utils/`, `evaluation/`, plus `exp_purifier_aware.py` and `multi_encoders.py`.
+None appears in the diff. The crafted δ for any file therefore cannot depend on
+which of the two shas produced it, and §3's recipe is untouched.
+
+**How it was resolved.** Not by a manual override. `assemble_devclean.py` gained
+`--verify-multi-sha`, which **diffs every pair of shas and refuses unless every
+changed path is classifiable as unable to affect crafting** — a path the
+classifier does not recognise is a refusal, so it fails closed. The assembly
+was accepted under that check and nowhere else. Data integrity was verified
+independently: 558 rows = 31 × 2 × 3 encoders × 3 `eval_t`, both arms covering
+all 31 speakers, one `prereg_sha` matching this file.
+
+**What this does and does not license.** It licenses this assembly, on the
+evidence above. It does not weaken §7.5 for anything else: a diff that touches
+`core/`, `models/`, `utils/`, `evaluation/`, `exp_purifier_aware.py` or
+`multi_encoders.py` still discards the run, and `SKIPGUARD_FORCE_SKIP` was not
+used and remains forbidden for the crafting stages.
+
+**Standing rule added, for the rest of this project.** No commits while a
+crafting job is running. Analysis written during a run is held in the working
+tree and committed after the job's last chunk, so the sha cannot move
+underneath it.
+
+**No cell had been scored when this was written.** The four foreign-purifier
+blocks and the control had not yet run, so nothing in this resolution could
+have been shaped by a result.

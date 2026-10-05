@@ -49,6 +49,57 @@ def fail(msg):
                      f"PREREG_05_devclean_replication.md §9 and §7.")
 
 
+# Paths whose contents cannot reach the crafting computation: analysis scripts,
+# shell wrappers, result files, tests and prose. Anything in a diff that is NOT
+# matched here causes a refusal -- including a file this list has never seen,
+# because "unclassified" must fail closed rather than pass.
+ANALYSIS_ONLY = (
+    "experiments/results/",      # outputs
+    "experiments/analyse_",      # analysis entry points
+    "experiments/diag_",         # diagnostics
+    "experiments/assemble_",     # this file
+    "experiments/make_",         # table / page / stimulus generators
+    "experiments/eval_frontend.py",
+    "experiments/eval_clone_quality.py",
+    "experiments/serve_listening_test.py",
+    "paper/", "tests/", "listening_test/", "notebooks/", "docs/",
+)
+ANALYSIS_ONLY_SUFFIX = (".md", ".csv", ".sh", ".txt", ".json", ".bib", ".png")
+
+
+def verify_shas_are_analysis_only(shas):
+    """Accept several code_sha values ONLY if nothing between them can have
+    changed the crafting computation.
+
+    The sha is computed over `utils/provenance.CODE_DIRS`, which includes the
+    whole of `experiments/` -- so committing an ANALYSIS script, or even a
+    result CSV, during a long crafting run bumps it. That is what happened on
+    2026-10-06 (see PREREG_05 §10): five commits landed between chunk 1 and
+    chunk 2, none of them on the crafting import path.
+
+    This function does not take that on trust. It diffs every pair of shas and
+    refuses unless every changed path is classified as unable to affect
+    crafting. A path the classifier does not recognise is a refusal.
+    """
+    import itertools
+    for x, y in itertools.combinations(sorted(shas), 2):
+        r = subprocess.run(["git", "diff", "--name-only", x, y], cwd=PROJ,
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            fail(f"cannot diff {x}..{y}: {r.stderr.strip()[:200]}")
+        changed = [ln.strip() for ln in r.stdout.splitlines() if ln.strip()]
+        bad = [c for c in changed
+               if not (c.startswith(ANALYSIS_ONLY)
+                       or c.endswith(ANALYSIS_ONLY_SUFFIX))]
+        if bad:
+            fail("%s..%s changes %d file(s) that may affect crafting:\n    %s"
+                 % (x, y, len(bad), "\n    ".join(bad[:12])))
+        print(f"[assemble] {x}..{y}: {len(changed)} file(s) changed, all "
+              f"analysis-only -- crafting path untouched")
+    print(f"[assemble] multi-sha accepted under --verify-multi-sha: "
+          f"{', '.join(shas)}")
+
+
 def expected_speakers():
     from experiments.librispeech import (list_librispeech, reference_items,
                                          cross_session_split)
@@ -65,6 +116,12 @@ def main():
         R, "main_table_dc_m30_seg_bpda_c*.csv"))
     ap.add_argument("--out", default=os.path.join(
         R, "main_table_dc_m30_seg_bpda.csv"))
+    ap.add_argument("--verify-multi-sha", action="store_true",
+                    dest="verify_multi_sha",
+                    help="allow several code_sha values, but only after "
+                         "checking that every file changed between them is "
+                         "analysis-only and the crafting import path is "
+                         "untouched")
     a = ap.parse_args()
 
     files = sorted(glob.glob(a.pattern))
@@ -101,8 +158,13 @@ def main():
     if "code_sha" in df.columns:
         shas = sorted(set(df.code_sha.dropna().astype(str)))
         if len(shas) != 1:
-            fail(f"{len(shas)} different code_sha values in one assembly: "
-                 f"{shas}")
+            if not a.verify_multi_sha:
+                fail(f"{len(shas)} different code_sha values in one assembly: "
+                     f"{shas}\n"
+                     f"  If the difference is provably analysis-only, re-run "
+                     f"with --verify-multi-sha, which CHECKS that rather than "
+                     f"taking your word for it.")
+            verify_shas_are_analysis_only(shas)
         if shas[0].endswith("-dirty"):
             print(f"[assemble] WARNING: code_sha {shas[0]} is dirty -- the "
                   f"working tree had uncommitted code changes during crafting.")
