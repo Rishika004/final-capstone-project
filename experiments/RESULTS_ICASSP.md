@@ -2920,3 +2920,151 @@ set. `exp_encoder_subspace.py` now takes `--cross-session` and **prints the
 overlap with the reported cohort on every run**, so it cannot hide again.
 Re-running the α table on the reported cohort costs ~1.5 GPU-h and is the
 cheapest way to make the two sections pairable.
+
+---
+
+## 38. The front-end pre-check: the windows do move, and the embedding does not care (2026-10-05)
+
+PLAN_V3 W1's last zero-GPU item ("run 2.4's CPU pre-check and report it as part
+of #10's answer"). `experiments/diag_dvec_proxy.py --frontend --n-files 29
+--cross-session`; `dvec_frontend_precheck.csv`; CPU only, no crafting.
+
+### 38a. What was being checked
+
+`IMPROVE_DVECTOR_2026-10-05.md` T1.1 argued the residual d-vector front-end gap
+is a **window-alignment** problem:
+
+> VAD trimming of LibriSpeech removes 0.3-0.8 s — half to a full partial hop.
+> So the ~4 windows whose worst case `--seg-partials` optimises are *not* the
+> windows the evaluator scores.
+
+and added that `normalize_volume(increase_only=True)` "rescales the whole
+signal — perturbation included". PLAN_V3 cut the implementation (§23a put the
+whole remaining preprocessing gap at cosine 0.977) but kept the pre-check,
+because the claim is the premise of a 2.5 GPU-h item and costs nothing to test.
+
+The measurement maps each partial boundary of the **trimmed** signal back
+through the VAD keep-mask to original sample indices, so "how far did this
+window move" is answered in the original timebase rather than inferred. The
+torch mel front end is held fixed on both sides, so gain and trimming are the
+only variables. The reimplemented mask is asserted bit-identical to
+`preprocess_wav`'s output on every speaker before anything is read off it.
+
+Cohort: the **cross-session 29**, i.e. the cohort §27 and §33 report — not
+§32/§37's. This section is therefore pairable with the rest of the paper.
+
+### 38b. Result
+
+| quantity | mean | SD | range |
+|---|---|---|---|
+| audio removed by VAD | **0.453 s** | 0.283 | 0.12 – 1.44 |
+| the same, in inter-partial hops (0.77 s) | **0.59** | 0.37 | 0.16 – 1.87 |
+| volume gain applied | **+0.000 dB** | 0.000 | 0.00 – 0.00 |
+| max window shift per speaker | 0.315 s | 0.154 | 0.09 – 0.69 |
+| cos(partial-averaged untrimmed, trimmed) | **0.9849** | 0.0110 | 0.9400 – 0.9945 |
+| cos, matched partial by partial | **0.9369** | 0.0318 | 0.8576 – 0.9768 |
+
+* Partials: **4.00 to 3.62** per speaker; 11 of 116 are lost outright, and
+  10 of 29 speakers lose one.
+* **33 of 105** comparable windows move by more than half a hop; 10 of 29
+  speakers have at least one such window.
+
+### 38c. Reading, against the branches written before the run
+
+**The mechanism is real; the lever is not.** T1.1's first half is confirmed and
+then some — a third of the surviving windows move more than half a hop, and the
+per-partial cosine of 0.937 says those windows genuinely see different audio.
+But the quantity that is actually scored, the partial **average**, moves by
+0.0151 (cos 0.9849). The averaging absorbs the misalignment, which is exactly
+the pre-registered "premise fails" branch and is consistent with §23a's
+independent 0.977 for the whole preprocessing step.
+
+The effect is orderly rather than noisy: seconds cut predicts the embedding
+cosine at **r = -0.912** (Spearman -0.870), and the ten speakers who lose a
+partial sit at 0.9761 against 0.9896 for those who keep all four. The worst case
+in the cohort is speaker 260 — 1.44 s cut, cos 0.940 — and even that is above
+the gap §23a already called minor.
+
+**One claim in IMPROVE_DVECTOR is simply false.** `normalize_volume` applies
+**exactly 0.000 dB on all 29 speakers**: `increase_only=True` fires only below
+-30 dBFS and `load_flac` already peak-normalises to 0.9, so the gain branch is
+unreachable on this corpus. "It rescales the whole signal, perturbation
+included" never happens here, and the T1.1 fix would have been half aimed at
+nothing. Add it to the §0 correction table.
+
+### 38d. What this decides
+
+Keeping the frozen-VAD front end **cut** is correct, and #10's
+evaluation-only re-score is the right substitute at a tenth of the cost: the
+confound it tests for is worth ~0.015 cosine on the quantity that scores us, not
+the ~0.13 that P0 fixed. This is the second time a d-vector front-end lever has
+been measured and found small (§23a was the first), and the second time the
+partial *average* turned out to be the robust part while the per-partial
+structure moved a lot.
+
+Carry into #10 as the prior: WavLM-SV and ECAPA have no VAD stage at all, so if
+the re-score moves them it is the ±2 % resample, not the trimming.
+
+---
+
+## 39. The v1 selection defects are now implemented, switched off, and locked by a golden file (2026-10-05)
+
+PLAN_V3 W1: "commit 2.1 / 2.2 / 2.3 / 2d / 2e as code fixes behind
+`--legacy-selection`, so v1 stays reproducible from HEAD. Golden-file test
+committed first." `tests/test_selection.py` (15 tests, all passing),
+`experiments/exp_purifier_aware.py`.
+
+### 39a. The golden file comes first, and it is numeric
+
+`craft()`'s two decision expressions lived in closures and could not be tested.
+They are now module-level `agg_lse` and `ship_score`, extracted
+behaviour-preservingly, and pinned:
+
+    lse(c) = logsumexp((c - thr_t) * w * tau_lse) / tau_lse
+    score  = c.max().item()
+
+against stored values on three fixed cosine vectors, using the thresholds the
+m30_seg arms were actually crafted against — **0.8740 / 0.3067 / 0.6819** from
+`thresholds_diffpure_gl_t50_ddim_v7_xsess_tc.csv`, not the clean-channel triple
+0.8926 / 0.3358 / 0.7029 the *cloning* script scores with. A second test
+recomputes the literal pre-refactor expression so the constants cannot drift
+together with the code. If any future edit changes what the v1 objective
+computes, this fails — the §25 failure mode caught one level up.
+
+### 39b. The fixes, all off by default
+
+`--no-legacy-selection` turns on three things together; `--legacy-selection`
+(the default) is v1.
+
+| fix | what it changes | evidence it matters |
+|---|---|---|
+| **2.1** | ship-iterate chosen by margin to threshold, not raw cosine | thresholds span 0.567 here, so the largest-cosine encoder need not be the one closest to accepting; the test exhibits two iterates whose ranking inverts |
+| **2e** | margins divided by each encoder's own score scale before the LSE | §35: the binding encoder changes for 4 of 29 speakers; the test reproduces a flip from ECAPA to the d-vector on this channel's measured scales |
+| **2d** | selection on a trailing mean of `--sel-window` steps, not one draw | §36: at `n_eot=1` each score is a single purification draw, so argmin over 200 steps ships the luckiest one |
+
+Two further items are unconditional because neither can change a run that
+already exists:
+
+* **2.3** — `tau_lse` and `seg_tau` are now CLI arguments at their crafted
+  defaults (4.0, 8.0). `seg_tau` was previously an inner closure's default and
+  could not be set at all.
+* **2.2** — `--thr-aware` without `--thresholds` now **aborts**. It used to fall
+  back silently to the model-card placeholders in `multi_encoders.py`
+  (0.86 / 0.25 / 0.75) against calibrated values of 0.874 / 0.307 / 0.682 —
+  0.047 of false slack on the d-vector, twice any effect this paper reports.
+  Every run script already passes `--thresholds`, so this refuses a mistake
+  rather than changing a result.
+
+### 39c. Why off, and what it buys
+
+§36d's reasoning stands: applying any of the three changes v1, and the base
+never moves. What changes today is that they are **written, tested and
+switchable** rather than described in prose — so the §36c disclosure paragraph
+now names code a reviewer can run, and the W6 `--n-eot 5` parity ablation has
+its arm ready instead of needing to be implemented under deadline.
+
+The disclosure is unchanged and still conservative in our favour:
+
+> Ship-iterate selection used raw cosine rather than threshold margin, and
+> selected on a single purification draw; reported protection is therefore a
+> lower bound for this recipe.
