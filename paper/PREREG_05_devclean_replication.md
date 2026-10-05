@@ -226,3 +226,45 @@ Each of these means the output is discarded, not reinterpreted.
 scoring through 4 foreign channels and the threshold calibration already on disk
 for test-clean. Budget check before launch: this must fit before the **25 Nov
 base freeze** with the W6 and W7 items still ahead of it.
+
+---
+
+## 9. Execution amendment — chunked crafting (added 2026-10-06, before any dev-clean file was crafted)
+
+`exp_purifier_aware.py` writes its CSV once, at the end of a run, and has no
+resume. Measured from the test-clean BPDA run (`main_table_tc_m30_seg_bpda.csv`)
+the mean crafting time is **122 s** per speaker on `full` and **139 s** on
+`fullnsT`, so 31 speakers × 2 arms is roughly **2.5–3.5 GPU-h including
+per-file evaluation** — longer than a single uninterrupted execution window is
+guaranteed to be here. A kill at 2 h would lose an entire arm.
+
+**Amendment.** Each arm is crafted in four consecutive chunks by speaker
+offset, `--spk-offset {0, 8, 16, 24}` with `--n-files {8, 8, 8, 7}`, each
+writing its own CSV, concatenated afterwards.
+
+**Why this changes nothing that matters.**
+
+* `list_files` applies `--spk-offset` to the **cross-session-filtered, sorted**
+  speaker list (`keep[args.spk_offset:]`, then the first `--n-files`), so the
+  four chunks tile the 31 speakers exactly once, in order, with no gap and no
+  overlap. Verified against the speaker list before launch.
+* Crafting is **per-file deterministic and independent of loop position**:
+  `craft()` re-seeds on entry (`torch.manual_seed(seed)`, `gen` at `seed+1000`,
+  `gl_gen` at `seed+2000`) with the same `--craft-seed 42` for every file, so a
+  file's δ does not depend on which chunk it was crafted in, or on how many
+  files preceded it.
+* All four chunks run the same `code_sha`, which every row records, so §7.5
+  still applies: the concatenation is checked to carry exactly one `code_sha`
+  and one `prereg_sha`, and is rejected otherwise.
+
+**What this does change, declared.** §3 records `--spk-offset 0`; the rows will
+record offsets 0/8/16/24 in their `argv`. §7.2 ("any flag in §3 differs from
+what is recorded in `argv`") is therefore waived **for `--spk-offset` and
+`--n-files` only**, and only because their union is the full, unselected set of
+31. Every other flag in §3 is unchanged and still binding. No speaker is
+selected, dropped or reordered by this, and the chunk boundaries were fixed
+here — before any result was seen — rather than chosen afterwards.
+
+**Union check, run before the concatenation is accepted:** the 31 speakers in
+the combined CSV must equal the 31 cross-session-usable dev-clean speakers
+exactly. A mismatch means the run is discarded under §7.4.
