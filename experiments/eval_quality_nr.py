@@ -26,6 +26,23 @@ A formant warp large enough to defeat speaker verification may also change
 perceived identity -- an automated speaker encoder cannot answer this, since
 disagreeing with the encoder is the entire point of the method.
 
+NOT THE SCRIPT FOR COUNCIL #6 (added 2026-10-05)
+------------------------------------------------
+This script compares the ADDITIVE arms against the ON-MANIFOLD transforms
+(warp / reverb / eq / tilt) on dev-clean, which is what it was built for and
+still the only place those transforms are scored. It is NOT the quality
+evidence the 2026-10-04 council asked for: its cohort is dev-clean with
+`--spk-offset 20`, its default tags are the old non-segment arms, it has no
+NISQA, and its WER reference is Whisper's own transcript of the original.
+
+For the shipping arm, NISQA, ground-truth WER, and the quality of what the
+ATTACKER produces, use:
+
+  python experiments/eval_clone_quality.py --n-files 29
+
+See RESULTS 40 and that script's docstring for why each of those four
+differences matters.
+
 Run:
   python experiments/eval_quality_nr.py --n-files 20
 Output:
