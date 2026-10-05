@@ -13,7 +13,10 @@ similarity on the REAL evaluation paths of WavLM-SV, ECAPA-TDNN, d-vector.
 Run:
   python experiments/calibrate_thresholds.py --n-spk 40 --n-utt 4
 Output:
-  experiments/results/thresholds.csv   (encoder, eer, threshold, n_target, n_nontarget)
+  experiments/results/thresholds.csv   (encoder, eer, threshold, target_mean,
+      nontarget_mean, target_sd, nontarget_sd, pooled_sd, dprime, n_target,
+      n_nontarget)
+  with --dump-scores, also trialscores_<tag>_<encoder>.csv (score, is_target)
 """
 import sys, io, os, argparse, itertools
 if not getattr(sys.stdout, "_nvp_utf8", False):   # guard: re-wrapping a second
@@ -86,6 +89,10 @@ def main():
                     help="librispeech subset override (default: EVAL_SUBSET). Pin "
                          "it when calibrating for a run on a specific corpus.")
     ap.add_argument("--tag", default="")
+    ap.add_argument("--dump-scores", action="store_true", dest="dump_scores",
+                    help="also write the raw target/nontarget trial scores, so "
+                         "minDCF, DET curves and bootstrap CIs need no re-run "
+                         "(council #19, PLAN_V3 2f)")
     ap.add_argument("--foreign-ckpt", default="", dest="foreign_ckpt",
                     help="DiffWave checkpoint, for --channel diffwave")
     args = ap.parse_args()
@@ -214,15 +221,49 @@ def main():
                 (tgt if lab_e[a] == lab_t[b] else non).append(s)
         tgt, non = np.array(tgt), np.array(non)
         eer, thr = eer_threshold(tgt, non)
+        # Fix 2f (PLAN_V3 W1). Only the MEANS were written, so every
+        # normalisation question had to infer sigma from the EER under an
+        # equal-variance Gaussian assumption that these score distributions do
+        # not satisfy. Without the SDs there is no per-encoder scale, so
+        # cross-encoder margins are not commensurable (see 2e: the identity of
+        # the binding encoder changes for 4 of 29 speakers once margins are
+        # divided by each encoder's impostor SD) and council #19 (minDCF, DET,
+        # CIs) cannot be answered at all. Zero extra compute: the trial scores
+        # are already in hand.
         rows.append(dict(encoder=n, channel=args.channel, eer=round(eer, 4),
                          threshold=round(thr, 4),
                          target_mean=round(tgt.mean(), 4),
                          nontarget_mean=round(non.mean(), 4),
+                         target_sd=round(float(tgt.std(ddof=1)), 5),
+                         nontarget_sd=round(float(non.std(ddof=1)), 5),
+                         # The impostor (nontarget) SD is the scale a margin
+                         # should be divided by; the pooled SD is the one a
+                         # d-prime style effect size wants.
+                         pooled_sd=round(float(np.sqrt(
+                             ((len(tgt) - 1) * tgt.var(ddof=1)
+                              + (len(non) - 1) * non.var(ddof=1))
+                             / max(len(tgt) + len(non) - 2, 1))), 5),
+                         dprime=round(float((tgt.mean() - non.mean()) / np.sqrt(
+                             0.5 * (tgt.var(ddof=1) + non.var(ddof=1)))), 4),
                          n_target=len(tgt), n_nontarget=len(non),
                          cross_session=bool(args.cross_session), subset=subset,
                          speaker_set=(args.speaker_set or "all")))
         print(f"  {n:12s} EER={100 * eer:.2f}%  thr={thr:.3f}  "
-              f"target={tgt.mean():.3f}  nontarget={non.mean():.3f}")
+              f"target={tgt.mean():.3f}+-{tgt.std(ddof=1):.3f}  "
+              f"nontarget={non.mean():.3f}+-{non.std(ddof=1):.3f}  "
+              f"d'={rows[-1]['dprime']:.2f}")
+        # Raw trial scores, so minDCF / DET / bootstrap CIs need no re-run
+        # (council #19). One small file per (channel, encoder).
+        if args.dump_scores:
+            safe = "".join(c if c.isalnum() else "_" for c in n)
+            sp = os.path.join(os.path.dirname(OUT),
+                              f"trialscores_{tag}_{safe}.csv")
+            pd.DataFrame(dict(
+                score=np.concatenate([tgt, non]),
+                is_target=np.concatenate([np.ones(len(tgt), dtype=int),
+                                          np.zeros(len(non), dtype=int)]),
+            )).to_csv(sp, index=False)
+            print(f"    raw trial scores -> {os.path.basename(sp)}")
     pd.DataFrame(rows).to_csv(OUT, index=False)
     print(f"[Calib] saved {OUT}")
 

@@ -302,23 +302,44 @@ def main():
     df = pd.DataFrame(rows)
     df.to_csv(args.out, index=False)
 
-    # ---- AntiFake pre-filter, PER ENCODER and at the threshold we score with.
-    # AntiFake filters against "the corresponding SV system", so a speaker can
-    # qualify on one encoder and not another. Collapsing that to a single
-    # ECAPA-based mask would score speakers on encoders where the attack never
-    # worked to begin with -- and a protection that "succeeds" against an attack
-    # that was already failing has demonstrated nothing.
-    keep = {}
-    for n in df.encoder.unique():
-        ok = df[(df.variant == "unprotected") & (df.encoder == n)]
-        keep[n] = set(ok[ok.clone_succeeds].speaker)
+    # ---- AntiFake pre-filter, PER (ENCODER, PURIFIER).
+    #
+    # Fix #4 (council 2026-10-04, PLAN_V3 W1). This block used to key the
+    # keep-set on the ENCODER alone, which unions across purifier conditions: a
+    # speaker who cloned only with NO purifier was then scored under `ours` and
+    # `diffwave` too, where the unprotected attack had already failed. Those are
+    # free protection successes, and excluding them is the entire purpose of
+    # AntiFake's filter ("given that all samples have already been filtered to
+    # bypass SV without AntiFake").
+    #
+    # Measured on cloning_tc_m30_seg_s7.csv, the union made protection look
+    # better everywhere it mattered, worst on ECAPA under the foreign purifier:
+    #   ECAPA / diffwave   correct 33.3 % (n=6)    union 11.8 % (n=17)
+    #   WavLM / diffwave   correct 23.1 % (n=13)   union 22.2 % (n=18)
+    #   d-vec / diffwave   correct 60.9 % (n=23)   union 57.7 % (n=26)
+    # (clone-success rate on the protected arm; lower looks better for us.)
+    #
+    # The correct implementation already existed in analyse_cloning.prefilter
+    # and the two drifted apart. There is now ONE definition, imported, so they
+    # cannot drift again.
+    #
+    # NOTE (PLAN_V3 2a): the filtered BINARY rate printed below is no longer the
+    # paper's cloning headline. 32 % of unprotected cells flip between identical
+    # runs, so the keep-set is itself a noisy draw of the defender's own outcome,
+    # and the n=6 cell above is why. The headline is the UNFILTERED paired
+    # continuous margin over all speakers: experiments/analyse_clone_margin.py.
+    # These rates are kept because prior work reports them.
+    from experiments.analyse_cloning import prefilter
+    f = prefilter(df)
     print("\n" + "=" * 78)
     print("AntiFake pre-filter -- keep only speakers whose UNPROTECTED audio cloned")
-    for n, ks in keep.items():
-        print(f"    {n:<22} {len(ks)}/{df.speaker.nunique()} speakers retained")
+    print("keyed per (encoder, purifier); see fix #4 in the source")
+    for n in sorted(df.encoder.unique()):
+        for pur in sorted(df.purifier.unique()):
+            ch = f[(f.encoder == n) & (f.purifier == pur)]
+            print(f"    {n:<22} {pur:<10} {ch.speaker.nunique()}/"
+                  f"{df.speaker.nunique()} speakers retained")
     print("=" * 78)
-    f = pd.concat([df[(df.encoder == n) & (df.speaker.isin(ks))]
-                   for n, ks in keep.items()], ignore_index=True)
     if not len(f):
         raise SystemExit("pre-filter removed everything: the attacker never cloned "
                          "clean audio at these thresholds. Fix the attack first.")
