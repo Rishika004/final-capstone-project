@@ -52,8 +52,12 @@ WavLM separates from the other three; ECAPA > d-vector only at t = 50
 (p_adj .032); x-vector vs d-vector is **not** separable (p = .54 / .47). The
 d-vector's noise-to-signal ratio exceeds 1.
 
-Claim it as a **two-group separation plus d-vector nsr > 1**, never as a
-four-way ranking.
+Claim it at the resolution §44 measured, with the timestep attached: **at
+t = 50 a three-group separation** (WavLM-SV > ECAPA > {x-vector ≈ d-vector},
+all ten pairs in one Holm family, both middle steps p_adj = .032); **at
+t = 200 a two-group separation** (WavLM-SV against the rest). x-vector and the
+d-vector are **never** distinguishable (p = .54, .47), so no order inside that
+pair. Plus d-vector nsr > 1. Never a four-way ranking.
 **#3 DONE (§37, §43)** — spectrally-matched and clean-PCA-span controls, 8 of
 8 cells confirmed; the envelope-matched controls land at 0.701–0.715 against
 white noise 0.713, so the gap is not a spectral artefact. **Front-end
@@ -62,8 +66,9 @@ robustness DONE (§43)** — α through the d-vector's real front end moves
 protection level. **Cohort DONE (§43)** — the α table is now on the
 cross-session cohort and is pairable with §27/§33; quote
 `encoder_subspace_xsess_fe.csv`, and restate §32's α as 0.568 / 0.463 / 0.388.
-**[PENDING #8 all 10 pairs under Holm · #13c the same measurement through
-DiffWave]**
+**#8 (C1 half) DONE (§44)** — all ten pairs under one Holm family per
+timestep, with a Friedman omnibus.
+**[PENDING #13c the same measurement through DiffWave]**
 
 ### C2 — What it explains: the constraint's encoder-dependent effect (§27, §30e)
 Under purifier mismatch at the loud budget the invariance constraint improves
@@ -136,7 +141,7 @@ the one architecturally different purifier (§29) breaks it. **#2 DONE
 | Write this | Not this |
 |---|---|
 | "purification-invariant subspace"; "null space" once, defined against Shallow Diffuse | "null space" as the name of our object |
-| "WavLM separates from the other three" | "WavLM > ECAPA > x-vector > d-vector" |
+| "at t = 50, WavLM-SV > ECAPA > {x-vector, d-vector}, all ten pairs in one Holm family"; "at t = 200 only WavLM-SV separates" (§44) | "WavLM > ECAPA > x-vector > d-vector"; the t = 50 ordering without its timestep; any order inside {x-vector, d-vector} |
 | "an explanation generated after observing the reversal" | "retro-validation", "predicted", "without being told" |
 | "a hypothesis supported by one sample of 29 speakers" | "replicated across three conditions" |
 | "reduced, not removed, by full PhonePuRe" | "reverses De-AntiFake"; "survives purification" without "stage 1" |
