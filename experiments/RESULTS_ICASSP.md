@@ -3808,3 +3808,35 @@ pre-registration did not anticipate.
   on ECAPA.
 * **No re-run** at another budget, timestep, purifier or speaker subset. §6
   forbids it and nothing here invites it.
+
+### 42g. The purified channels, and the verifier the attacker leaves behind (2026-10-06)
+
+The #5 sensitivity run calibrated the four foreign channels on dev-clean with
+`--dump-scores`, so they get the same treatment at no extra GPU cost. n = 31,
+496 target / 14 880 non-target trials, speaker-cluster bootstrap.
+
+| channel | ECAPA EER / minDCF₀.₀₁ | d-vector | WavLM-SV |
+|---|---|---|---|
+| clean (test-clean, n=29) | 0.62 % / **0.02** | 3.45 % / 0.39 | 5.20 % / 0.77 |
+| DiffWave-Libri t=1 | 4.84 % / 0.17 | 6.05 % / 0.40 | 8.67 % / 0.74 |
+| DiffWave-SC09 t=1 | 4.64 % / 0.17 | 5.65 % / 0.38 | 8.42 % / 0.74 |
+| DiffWave-Libri t=3 | 5.42 % / **0.36** | 6.65 % / 0.49 | 10.90 % / **0.86** |
+| DiffWave-SC09 t=3 | 4.64 % / **0.38** | 5.88 % / 0.44 | 10.48 % / **0.88** |
+
+**The attacker's purifier degrades the verifier, not just the perturbation.**
+ECAPA goes from an excellent operating point (minDCF 0.02) to a mediocre one
+(0.36–0.38 at t = 3); WavLM-SV goes from 0.77 to 0.86–0.88, i.e. from barely
+better than trivial to effectively not better at all.
+
+That has to be said beside every protection number measured through these
+channels. A clone "failing" a verifier whose minDCF is 0.88 is a weaker
+statement than the same failure against ECAPA on the clean channel, and the
+paper should not let the three columns read as equally authoritative.
+
+**Caveat, and why #19 is not yet closed.** These calibrations are on
+**dev-clean**, because that is the cohort the sensitivity run needed. The
+main table's cells are scored against **test-clean** foreign calibrations,
+which still have no raw trial scores. Closing #19 for the channels the paper
+actually reports needs the same `--dump-scores` run on test-clean, ~1 GPU-h,
+and §45g's finding that dev-clean is the harder cohort means these numbers are
+**not** a substitute for it.
