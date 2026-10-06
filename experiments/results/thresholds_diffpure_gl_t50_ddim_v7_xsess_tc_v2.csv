@@ -1,0 +1,4 @@
+encoder,channel,eer,threshold,target_mean,nontarget_mean,target_sd,nontarget_sd,pooled_sd,dprime,n_target,n_nontarget,cross_session,subset,speaker_set
+WavLM-SV,diffpure_gl,0.0907,0.874,0.9219,0.6824,0.03476,0.15122,0.14874,2.1831,464,12992,True,test-clean,all
+ECAPA-TDNN,diffpure_gl,0.0068,0.3067,0.554,0.0627,0.08922,0.08406,0.08424,5.6682,464,12992,True,test-clean,all
+Resemblyzer d-vector,diffpure_gl,0.0501,0.6819,0.7748,0.5603,0.05872,0.07073,0.07035,3.301,464,12992,True,test-clean,all

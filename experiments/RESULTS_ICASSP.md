@@ -3840,3 +3840,58 @@ which still have no raw trial scores. Closing #19 for the channels the paper
 actually reports needs the same `--dump-scores` run on test-clean, ~1 GPU-h,
 and §45g's finding that dev-clean is the harder cohort means these numbers are
 **not** a substitute for it.
+
+### 42h. #19 CLOSED — every channel the paper reports (2026-10-06)
+
+`run_asv_conventions.sh` recalibrated all eight channels on **test-clean** with
+`--dump-scores`, to `_v2` tags so nothing frozen moved.
+`analyse_asv.py --tag _tc_v2`; 464 target / 12 992 non-target trials over 29
+speakers per channel; 24 DET curves on disk.
+
+**minDCF at p_target = 0.01** (1.0 = no better than the trivial system):
+
+| channel | ECAPA | d-vector | WavLM-SV |
+|---|---|---|---|
+| clean | **0.02** | 0.39 | 0.77 |
+| DiffWave-Libri t=1 | 0.11 | 0.44 | 0.81 |
+| DiffWave-SC09 t=1 | 0.12 | 0.43 | 0.83 |
+| DiffWave-Libri t=3 | 0.30 | 0.51 | **0.90** |
+| DiffWave-SC09 t=3 | 0.31 | 0.48 | **0.91** |
+| ours v7 t=50 | 0.10 | 0.54 | **0.91** |
+| ours v7 t=100 | 0.11 | 0.54 | **0.91** |
+| ours v7 t=200 | 0.10 | 0.57 | **0.90** |
+
+**The headline is the WavLM-SV column.** In *every cell the paper reports*, the
+encoder sits at minDCF 0.77–0.91 — at the matched purifier and at DiffWave
+t = 3 it is effectively **not better than the trivial system** at a realistic
+operating point, despite EERs of 5–9 % that read as respectable. The d-vector
+is mediocre throughout (0.39–0.57). **ECAPA is the only genuinely strong
+verifier**, and even it degrades threefold under DiffWave t = 3 (0.02 → 0.30).
+
+This reframes how the three columns may be read, and it cuts both ways:
+
+* "Protection holds on WavLM-SV" is the **weakest** of the three claims, not
+  the strongest, because the verifier making that judgement is barely
+  discriminating in those cells. Any sentence pairing it with ECAPA as equal
+  evidence is wrong.
+* "Protection holds on ECAPA" is the **strongest**, because ECAPA is the only
+  encoder whose accept/reject decision is trustworthy at p_target = 0.01.
+* The d-vector failure — the paper's central negative result — is measured on
+  a mediocre verifier, which **weakens** it symmetrically. §45e's reversal is a
+  paired *margin* effect and does not depend on the operating point (§45g), so
+  that result stands; but any **absolute** d-vector clone rate inherits this.
+
+It also explains a long-standing oddity: WavLM-SV moves by large cosine amounts
+for small behavioural changes (§23b, §27). Its target and impostor
+distributions overlap heavily — d′ = 2.48 against ECAPA's 6.16 — so its cosine
+scale is compressed and noisy, and a large excursion there means less than the
+same excursion on ECAPA.
+
+**Reproducibility, as a by-product.** All **24** (channel, encoder) operating
+points regenerate **exactly** — threshold and EER identical to four decimals
+against the frozen files (`check_calibration_drift.py`). The paper's entire
+operating point is therefore regenerable from HEAD, two weeks and one
+`recipe-v1` tag later.
+
+Council #19 is closed: EER, minDCF at two p_target values, DET curves and
+speaker-cluster bootstrap CIs, for every channel in the paper.
