@@ -152,3 +152,82 @@ a different α*, a different timestep, or a third encoder.**
    `full_tc_m30_seg` / `fullnsT_tc_m30_seg` wavs.
 5. Any commit lands between the α measurement and the §7 prediction commit
    that touches the crafting or scoring path (the §10 lesson from PREREG_05).
+
+---
+
+## 7. The prediction, derived from the measured α (2026-10-06)
+
+**α has been measured. No crafted file has been scored through either encoder.**
+`exp_encoder_subspace.py --with-extra`, 29 cross-session test-clean speakers,
+purifier v7 DDIM, t = 50 and 200, seeds 2026,7, matched controls on;
+`encoder_subspace_13b.csv`.
+
+### 7.1 Measured α at t = 50, n = 29
+
+| direction | α (t=50) | α (t=200) |
+|---|---|---|
+| `pca_span` (clean-speech subspace) | 0.8439 | 0.6201 |
+| `random` | 0.7142 | 0.4653 |
+| band-matched controls | 0.699–0.711 | 0.453–0.465 |
+| **CAM++** | **0.6308** | 0.3855 |
+| **ERes2Net** | **0.5760** | 0.3547 |
+| WavLM-SV | 0.5678 | 0.3693 |
+| ECAPA-TDNN | 0.4627 | 0.3016 |
+| d-vector | 0.3880 | 0.2622 |
+
+### 7.2 The C1-critical clause holds
+
+Both new encoders sit **below** `random` and below their own band-matched
+control, paired per speaker:
+
+| | vs its own matched control | vs random |
+|---|---|---|
+| CAM++ | −0.0743 [−0.1009, −0.0499], 24/29, p = 4.0e−06 | −0.0834 [−0.1111, −0.0574], 25/29 |
+| ERes2Net | −0.1326 [−0.1548, −0.1014], 28/29, p = 5.2e−08 | −0.1382 [−0.1606, −0.1063], 28/29 |
+
+So C1's core requirement — *every* speaker encoder's identity direction is
+purifier-hostile — survives two architectures it was never measured on. This is
+**not** the §5 outcome-C trigger ("an α lands above `random`").
+
+### 7.3 The secondary prior in §3.1 is WRONG, and is recorded as wrong
+
+§3.1 predicted both would land between the d-vector (0.388) and WavLM-SV
+(0.568), in the ECAPA/x-vector band. **Both are above that band**: CAM++ at
+0.6308 is above *every* encoder previously measured, and ERes2Net at 0.5760 is
+above WavLM-SV. The architectural reasoning — "fbank TDNN/CNN, so it should sit
+near ECAPA" — simply did not hold. It was marked as worth little, and it was
+worth less than that. It is reported as a failed sub-prediction, not quietly
+dropped.
+
+Note what this costs and does not cost: §3.1 was never the test. It constrains
+nothing in §3.2, which keys only on which side of α* each value falls.
+
+### 7.4 THE PREDICTION
+
+Applying §3.2's rule mechanically, α* = 0.4255, unchanged:
+
+| encoder | α (t=50) | side of α* | **predicted sign of Δ = fullnsT − full** |
+|---|---|---|---|
+| **CAM++** | 0.6308 | above | **HELPS — Δ negative in all four cells** |
+| **ERes2Net** | 0.5760 | above | **HELPS — Δ negative in all four cells** |
+
+Both predictions are the *same direction*, which is a genuine weakness of this
+test and is stated now rather than later: the rule cannot be falsified by a
+split outcome between the two encoders, only by Δ coming out positive where
+"helps" was predicted. A sharper test would have included an encoder predicted
+to reverse, and none of the two available ones is.
+
+What would falsify it, concretely: **a positive Δ on either encoder in the
+t = 1 cells**, where the three known encoders show their largest effects
+(−0.055 to −0.062 helping on WavLM/ECAPA, +0.060 to +0.066 reversing on the
+d-vector). A null — Δ indistinguishable from zero — is **not** a confirmation
+and is read under §5's outcome B.
+
+### 7.5 Disclosure
+
+A 2-speaker, 1-seed plumbing check of the measurement code ran before the full
+29-speaker measurement, and its numbers were visible. It could not influence
+anything here: §3.2's rule was committed before any measurement, and the
+mapping from α to a predicted sign is mechanical with no free parameter. The
+full-run α values above differ from that preview, as a 2-speaker estimate
+should.
