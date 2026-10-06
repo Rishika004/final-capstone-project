@@ -22,9 +22,18 @@ Run:
   python experiments/analyse_extra_encoders.py
 """
 import argparse
+import io
 import os
 import re
 import sys
+
+# The project's UTF-8 stdout guard: this script prints greek alpha, and a
+# cp1252 console cannot encode it. tests/conftest.py marks the stream so the
+# rewrap is skipped under pytest capture.
+if not getattr(sys.stdout, "_nvp_utf8", False):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8",
+                                  errors="replace")
+    sys.stdout._nvp_utf8 = True
 
 import numpy as np
 import pandas as pd
@@ -156,8 +165,31 @@ def main():
 
     ok = [e for e, (m, n, t1) in by_enc.items() if m >= 3 and t1]
     half = [e for e, (m, n, t1) in by_enc.items() if m == 2]
+
+    # PREREG_13b §7.4, committed with the prediction and BEFORE the outcome:
+    #   "A null -- Delta indistinguishable from zero -- is NOT a confirmation
+    #    and is read under §5's outcome B."
+    # §5's outcome A keys on sign agreement alone, so sign agreement over a set
+    # of cells that are all consistent with zero would print A on no effect at
+    # all. §7.4 is the stricter, later-committed clarification and it governs.
+    n_sig = sum(1 for c in cells if c["sig"])
+    all_null = (n_sig == 0)
     print()
-    if len(ok) == len(by_enc) and by_enc:
+    print(f"  cells distinguishable from zero under Holm: {n_sig}/{len(cells)}")
+    if all_null:
+        print("  -> every cell is consistent with Delta = 0. PREREG §7.4: a null")
+        print("     is NOT a confirmation, whatever the signs do.")
+    print()
+    if all_null:
+        print("VERDICT: OUTCOME B -- DIRECTIONAL ONLY (null effects)")
+        print("  The predicted SIGN is right in every cell, which is")
+        print("  suggestive, but no cell's effect is distinguishable from zero,")
+        print("  so the prediction is not confirmed by it. §7.4 fixed this")
+        print("  reading before the outcome was measured.")
+        print("  ACTION: report the sign agreement AND the nulls together.")
+        print("  C1 keeps 'explanation'; the word 'predicted' stays banned by")
+        print("  FRAME_v6 §4. NO post-hoc adjustment of alpha*.")
+    elif len(ok) == len(by_enc) and by_enc:
         print("VERDICT: OUTCOME A -- C1 PREDICTS OUT OF SAMPLE")
         print("  Both encoders match the rule in >=3 of 4 cells and the t=1")
         print("  cells agree.")

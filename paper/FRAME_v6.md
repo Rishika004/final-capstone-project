@@ -86,7 +86,14 @@ n = 31**, with none of the six t = 3 cells resolving. **Do not write
 "replicated".** §27/§30e remain analysis-choice insensitivity, not replication.
 C1 is the explanation, generated after observing the reversal, not a prediction.
 **#5 DONE (§45) — OUTCOME B of the three pre-registered branches: directionally reproduced out of sample, underpowered at n = 31. The pre-registration's own sensitivity check turned out to be vacuous (the paired endpoint is threshold-invariant by construction, §45g).**
-**[PENDING #13b CAM++ prospective test makes C1 a prediction]**
+**#13b DONE (§46) — OUTCOME B.** The prospective test ran on CAM++ and
+ERes2Net with the rule and the per-encoder prediction each committed before
+the next measurement. All 8 cells have the predicted sign; **none is
+distinguishable from zero**, so by the pre-registration's own §7.4 a null is
+not a confirmation. **C1 keeps "explanation" and the ban on "predicted"
+stands.** What the test did buy: C1's core clause — every encoder's identity
+direction is purifier-hostile — now holds on **five encoders across four
+architecture families**, two never seen by the optimiser (§46b).
 
 ### C3 — The paradigm's measured ceiling (§22b, §30, §29)
 1. **Coverage, not generalisation** (§22b). Same files, same thresholds, one

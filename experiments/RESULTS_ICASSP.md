@@ -3895,3 +3895,135 @@ operating point is therefore regenerable from HEAD, two weeks and one
 
 Council #19 is closed: EER, minDCF at two p_target values, DET curves and
 speaker-cluster bootstrap CIs, for every channel in the paper.
+
+---
+
+## 46. #13b — the prospective test: every sign right, every effect null (2026-10-06)
+
+The pre-registered prospective test of C1 on two encoders the optimiser has
+never seen. `PREREG_13b_prospective_encoders.md`; α from
+`encoder_subspace_13b.csv`, outcome from `extra_encoder_protection.csv`,
+decided by `analyse_extra_encoders.py`. 29 cross-session test-clean speakers,
+evaluation only.
+
+**VERDICT: OUTCOME B — directional only.** The predicted sign is right in
+**8 of 8** cells and **not one effect is distinguishable from zero**. C1 keeps
+the word "explanation"; `FRAME_v6` §4's ban on "predicted" stands.
+
+### 46a. The design, and the one thing it got right
+
+C1 was generated after observing the behaviour it explains. The only way to
+turn that into a prediction is to commit one before the outcome is visible, so
+the item was run in three separately committed stages:
+
+1. the rule — α* = 0.4255, helps above, reverses below — committed **before any
+   α was measured**;
+2. α measured on CAM++ and ERes2Net, and the derived per-encoder prediction
+   committed as §7 **before any crafted file was scored through either**;
+3. the outcome.
+
+The decider refuses to run at all if §7 is absent, because a prospective test
+whose prediction is written afterwards is not one.
+
+### 46b. α: C1's core clause holds on two unseen architectures
+
+| direction | α (t=50) | α (t=200) |
+|---|---|---|
+| `pca_span` | 0.8439 | 0.6201 |
+| `random` | 0.7142 | 0.4653 |
+| band-matched controls | 0.699–0.711 | 0.453–0.465 |
+| **CAM++** | **0.6308** | 0.3855 |
+| **ERes2Net** | **0.5760** | 0.3547 |
+| WavLM-SV | 0.5678 | 0.3693 |
+| ECAPA-TDNN | 0.4627 | 0.3016 |
+| d-vector | 0.3880 | 0.2622 |
+
+Both new encoders sit below `random` and below their **own** band-matched
+control: CAM++ −0.074 [−0.101, −0.050] with 24/29 speakers below, ERes2Net
+−0.133 [−0.155, −0.101] with 28/29. So *every speaker encoder's identity
+direction is purifier-hostile* now holds across **five encoders from four
+architecture families**, two of them never seen by the optimiser, by any
+analysis or by any calibration. That is the most robust statement in the paper
+and it got more robust today.
+
+### 46c. The architectural prior was wrong, and is on record as wrong
+
+§3.1 predicted both would land between the d-vector (0.388) and WavLM-SV
+(0.568), in the ECAPA/x-vector band, on the reasoning that both are fbank
+TDNN/CNN encoders. **Both are above that band.** CAM++ at 0.631 is above every
+encoder previously measured. The architectural reasoning simply did not hold.
+
+It was marked in advance as worth little and it was worth less than that. It
+constrains nothing in the real rule, which keys only on which side of α* a
+value falls — but it is reported as a failed sub-prediction rather than quietly
+dropped, and it is a caution against reading α off an architecture diagram.
+
+### 46d. The outcome: right direction, no magnitude
+
+Paired Δ = cos(clean, fullnsT) − cos(clean, full), n = 29, Holm over 8 cells.
+**Both encoders were predicted to HELP (Δ < 0).**
+
+| encoder | purifier | t | Δ | 95 % CI | k/29 | p_holm | sign |
+|---|---|---|---|---|---|---|---|
+| CAM++ | DW-Libri | 1 | −0.0066 | [−0.0275, +0.0185] | 16 | .93 | ✓ |
+| CAM++ | DW-Libri | 3 | −0.0102 | [−0.0268, +0.0065] | 16 | .93 | ✓ |
+| CAM++ | DW-SC09 | 1 | −0.0167 | [−0.0379, +0.0049] | 19 | .93 | ✓ |
+| CAM++ | DW-SC09 | 3 | −0.0178 | [−0.0328, −0.0017] | 22 | .12 | ✓ |
+| ERes2Net | DW-Libri | 1 | −0.0145 | [−0.0420, +0.0147] | 17 | .93 | ✓ |
+| ERes2Net | DW-Libri | 3 | −0.0095 | [−0.0273, +0.0100] | 21 | .93 | ✓ |
+| ERes2Net | DW-SC09 | 1 | −0.0163 | [−0.0419, +0.0131] | 18 | .93 | ✓ |
+| ERes2Net | DW-SC09 | 3 | −0.0190 | [−0.0372, +0.0009] | 21 | .27 | ✓ |
+
+**0 of 8 cells survive Holm.** Seven of eight CIs span zero. Per-speaker
+agreement runs 16–22 of 29 against a chance baseline of ~14.5.
+
+The effects are also **4.4× smaller** than the same quantity on the
+crafted-against encoders at t = 1 (mean |Δ| 0.0138 against 0.0606) and 1.4×
+smaller than at t = 3. That is expected — these encoders were never optimised
+against, so the constraint has no direct purchase on them — but it is the
+reason the cells cannot resolve at n = 29.
+
+### 46e. Why this is outcome B and not outcome A
+
+The script's first pass printed **outcome A**, because §5's outcome A keys on
+sign agreement alone and the signs are perfect. That is wrong, and the
+pre-registration already said so: **§7.4, committed with the prediction and
+before the outcome, states "a null — Δ indistinguishable from zero — is NOT a
+confirmation and is read under §5's outcome B."**
+
+Every cell here is consistent with zero. So the stricter, earlier-committed
+reading governs and the verdict is B. `analyse_extra_encoders.py` now
+implements §7.4 rather than §5 alone, so the flattering reading is not
+available next time either.
+
+The sign agreement is still worth reporting, as evidence of direction and
+nothing more: 8 of 8 is p = 0.0078 under a coin flip — **but the eight cells
+are two purifiers × two timesteps × two encoders over the *same* 29 speakers,
+so they are nowhere near independent and that p is optimistic.** It is quoted
+as suggestive, never as a test.
+
+### 46f. The weakness this test had from the start, stated in advance
+
+§7.4 recorded it before the outcome: both encoders landed on the same side of
+α*, so **both predictions pointed the same way**. The rule could therefore not
+be falsified by the two encoders disagreeing — only by a positive Δ where
+"helps" was predicted. A sharper test needed an encoder predicted to *reverse*,
+and neither available one qualified.
+
+So even an unambiguous confirmation here would have been weaker evidence than
+it looked. Reporting that is the difference between a prospective test and a
+decorated one.
+
+### 46g. What the paper says
+
+* **Write:** "on two encoders never used in crafting, chosen and committed in
+  advance, the constraint moved protection in the predicted direction in all
+  eight cells, with no cell distinguishable from zero at n = 29."
+* **Write:** "every encoder's identity direction is purifier-hostile — now
+  five encoders across four architecture families, two of them unseen."
+* **Do not write:** "predicted", "confirmed", or "C1 generalises". `FRAME_v6`
+  §4's ban stands.
+* **No re-run** at a different α*, timestep or third encoder. §5 forbids it and
+  the result does not invite it.
+* C1's status is unchanged: the strongest claim remains the α ordering against
+  matched controls (§37, §43, §44), not its predictive power.
