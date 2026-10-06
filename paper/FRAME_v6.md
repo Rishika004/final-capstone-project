@@ -46,8 +46,13 @@ protective-perturbation paradigm stops working.
 
 ### C1 — The measurement (§32)
 Through purifier v7, each encoder's own identity direction survives worse than a
-norm-matched random direction. α at t = 50: WavLM-SV 0.573, ECAPA 0.490,
-x-vector 0.434, d-vector 0.406, random 0.713 (random > WavLM +0.140, 27/29).
+norm-matched random direction. α at t = 50 **on the reported cross-session
+cohort** (`encoder_subspace_13b.csv`, §43/§46): WavLM-SV 0.568, ECAPA 0.463,
+d-vector 0.388, random 0.714, plus the two eval-only encoders CAM++ 0.631 and
+ERes2Net 0.576. x-vector 0.434 is available only on the §37 cohort
+(`encoder_subspace_matched.csv`, §44e) and must be quoted with that caveat.
+*(The older 0.573 / 0.490 / 0.406 triple is the §37 cohort and is superseded —
+two α tables in two files is the §25 failure mode.)*
 WavLM separates from the other three; ECAPA > d-vector only at t = 50
 (p_adj .032); x-vector vs d-vector is **not** separable (p = .54 / .47). The
 d-vector's noise-to-signal ratio exceeds 1.

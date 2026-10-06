@@ -135,11 +135,17 @@ is open.
 **(b) Purification-invariance — a subspace, not a null space.**
 The requirement is that the component of δ the encoder reads survives R. It is
 not satisfied exactly: the survival coefficient α of each encoder's own
-identity direction through v7 at t = 50 is 0.573 (WavLM), 0.490 (ECAPA), 0.406
-(d-vector), against 0.713 for isotropic noise and 0.843 for a direction inside
-the clean-speech principal subspace (§32, §37). Every encoder's identity
-direction is *purifier-hostile*; they differ in degree, and that difference is
-the paper's subject.
+identity direction through v7 at t = 50, on the reported cross-session cohort,
+is 0.568 (WavLM-SV), 0.463 (ECAPA), 0.388 (d-vector), against 0.714 for
+isotropic noise and 0.844 for a direction inside the clean-speech principal
+subspace (§43, §46). Two encoders that were never crafted against sit in the
+same band — CAM++ 0.631, ERes2Net 0.576 — so this now holds for **five
+encoders across four architecture families**, each below its own band-matched
+control (§46b). Every encoder's identity direction is *purifier-hostile*; they
+differ in degree, and that difference is the paper's subject.
+
+*(Supersedes the 0.573 / 0.490 / 0.406 triple, which is the §37 cohort. Only
+one α table may be quoted — two tables in two files is the §25 failure mode.)*
 
 **(c) Inimitability.** After R and G, cos(E(x̃), E(x_enrol)) < τ.
 
