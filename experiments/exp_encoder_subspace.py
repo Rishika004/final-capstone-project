@@ -158,6 +158,12 @@ def main():
     ap.add_argument("--pca-subset", default="dev-clean", dest="pca_subset",
                     help="corpus for the clean-mel PCA basis; MUST be disjoint "
                          "from --subset or the control sees the eval speakers")
+    ap.add_argument("--with-extra", action="store_true", dest="with_extra",
+                    help="ALSO measure alpha for CAM++ and ERes2Net, the two "
+                         "eval-only encoders of council #13b. They are appended "
+                         "to the measurement list and NEVER to build_encoders, "
+                         "so no crafted file can change "
+                         "(PREREG_13b_prospective_encoders.md section 6.2).")
     ap.add_argument("--dvec-frozen-vad", action="store_true",
                     dest="dvec_frozen_vad",
                     help="ALSO measure alpha for the d-vector's identity "
@@ -266,6 +272,15 @@ def main():
         # this utterance. Built here so it sees the same wav_o the directions
         # are measured on.
         enc_list = list(encs)
+        if a.with_extra:
+            # Built once, outside the speaker loop in spirit -- cached on the
+            # function object so the checkpoints load exactly once.
+            if not hasattr(main, "_extra"):
+                from experiments.extra_encoders import build_extra
+                main._extra = build_extra(device)
+                print(f"[A2] #13b eval-only encoders: "
+                      f"{[e.name for e in main._extra]}")
+            enc_list = enc_list + list(main._extra)
         if a.dvec_frozen_vad:
             from experiments.diag_dvec_proxy import vad_keep_mask
             from resemblyzer.audio import normalize_volume
