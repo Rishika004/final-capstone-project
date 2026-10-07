@@ -81,8 +81,22 @@ REQUIRED = ["listener", "block", "stim_id", "rating"]
 COND_ORDER = ["original", "plain", "nsT", "full", "fullnsT", "anchor_noise"]
 
 
-def bca_ci(x, alpha=0.05, n_boot=2000, seed=20261005):
-    """Percentile bootstrap CI for a mean, with the listener as the unit."""
+def percentile_ci(x, alpha=0.05, n_boot=2000, seed=20261005):
+    """PERCENTILE bootstrap CI for a mean, with the listener as the unit.
+
+    RENAMED 2026-10-07 (council v5 code review). This was called `bca_ci`, but
+    it is not BCa: there is no bias correction (z0) and no jackknife
+    acceleration, which are the two things that make an interval BCa. Five
+    other scripts import a genuine `bca_ci` from analyse_matched_control under
+    that exact name, and RESULTS says "BCa 95 % CI" in three places, so the
+    collision would have mislabelled every listening interval the moment the
+    panel's data arrived. The docstring was always honest; the name was not.
+
+    A percentile interval is the right choice here and is kept: at the panel
+    sizes this script is built for (often < 10 listeners) the jackknife
+    acceleration is estimated from too few points to help, and BCa can be
+    worse than percentile in that regime. The point is to say which one it is.
+    """
     x = np.asarray(x, dtype=float)
     x = x[np.isfinite(x)]
     if x.size < 2:
@@ -267,7 +281,7 @@ def main():
                         f"{len(v):4d}")
                 lo = hi = float("nan")
                 if show_ci:
-                    lo, hi = bca_ci(v.to_numpy())
+                    lo, hi = percentile_ci(v.to_numpy())
                     line += f" [{lo:6.2f},{hi:6.2f}]"
                 print(line)
                 summary_rows.append(dict(group=gname, block=blk, condition=cond,
@@ -296,7 +310,7 @@ def main():
                     p = wilcoxon_p(d.to_numpy())
                     extra = ""
                     if show_ci:
-                        lo, hi = bca_ci(d.to_numpy())
+                        lo, hi = percentile_ci(d.to_numpy())
                         extra = f"  95% CI [{lo:+.2f},{hi:+.2f}]"
                     print(f"      {cond:14s} {d.mean():+6.2f}  "
                           f"n={len(d):2d}  p={p:.3f}{extra}")

@@ -331,8 +331,19 @@ def craft(wav_o, encoders, weights, masker, cap, diffpure, variant, n_steps, lr,
              else torch.zeros(len(encoders), device=device))
     # 2e. Per-encoder score scale, so the LSE and the selection statistic
     # compare margins in commensurable units. None -> legacy raw margins.
+    # FIX 2026-10-07 (council v5 code review, "Trap"). This read
+    #     if enc_scales is not None and not legacy_selection:
+    # which WELDED two independent fixes to one flag: 2e (per-encoder score
+    # scaling in the LSE) and 2.1/2d (margin-based, trailing-mean ship
+    # selection). Passing enc_scales with legacy selection on was silently
+    # ignored, so the W6 parity ablation could not vary them separately and a
+    # caller who asked for one and got neither had no way to tell.
+    #
+    # They are now independent: enc_scales applies whenever it is supplied.
+    # The legacy default is unchanged, because the call site only supplies
+    # enc_scales under --no-legacy-selection, so no existing run moves.
     scales_t = None
-    if enc_scales is not None and not legacy_selection:
+    if enc_scales is not None:
         scales_t = torch.tensor([float(enc_scales[e.name]) for e in encoders],
                                 device=device)
 

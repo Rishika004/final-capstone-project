@@ -142,9 +142,37 @@ def main():
               f"defined on all 12; what follows is partial and is NOT the "
               f"result.")
 
-    for c, padj in zip(cells, holm([c["p"] for c in cells])):
+    # BUG FIX 2026-10-07 (council v5 code review, BUG D), two defects here.
+    #
+    # (1) The Holm family was sized by the number of cells PRESENT, while the
+    #     pre-registration (§4) fixes it at all 12: "Holm over the 12 cells of
+    #     this run -- one family, fixed here." With 6 of 12 blocks on disk
+    #     every p_holm was halved and every `*` in the printed table and in
+    #     dc5_cells.csv was too liberal. The §6 verdict was safe because it is
+    #     gated on len(cells) == 12, but the table and the written CSV were
+    #     not, and a partial table is exactly what gets glanced at mid-run.
+    #     The family is now the pre-registered size regardless of how many
+    #     cells are on disk, which can only make a partial table CONSERVATIVE.
+    #
+    # (2) `sig` was two-sided -- (hi < 0 or lo > 0) -- while the endpoint is
+    #     directional and per-cell: §5 predicts a SIGN for each cell. So a cell
+    #     where the constraint significantly HURT earned the same `*` as a
+    #     confirmation. Significance now additionally requires the CI to
+    #     exclude zero on the PREDICTED side.
+    FAMILY = 12          # prereg §4, fixed before the run
+    praw = [c["p"] for c in cells]
+    if len(praw) < FAMILY:
+        praw = praw + [1.0] * (FAMILY - len(praw))   # absent cells cannot help
+    for c, padj in zip(cells, holm(praw)[:len(cells)]):
         c["p_holm"] = padj
-        c["sig"] = bool((c["hi"] < 0 or c["lo"] > 0) and padj < a.alpha)
+        excludes_zero = (c["hi"] < 0) if c["predicted"] < 0 else (c["lo"] > 0)
+        c["sig"] = bool(excludes_zero and padj < a.alpha)
+        c["sig_wrong_way"] = bool(padj < a.alpha and not excludes_zero
+                                  and (c["lo"] > 0 or c["hi"] < 0))
+    if any(c.get("sig_wrong_way") for c in cells):
+        print("[dc5] WARNING: at least one cell is significant in the "
+              "direction OPPOSITE to its prediction. That is not a "
+              "confirmation; see the sig_wrong_way column.")
     out = pd.DataFrame(cells)
     out.to_csv(a.out, index=False)
 

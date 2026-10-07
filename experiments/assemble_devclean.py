@@ -64,6 +64,18 @@ ANALYSIS_ONLY = (
     "experiments/serve_listening_test.py",
     "paper/", "tests/", "listening_test/", "notebooks/", "docs/",
 )
+# W2 (council v5) raised that `.sh` and `.csv` are on this list although a run
+# script is where every crafting flag lives and thresholds_*.csv feeds
+# _thr_triple.py -> --thresholds. Both objections are real, and both are now
+# answered by the `argv` check added below rather than by guessing from
+# filenames: every crafting-relevant thing a shell script or a threshold file
+# can do shows up as different flags in argv (--thresholds carries the literal
+# floats), and the argv check requires one recipe across all chunks.
+#
+# Filename classification alone was also WRONG in both directions -- it flagged
+# run_devclean_sensitivity.sh, a script added after crafting that could not
+# have affected it, while waving through an edited runner. One strong check
+# beats two weak ones.
 ANALYSIS_ONLY_SUFFIX = (".md", ".csv", ".sh", ".txt", ".json", ".bib", ".png")
 
 
@@ -230,9 +242,14 @@ def main():
                      f"with --verify-multi-sha, which CHECKS that rather than "
                      f"taking your word for it.")
             verify_shas_are_analysis_only(shas)
-        if shas[0].endswith("-dirty"):
-            print(f"[assemble] WARNING: code_sha {shas[0]} is dirty -- the "
-                  f"working tree had uncommitted code changes during crafting.")
+        # BUG FIX (council v5, BUG E): this checked only shas[0], so under
+        # --verify-multi-sha a dirty sha anywhere else in the sorted list was
+        # never reported. Check them all.
+        dirty = [x for x in shas if x.endswith("-dirty")]
+        if dirty:
+            print(f"[assemble] WARNING: {len(dirty)} dirty code_sha(s) -- the "
+                  f"working tree had uncommitted code changes during "
+                  f"crafting: {', '.join(dirty)}")
     else:
         fail("no code_sha column; these rows predate W0 provenance")
 
@@ -242,6 +259,39 @@ def main():
     if len(pres) != 1:
         fail(f"{len(pres)} different prereg_sha values: {pres}")
     check_prereg(pres[0], shas)
+
+    # W2 (council v5): code_sha and prereg_sha were checked and `argv` never
+    # was, so chunks were verified to tile the speaker set under one code
+    # version while nothing checked they used the same --steps, --lam-null,
+    # --thresholds, --craft-stride or --n-eot. A chunk launched from an edited
+    # run script passed every other check. The per-chunk flags that are
+    # SUPPOSED to differ (--spk-offset, --n-files, --out, --tag) are stripped
+    # before comparing; everything else must match exactly.
+    if "argv" in df.columns:
+        import re as _re
+        def _norm(a):
+            a = str(a)
+            for flag in ("--spk-offset", "--n-files", "--out", "--tag"):
+                a = _re.sub(rf"{flag}\s+\S+", "", a)
+            return " ".join(a.split())
+        # Compare WITHIN each arm, not across them: the two arms differ by
+        # design (fullnsT adds --lam-null 10 --null-t 200), so a global
+        # comparison would always fail. What must be constant is the recipe
+        # each arm was crafted with across its own chunks.
+        for arm, sub in df.dropna(subset=["argv"]).groupby("variant"):
+            per_arm = sorted({_norm(a) for a in sub.argv})
+            if len(per_arm) != 1:
+                nl = chr(10) + "    "
+                fail("arm %s was crafted with %d DIFFERENT flag sets across "
+                     "its chunks (ignoring --spk-offset/--n-files/--out/"
+                     "--tag):%s%s"
+                     % (arm, len(per_arm), nl,
+                        nl.join(n[:160] for n in per_arm[:4])))
+        norms = sorted({_norm(a) for a in df.argv.dropna()})
+        print(f"[assemble] argv check PASSED: one recipe per arm across its "
+              f"chunks ({len(norms)} arm recipe(s), as expected)")
+    else:
+        fail("no argv column; cannot verify the recipe was constant")
 
     have = set(df.variant.unique())
     if not set(ARMS) <= have:
