@@ -4027,3 +4027,109 @@ decorated one.
   the result does not invite it.
 * C1's status is unchanged: the strongest claim remains the α ordering against
   matched controls (§37, §43, §44), not its predictive power.
+
+---
+
+## 47. Control A — the d-vector reversal is an artefact of crafting against the d-vector (2026-10-08)
+
+`PREREG_council5_controls.md` Control A, run before its reading could be
+chosen. Evaluation only, nothing re-crafted. `heldout_c2_*.csv`.
+
+**OUTCOME A-2.** The pre-registration called this branch "the paper's most
+important sentence" in advance. It fired.
+
+### 47a. The one-variable comparison
+
+Both arms are test-clean, n = 29, pooled partials, and the crafting flags are
+**identical except one**:
+
+| | matched | held-out |
+|---|---|---|
+| flags | `--variant full --vocoder phase --margin-db 30 --snr-floor 15` | *same* |
+| constraint arm adds | `--lam-null 10 --null-t 200` | *same* |
+| **`--craft-encoders`** | **`all`** | **`no-dvec`** |
+| source | `run_rebase_mismatch_m30.sh:110-111` | `run_p13_loud.sh:71-72` |
+
+So the d-vector is in the crafting ensemble on the left and not on the right.
+Nothing else differs.
+
+### 47b. The reversal disappears and the sign flips
+
+Paired (fullnsT − full) margin on the **d-vector**, t = 1, n = 29.
+**Positive = the reversal.**
+
+| purifier | matched (d-vector crafted against) | held-out (d-vector unseen) |
+|---|---|---|
+| DiffWave-LibriSpeech | **+0.0736** [+0.0580, +0.0923] | **−0.0084** [−0.0136, −0.0039] |
+| DiffWave-SC09 | **+0.0790** [+0.0633, +0.0975] | **−0.0120** [−0.0177, −0.0073] |
+
+A swing of **0.082**, with non-overlapping intervals on both purifiers. Held
+out, the constraint does not hurt the d-vector — it **helps** it, slightly and
+significantly (21/29 and 23/29 speakers, p_holm 0.022 and 0.0006).
+
+The full held-out grid is otherwise unremarkable and consistent with C2's other
+claims: WavLM −0.062/−0.068 and ECAPA −0.069/−0.064 at t = 1, all significant,
+all the predicted sign.
+
+### 47c. What this does to C2
+
+**The reversal is not a property of the invariance constraint.** It is a
+property of *optimising against the d-vector while constrained*. Every number
+that made it look like a property of the constraint — §27's +0.071/+0.075,
+§45e's +0.060/+0.066 on 31 disjoint speakers, the "most transferable thing in
+the paper" — comes from the matched-encoder arm, and the matched arm is the one
+`THREAT_MODEL` §3 itself labels an upper bound.
+
+Per the pre-registration, and without discretion:
+
+* C2's reversal is **demoted to a matched-encoder observation**.
+* §45e may **no longer** be called "the most transferable thing in the paper".
+  Its out-of-sample replication replicated the *matched* condition on new
+  speakers, which is a weaker statement than it read as.
+* **No re-run at another budget to recover it.** §A.4 forbids it.
+
+### 47d. The coherent reading, marked as interpretation
+
+There is a reading under which this is not damage, and it should be offered as
+*interpretation* rather than smuggled in as a result:
+
+> The constraint trades attack strength for purifier survival. That trade only
+> exists for an encoder the optimiser is actually spending budget on. The
+> d-vector's identity direction survives purification worst (α 0.388, §43), so
+> when it *is* in the ensemble the constraint costs it the most — the reversal.
+> When it is *not* in the ensemble there is no budget to misallocate, so no
+> reversal, and it simply inherits whatever the other two encoders' solution
+> happens to do to it.
+
+On that reading C1 still explains the reversal, and explains *why it is
+conditional on ensemble membership* — which is a sharper claim than "the
+constraint reverses on the d-vector", not a weaker one. **But it is a story
+fitted after the fact to a result that contradicted the prediction**, it was
+not pre-registered, and §46 already showed α's predictive power is
+unestablished. It goes in as a paragraph of discussion with that label on it,
+and nowhere near the abstract.
+
+### 47e. The declared limitation, and what it now costs
+
+§A.2 declared in advance that these are the **pooled-partials** arms, not the
+`--seg-partials` shipping recipe, because `full_m30_seg_nodvec` does not exist.
+It also said: *"If the control contradicts the matched result, the seg version
+becomes mandatory."*
+
+It contradicts. So one crafting arm — `full_m30_seg_nodvec`, ~29 speakers,
+roughly 1 GPU-hour — is now **mandatory** before C2 can be written either way.
+The comparison above is clean on one variable at the pooled budget; the
+shipping recipe is segment-crafted, and §23c already showed that segment
+crafting reallocates budget *across encoders*, which is exactly the mechanism
+47d invokes. It is the one place a budget difference could plausibly matter.
+
+### 47f. Why this was found at all
+
+Four reviewer councils read this project before anyone noticed that every
+headline number sat in the matched-encoder arm while the threat model defined
+and advertised a held-out one. It took a security reviewer reading
+`run_rebase_mismatch_m30_seg.sh:70` rather than the prose, and a design
+reviewer noticing the held-out wavs were already on disk, to turn it into an
+experiment that cost under an hour.
+
+The project had the data to falsify its own headline for weeks and did not look.

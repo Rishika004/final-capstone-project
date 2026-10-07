@@ -82,6 +82,15 @@ is same-sign but mostly non-significant on ECAPA (1/4 at m = 24), and **worsens*
 the d-vector at mild purification (+0.071, +0.075; 3/29). Unpurified it is null
 on WavLM and ECAPA (p = .77, .26) and worse on the d-vector (+0.079, 0/29).
 
+**SUPERSEDED BY §47 (2026-10-08).** Control A held the d-vector OUT of the
+crafting ensemble, one variable changed, and the reversal **disappears and
+flips sign**: +0.0736/+0.0790 matched against −0.0084/−0.0120 held out, with
+non-overlapping CIs. The reversal is a property of optimising against the
+d-vector, not of the constraint. C2's reversal is demoted to a
+**matched-encoder observation**, and §45e may no longer be called the most
+transferable result. One crafting arm (`full_m30_seg_nodvec`, ~1 GPU-h) is now
+mandatory before C2 is written either way.
+
 Stated as a **hypothesis supported by two samples**, 29 test-clean and 31
 dev-clean, read out separately and **never pooled**. §45: directionally
 reproduced out of sample — 12 of 12 cells with the predicted sign, r = 0.96
