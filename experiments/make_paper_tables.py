@@ -331,7 +331,30 @@ def t_asv():
     d = get("main_table_tc_m30_seg.csv")
     if d is None:
         return
-    d = rethreshold(d, "diffpure_gl_ddim_v3", verbose=False)
+    # BUG FIX 2026-10-07 (council v5, code review BUG A). This read
+    # `rethreshold(d, "diffpure_gl_ddim_v3", verbose=False)`.
+    #
+    # `main_table_tc_m30_seg.csv` is the CORRECTED-BASE shipping table:
+    # test-clean, cross-session, purifier v7. Its stored thresholds are already
+    # right (0.8740 / 0.3067 / 0.6819). `diffpure_gl_ddim_v3` is the channel
+    # utils/thresholds.py labels "LEGACY (dev-clean / same-session) ... kept
+    # ONLY so old-base tables still reproduce" -- 0.8970 / 0.3457 / 0.7351.
+    #
+    # So this call OVERWROTE correct thresholds with legacy ones, all three of
+    # them HIGHER (+0.023 / +0.039 / +0.053), and the table below prints
+    # `(margin < 0).mean()` -- the absolute binary rate, the one quantity where
+    # the threshold does NOT cancel. A higher bar makes the margin more
+    # negative, so every error ran in the defender's favour.
+    #
+    # Measured damage across the 24 cells: 21 inflated, 3 unchanged, 0
+    # deflated; mean +9.0 points, max +24. The worst cell was the SHIPPING arm
+    # on the d-vector at t=50 -- 93 % published against 69 % correct, i.e. the
+    # paper's central negative result understated by 24 points.
+    #
+    # `verbose=False` suppressed the "[S2] re-thresholded ..." line that this
+    # module exists to print, which is why it survived. The verbose flag is
+    # dropped deliberately: this call should be loud.
+    d = rethreshold(d, "diffpure_gl_ddim_v7_xsess_tc")
     d["margin"] = d.cos_after_purify - d.threshold
     print("Protection rate = share of speakers whose purified audio falls below the")
     print("EER threshold **of that channel** (fix S2: each eval_t uses its own")
