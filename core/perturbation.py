@@ -485,7 +485,7 @@ def apply_null_space_protection(
 
     # ── Step 4: Project onto null space ──────────────────────────────────
     print("[Protection] Step 4/5 - Projecting onto null space ...")
-    delta_proj = project_onto_null_space(delta, null_basis)
+    delta_proj = project_onto_null_space(delta, null_basis, kind="range")
 
     # ── Step 5: Clamp to epsilon budget ──────────────────────────────────
     print(f"[Protection] Step 5/5 - Clamping to L-inf budget e={epsilon} ...")

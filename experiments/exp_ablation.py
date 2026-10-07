@@ -105,7 +105,7 @@ def evaluate_config(mel_o, wav_o, purifier, speaker_encoder, device,
     pgd_mel, cos = pgd_cache[key]
 
     # Project onto null space, clamp
-    pgd_null = project_onto_null_space(pgd_mel, range_basis).clamp(-epsilon, epsilon).to(device)
+    pgd_null = project_onto_null_space(pgd_mel, range_basis, kind="range").clamp(-epsilon, epsilon).to(device)
     prr = purification_resistance_rate(mel_o, mel_o + pgd_null, purifier)
 
     return dict(

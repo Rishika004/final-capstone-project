@@ -379,7 +379,7 @@ def optimize_perturbation(
 
         # --- Null-space projection (in-place) ---
         with torch.no_grad():
-            delta_proj = project_onto_null_space(delta.data, null_basis)
+            delta_proj = project_onto_null_space(delta.data, null_basis, kind="range")
             delta_proj = delta_proj.clamp(-epsilon, epsilon)
             delta.data.copy_(delta_proj)
 

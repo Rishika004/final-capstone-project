@@ -149,8 +149,8 @@ class TestProjectionIdempotency:
             pytest.skip("Empty null space — cannot test idempotency")
 
         delta = torch.randn(n)
-        proj1 = project_onto_null_space(delta, null_basis)
-        proj2 = project_onto_null_space(proj1, null_basis)
+        proj1 = project_onto_null_space(delta, null_basis, kind="null")
+        proj2 = project_onto_null_space(proj1, null_basis, kind="null")
 
         # P(P(x)) == P(x)  up to floating-point precision
         diff = (proj1 - proj2).abs().max().item()
@@ -169,8 +169,8 @@ class TestProjectionIdempotency:
             pytest.skip("Empty null space")
 
         delta = torch.randn(1, n_mels, time)
-        proj1 = project_onto_null_space(delta, null_basis)
-        proj2 = project_onto_null_space(proj1, null_basis)
+        proj1 = project_onto_null_space(delta, null_basis, kind="null")
+        proj2 = project_onto_null_space(proj1, null_basis, kind="null")
 
         diff = (proj1 - proj2).abs().max().item()
         assert diff < 1e-5, f"Mel-shaped idempotency failed: {diff:.2e}"
@@ -193,7 +193,7 @@ class TestProjectionOrthogonality:
             pytest.skip("Empty null space")
 
         delta = torch.randn(n)
-        delta_proj = project_onto_null_space(delta, null_basis)
+        delta_proj = project_onto_null_space(delta, null_basis, kind="null")
 
         # J · delta_proj ≈ 0
         residual = J.float() @ delta_proj.float()
@@ -227,7 +227,7 @@ class TestEpsilonConstraint:
         delta = generate_base_perturbation(
             torch.zeros(1, n_mels, time), epsilon=epsilon, seed=42
         )
-        delta_proj = project_onto_null_space(delta, null_basis)
+        delta_proj = project_onto_null_space(delta, null_basis, kind="null")
         delta_clamped = delta_proj.clamp(-epsilon, epsilon)
 
         linf = delta_clamped.abs().max().item()
@@ -262,7 +262,9 @@ class TestPRRNullVsRandom:
         if null_basis.shape[0] == 0:
             pytest.skip("Empty null space for this model")
 
-        delta_null = project_onto_null_space(delta_random, null_basis).clamp(
+        # factored -> this is a RANGE basis, so the projection is onto its
+        # complement (council v5 BUG B: the kind is now explicit).
+        delta_null = project_onto_null_space(delta_random, null_basis, kind="range").clamp(
             -epsilon, epsilon
         )
         x_null = x_mel + delta_null
@@ -312,7 +314,7 @@ class TestEmptyNullSpaceHandled:
         null_basis = torch.zeros(0, n)  # empty basis
         delta = torch.randn(n)
 
-        result = project_onto_null_space(delta, null_basis)
+        result = project_onto_null_space(delta, null_basis, kind="null")
         assert result.abs().max().item() == 0.0, (
             "Projecting onto empty null space should return zeros"
         )

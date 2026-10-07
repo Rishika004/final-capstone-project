@@ -155,7 +155,7 @@ def eval_variant(tag, wav_o, wav_p, mel_o, purifier, range_basis,
     # PRR — paper protocol (null-projected mel delta) and honest actual delta
     mel_p = wav_to_logmel(wav_p, device)
     dmel = (mel_p - mel_o).cpu()
-    dmel_proj = project_onto_null_space(dmel, range_basis).to(device)
+    dmel_proj = project_onto_null_space(dmel, range_basis, kind="range").to(device)
     prr_proj = purification_resistance_rate(mel_o, mel_o + dmel_proj, purifier)
     prr_actual = purification_resistance_rate(mel_o, mel_p, purifier)
 

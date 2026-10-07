@@ -174,11 +174,14 @@ def compute_null_space_factored(
 def project_onto_null_space(
     delta: torch.Tensor,
     null_basis: torch.Tensor,
+    kind: str = None,
 ) -> torch.Tensor:
     """
     Project perturbation delta onto the null space.
 
-    Formula:  delta_proj = null_basis.T @ (null_basis @ delta_flat)
+    `kind` is REQUIRED and selects the formula:
+        'null'  -> delta_proj = basis.T @ (basis @ delta_flat)
+        'range' -> delta_proj = delta_flat - basis.T @ (basis @ delta_flat)
 
     Parameters
     ----------
@@ -200,17 +203,49 @@ def project_onto_null_space(
     delta_flat = delta.reshape(-1).float().cpu()
     nb = null_basis.cpu().float()   # already CPU after SVD; explicit for safety
 
-    if nb.shape[0] < nb.shape[1]:
-        # Compact RANGE BASIS [K, input_dim] returned by compute_null_space_factored.
+    # BUG FIX 2026-10-07 (council v5 code review, BUG B).
+    #
+    # This used to choose between the two formulas with a SHAPE HEURISTIC:
+    #     if nb.shape[0] < nb.shape[1]: treat as a range basis
+    #     else:                         treat as a null basis
+    #
+    # That is wrong for essentially every true null basis. compute_null_space
+    # returns [null_dim, input_dim], and null_dim < input_dim whenever J has
+    # any rank at all, so a genuine null basis ALWAYS took the range branch
+    # and the function returned the projection onto J's ROW SPACE -- the exact
+    # opposite of its name. tests/test_nullspace.py's orthogonality test has
+    # been failing on exactly this (max |J @ delta_proj| = 1.2e+01 against a
+    # 1e-3 tolerance) and the suite was red for days.
+    #
+    # It survived because every PRODUCTION caller passes the factored RANGE
+    # basis (core/optimizer.py:382; core/perturbation.py:488, see its own
+    # comment at :189; and the five exp_*.py scripts), so they took the branch
+    # they wanted by accident. Only main.py's sanity check and the tests pass
+    # a true null basis. No reported number is affected.
+    #
+    # The kind is now explicit and this FAILS CLOSED without it: no shape test
+    # can distinguish the two cases, so guessing is not an option a
+    # correctness-critical function should have.
+    if kind is None:
+        raise ValueError(
+            "project_onto_null_space: `kind` is required. Pass kind='range' "
+            "for the compact basis from compute_null_space_factored (the "
+            "projection is then onto its COMPLEMENT), or kind='null' for the "
+            "full basis from compute_null_space (projection onto the basis "
+            "itself). There is no reliable shape test -- a null basis also "
+            "has fewer rows than columns, which is the bug this replaces.")
+    if kind not in ("range", "null"):
+        raise ValueError(f"kind must be 'range' or 'null', got {kind!r}")
+
+    if kind == "range":
+        # Compact RANGE BASIS [K, input_dim] from compute_null_space_factored.
         # Null projection = complement of range: P_null = I - nb.T @ nb
-        # Cost: O(K * N) — 1000x cheaper than the full null-basis approach.
-        coords          = nb @ delta_flat           # [K]
+        coords          = nb @ delta_flat             # [K]
         delta_proj_flat = delta_flat - nb.T @ coords  # [input_dim]
     else:
-        # Full null basis [null_dim, input_dim] (unit tests / classic mode).
-        # Project: keep only the component in the null space.
-        coords          = nb @ delta_flat           # [null_dim]
-        delta_proj_flat = nb.T @ coords             # [input_dim]
+        # Full null basis [null_dim, input_dim] from compute_null_space.
+        coords          = nb @ delta_flat             # [null_dim]
+        delta_proj_flat = nb.T @ coords               # [input_dim]
 
     delta_proj = delta_proj_flat.reshape(original_shape).to(dtype=delta.dtype, device=original_device)
 

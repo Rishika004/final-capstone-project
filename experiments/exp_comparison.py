@@ -129,7 +129,7 @@ def main():
             snr_db=round(snr_mel(mel_o, mel_o + rand_dev), 2),
             mel_dist=round((rand_dev).pow(2).mean().sqrt().item(), 6)))
         # 3. random, null-proj
-        rand_null = project_onto_null_space(rand, range_basis).clamp(-eps, eps).to(device)
+        rand_null = project_onto_null_space(rand, range_basis, kind="range").clamp(-eps, eps).to(device)
         rows.append(dict(
             file=wp.name, method="3. Random, null-proj",
             speaker_cos_sim=float("nan"),
@@ -159,7 +159,7 @@ def main():
             snr_db=round(snr_mel(mel_o, mel_o + pgd_mel_dev), 2),
             mel_dist=round((pgd_mel_dev).pow(2).mean().sqrt().item(), 6)))
         # 5. PGD, null-proj (OURS)
-        pgd_null = project_onto_null_space(pgd_mel, range_basis).clamp(-eps, eps).to(device)
+        pgd_null = project_onto_null_space(pgd_mel, range_basis, kind="range").clamp(-eps, eps).to(device)
         rows.append(dict(
             file=wp.name, method="5. PGD, null-proj (OURS)",
             speaker_cos_sim=round(cos_pgd, 4),

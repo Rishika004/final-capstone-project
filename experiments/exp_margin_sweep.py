@@ -90,7 +90,7 @@ def evaluate(wav_o, wav_p, mel_o, purifier, range_basis, wavlm, ecapa_clf,
     ce = cs(real_embed_ecapa(ecapa_clf, wav_o), real_embed_ecapa(ecapa_clf, wav_p))
     cd = cs(real_embed_dvec(dvec_model, wav_o), real_embed_dvec(dvec_model, wav_p))
     mel_p = wav_to_logmel(wav_p, device)
-    dmel_proj = project_onto_null_space((mel_p - mel_o).cpu(), range_basis).to(device)
+    dmel_proj = project_onto_null_space((mel_p - mel_o).cpu(), range_basis, kind="range").to(device)
     prr = purification_resistance_rate(mel_o, mel_o + dmel_proj, purifier)
     snr = waveform_snr_db(wav_o.cpu(), wav_p.cpu())
     x = wav_o.squeeze().cpu().numpy(); y = wav_p.squeeze().cpu().numpy()[:x.shape[0]]

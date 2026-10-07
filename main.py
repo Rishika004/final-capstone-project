@@ -95,8 +95,8 @@ def mode_test(args: argparse.Namespace) -> int:
     print("\n[Sanity] 2/4  Projection idempotency ...")
     from core.nullspace import project_onto_null_space
     delta = torch.randn(n)
-    p1 = project_onto_null_space(delta, null_basis)
-    p2 = project_onto_null_space(p1, null_basis)
+    p1 = project_onto_null_space(delta, null_basis, kind="null")
+    p2 = project_onto_null_space(p1, null_basis, kind="null")
     idem_err = (p1 - p2).abs().max().item()
     assert idem_err < 1e-5, f"Idempotency FAILED (err={idem_err:.2e})"
     print(f"  PASS — idempotency error={idem_err:.2e}")
@@ -114,7 +114,7 @@ def mode_test(args: argparse.Namespace) -> int:
     x_dummy = torch.zeros(1, n_mels, time)
     delta = generate_base_perturbation(x_dummy, epsilon=epsilon, seed=7)
     if null_basis3.shape[0] > 0:
-        proj = project_onto_null_space(delta, null_basis3)
+        proj = project_onto_null_space(delta, null_basis3, kind="null")
     else:
         proj = delta
     proj_clamped = proj.clamp(-epsilon, epsilon)

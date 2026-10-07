@@ -131,7 +131,7 @@ def main():
         range_basis, _ = compute_null_space_factored(Z, V, threshold=1e-3)
         mel_p = wav_to_logmel(wav_p, device)
         dmel = (mel_p - mel_o).cpu()
-        dmel_proj = project_onto_null_space(dmel, range_basis).to(device)
+        dmel_proj = project_onto_null_space(dmel, range_basis, kind="range").to(device)
         prr = purification_resistance_rate(mel_o, mel_o + dmel_proj, purifier)
         snr = signal_to_noise_ratio(wav_o, wav_p)
 
