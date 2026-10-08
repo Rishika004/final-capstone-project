@@ -59,7 +59,11 @@ RULES = [
     (r"held-out \(realistic\)|\brealistic\b(?=.{0,30}held-out)",
      "'realistic' is withdrawn -- nothing measures which condition deployment "
      "resembles", "council v4 B1"),
-    (r"robust to purification|survives purification(?!.{0,30}stage 1)",
+    # "the perturbation survives purification" is the forbidden claim. "an
+    # identity DIRECTION survives purification worst" is C1's own measurement
+    # and is not the same sentence, so the subject is part of the pattern.
+    (r"robust to purification"
+     r"|(?<!direction )(?<!directions )survives purification(?!.{0,40}(stage 1|worst|best|better|worse))",
      "say what survives what, with the stage named", "FRAME_v6 4"),
     (r"min over purifiers|minimum over purifiers",
      "quantifies over an unbounded set; say 'an eight-configuration, "
@@ -148,6 +152,19 @@ def main():
             buf.append(line.strip())
         if buf:
             paras.append((start, " ".join(buf)))
+
+        # A list that follows "...the three it has lost:" is a separate
+        # paragraph from the line that frames it, so the framing never reached
+        # the list items and they flagged. Merge a list block into the
+        # paragraph above when that paragraph ends in a colon.
+        merged = []
+        for ln, txt in paras:
+            if (merged and merged[-1][1].rstrip().endswith(":")
+                    and re.match(r"^\s*(\d+\.|[-*+•])\s", txt)):
+                merged[-1] = (merged[-1][0], merged[-1][1] + " " + txt)
+            else:
+                merged.append((ln, txt))
+        paras = merged
 
         hits = 0
         for i, para in paras:
