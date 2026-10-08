@@ -216,9 +216,21 @@ Two consequences we accept:
 * Taking the max over 𝓡₇ means §29's PhonePuRe row is part of the verdict, not
   a footnote: on the d-vector the defence fails there.
 * Reporting per encoder is why there is no single headline number. The honest
-  summary is that the defence holds on WavLM-SV and ECAPA under a mismatched
-  purifier and fails on the d-vector, and the paper's contribution is the
-  *explanation* of that split rather than the split itself.
+  summary has to be ordered by how much each verdict is worth, because the
+  three encoders are not three comparable verifiers (§42h):
+  * on **ECAPA** — the only one of the three whose accept/reject decision is
+    trustworthy at p_target = 0.01 — the defence **holds** under a mismatched
+    purifier. This is the strongest claim in the paper.
+  * on the **d-vector**, a mediocre verifier (minDCF 0.39–0.57), it **fails**.
+    That is the central negative result and it is weakened symmetrically by
+    the instrument.
+  * on **WavLM-SV** it also holds, but that verifier sits at minDCF 0.77–0.91
+    in every cell reported here, so this is the **weakest** of the three
+    claims and is reported as an *embedding probe* result, never paired with
+    ECAPA as equal evidence (council v4 §A.3).
+
+  The paper's contribution is the *explanation* of that split rather than the
+  split itself.
 
 ### 6a. 𝓡₇ enumerated — council v4 B9
 
