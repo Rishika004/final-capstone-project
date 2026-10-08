@@ -244,7 +244,13 @@ this is a two-group claim.
 Three independent ways this literature's instruments distort its findings. All
 are measured on the same base; none requires our protection to be good.
 
-### 4.1 The purifier degrades the verifier, not just the perturbation
+### 4.1 The purifier degrades the verifier, and EER hides how much
+
+That purification costs clean verification accuracy is known: [MDD] reports
+clean ASV EER rising from 1.4 % to 4.0 % and attributes it to information lost
+in reconstruction, and [DAP] scores purified systems with minDCF. **We do not
+claim that observation.** What we add is where it is measured and what follows
+from it.
 
 minDCF at p_target = 0.01 (1.0 = no better than the trivial system), 464 target
 and 12 992 non-target trials per channel:
@@ -263,12 +269,20 @@ overlap heavily (d′ = 2.48 against ECAPA's 6.16), which also explains a
 long-standing oddity: it moves by large cosine amounts for small behavioural
 changes.
 
+**Two things are new here, and neither is "purification has a cost".** First,
+the **operating point rather than the EER**: 5.2 % → 9.5 % reads as a mild
+degradation, 0.77 → 0.91 does not, and the protection literature reports EER.
+Second, this is measured **in the cells where a protection claim is being
+made**, not as a side effect of proposing a defence.
+
 **The consequence cuts against us, and we state it that way.** "Protection
 holds on WavLM-SV" is the **weakest** of our three per-encoder claims, not the
 strongest. "Protection holds on ECAPA" is the strongest, because ECAPA is the
 only one of the three whose accept/reject decision is trustworthy at this
 operating point. And our central *negative* result — the d-vector — is measured
-on a mediocre verifier, which weakens it symmetrically.
+on a mediocre verifier, which weakens it symmetrically. We know of no
+protection paper that ranks its own per-encoder claims by the quality of the
+instrument that produced them.
 
 ### 4.2 Verification acceptance overstates what a cloner produces
 

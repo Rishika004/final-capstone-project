@@ -734,3 +734,103 @@ were reproduced from memory by the literature agent, not fetched. AudioPure's
 ICLR 2023 venue is corroborated by the authors' own repo and arXiv, but
 OpenReview and dblp both blocked automated access, so the canonical proceedings
 entry is unconfirmed.
+
+---
+
+# 13. Novelty re-check, 2026-10-08 — and C2's delta is NARROWER than FRAME_v7 claimed
+
+Run after `FRAME_v7` promoted §42h to a first-class contribution. §42h had
+**never been novelty-checked**: it was filed as a setup table until the
+2026-10-06 council asked for it to lead, so the check that every other claim
+got was skipped for the one being promoted.
+
+## 13.1 C1 — still open
+
+No paper found that measures the survival of a **speaker encoder's own
+identity direction** through a speech purifier, or compares that survival
+across encoders. The near misses, and why each misses:
+
+| work | what it does | why it is not C1 |
+|---|---|---|
+| DAP, arXiv 2310.14270 | diffusion purification in front of an ASV | defence side; no direction analysis |
+| TDAP, Interspeech 2024 | text-guided purification, aims to retain the speaker | no geometry; no per-encoder comparison |
+| PnP, arXiv 2607.00899 | positive-incentive noise predictor for ASV purification | defence side, benchmarks against DAP/AudioPure |
+| MDD, arXiv 2508.19180 | mask-diffusion detector used as a purifier | detection, not direction survival |
+| SEED, arXiv 2505.16798 | diffusion applied to speaker **embeddings**, 3 encoders | operates in embedding space, not on audio through a purifier; enhancement, not survival |
+| Eta-WavLM, ACL Findings 2025 | linear removal of speaker identity from SSL features | removal by construction, not survival through a denoiser |
+| TVTSyn, arXiv 2602.09389 | streaming VC / anonymisation | unrelated; checked and discarded |
+
+**C1 remains open.** Re-check before submission.
+
+## 13.2 C2.1 — the part that is NOT new, and must stop being written as if it were
+
+**`FRAME_v7` §4 C2.1 overclaims, and this is the correction.** "The purifier
+degrades the verifier, not just the perturbation" is **already known in the
+literature, in EER**:
+
+* **MDD (arXiv 2508.19180)** reports clean-trial ASV EER rising **1.4 % → 4.0 %**
+  at its best-balanced masking ratio, and states plainly that heavier masking
+  "degrades bona fide performance … due to excessive information loss during
+  reconstruction". It explicitly measures "the impact of different purification
+  methods on ASV performance using the Equal Error Rate".
+* **DAP (arXiv 2310.14270)** scores with minDCF (p = 0.01, C_miss = C_fa = 1)
+  and reports a clean ECAPA baseline at EER 1.069 %, minDCF 0.107.
+* An older x-vector purification study reports clean minDCF 0.513 and claims
+  its purifier "maintains the performance of genuine samples".
+* **SVeritas (EMNLP Findings 2025)** lays out minDCF under codec and noise
+  degradation — the table format we are using, for a different degradation.
+
+So **we did not discover that purification costs clean verification accuracy.**
+Any sentence implying that is wrong and a reviewer who knows this literature
+will say so.
+
+## 13.3 What is left, and it is still worth a contribution slot
+
+Four things, none of which the above does:
+
+1. **minDCF at a realistic operating point, not EER.** This is the whole
+   point. On our channels EER moves 5.2 % → 9.5 % on WavLM-SV, which reads as
+   a mild degradation; minDCF at p_target = 0.01 moves **0.77 → 0.91**, i.e.
+   from poor to indistinguishable from the trivial system. **EER hides it and
+   minDCF shows it**, and the protection literature reports EER.
+2. **In the exact cells a protection paper scores in.** Prior work measures
+   the clean-trial cost of *its own* purifier as a side effect of proposing a
+   defence. Nobody reports the operating point of the verifier in the cells
+   where a *protection* claim is being made, which is where it changes the
+   reading.
+3. **Per encoder, with the consequence drawn.** Three encoders, eight
+   channels, and the finding that this **reorders which protection claims are
+   trustworthy**: ECAPA is the only verifier worth believing at p_target =
+   0.01, so "protection holds on WavLM-SV" is the weakest of our three claims
+   and not the strongest. We know of no protection paper that ranks its own
+   per-encoder claims by the quality of the instrument.
+4. **Paired with §29's proxy-vs-end-to-end gap and §40c's clone degradation**,
+   as three independent ways the same literature's instruments distort it.
+
+## 13.4 Required narrowing — do this before the draft is submitted
+
+Do **not** write: "we show that purification degrades the verifier"; "a
+correction other people's papers inherit" without a citation to the papers that
+already said the EER half.
+
+**Write instead:** "Purification is known to cost clean verification accuracy
+(MDD; DAP). We show that at a realistic operating point the cost is far larger
+than EER suggests — WavLM-SV moves from minDCF 0.77 to 0.91, effectively the
+trivial system — and that this reorders which per-encoder protection claims are
+trustworthy."
+
+Cite MDD and DAP at that sentence. Add SVeritas as the precedent for the table
+format.
+
+## 13.5 Citations to add
+
+* MDD, arXiv 2508.19180 — purification's clean-EER cost, stated by its authors.
+* SVeritas, EMNLP Findings 2025 — minDCF-under-degradation table format.
+* TDAP, Interspeech 2024 — purification that explicitly targets retaining the
+  speaker; the closest intent to our C2 framing.
+* SEED, arXiv 2505.16798 — diffusion on embeddings; the "not us" boundary for
+  C1, since a reader may think it is the same thing.
+
+All four were retrieved from search excerpts, not full texts. **Verify the
+numbers against the papers before quoting any of them** — the same rule §12.6
+applied to the AudioPure entry.

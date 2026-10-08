@@ -111,14 +111,30 @@ on the mel purifier while the phenomenon lives on DiffWave.
 Three independent ways the field's proxy scoring distorts itself, all already
 measured, all zero GPU.
 
-1. **The purifier degrades the verifier, not just the perturbation** (§42h).
-   WavLM-SV sits at minDCF **0.77–0.91** in *every cell the paper reports* —
-   at the matched purifier and DiffWave t = 3 it is barely better than the
-   trivial system — while its EER of 5–9 % reads as respectable. ECAPA is the
-   only trustworthy verifier at p_target = 0.01, and it still degrades 0.02 →
-   0.30 under DiffWave t = 3. Consequence, and it cuts **against** us:
-   "protection holds on WavLM-SV" is the **weakest** of the three claims, not
-   the strongest.
+1. **The purifier degrades the verifier, and EER hides how much** (§42h).
+
+   **NARROWED 2026-10-08 by the novelty check (`related_work.md` §13), which
+   §42h had never had — it was a setup table until the council asked it to
+   lead.** That purification costs clean verification accuracy is **already
+   published**: MDD (arXiv 2508.19180) reports clean ASV EER rising 1.4 % →
+   4.0 % and names the mechanism; DAP (arXiv 2310.14270) scores with minDCF.
+   **We did not discover this and must not say we did.**
+
+   What is ours, and still worth the slot:
+   * **The operating point, not the EER.** On our channels WavLM-SV's EER
+     moves 5.2 % → 9.5 %, which reads as mild; minDCF at p_target = 0.01 moves
+     **0.77 → 0.91**, i.e. poor to indistinguishable from the trivial system.
+     EER hides it; the protection literature reports EER.
+   * **In the cells a protection claim is actually made**, not as a side
+     effect of proposing a defence.
+   * **Per encoder, with the consequence drawn**: ECAPA is the only verifier
+     worth believing at this operating point, so "protection holds on
+     WavLM-SV" is the **weakest** of our three claims, not the strongest. We
+     know of no protection paper that ranks its own per-encoder claims by the
+     quality of the instrument.
+
+   Required wording and the citations that must sit on it: `related_work.md`
+   §13.4.
 2. **ASV acceptance overstates what the cloner actually clones** (§29).
    Full PhonePuRe restores the speaker on 29/29 files by ASV, while end-to-end
    DiffVC clone success rises to 38/27/71 % — reduced, not removed. A paper
