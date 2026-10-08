@@ -4801,3 +4801,105 @@ That is still enough for §47's verdict — OUTCOME A-2 turns on the reversal
 disappearing, and a reversal half the matched size would still not be the
 +0.074 the matched arm reports — but it is the version that survives a
 statistics reviewer who reads §48 and then reads this.
+
+---
+
+## 53. §47e CLOSED — the held-out grid at the shipping budget, and a prediction that held (2026-10-08)
+
+`run_heldout_seg.sh` crafted `full_m30_seg_nodvec`, 29 speakers, ~2 h GPU;
+`analyse_heldout_seg.py` read it. `heldout_seg_cells.csv`.
+
+`PREREG_council5_controls.md` §A.2 declared in advance that Control A ran at the
+**pooled** budget because `full_m30_seg_nodvec` did not exist, and that *"if the
+control contradicts the matched result, the seg version becomes mandatory"*.
+§47 contradicted. This is that arm.
+
+### 53a. The pre-registered prediction, and it held exactly
+
+§49e committed a prediction **before the arm was crafted**, derived from §49's
+measured crafting-mode contrast (mean 0.0072, max 0.0192, zero sign flips in
+the matched condition):
+
+> the seg held-out grid should reproduce §47's pooled held-out grid to within
+> about 0.01 per cell, and **must not flip a sign**.
+
+Measured, pooled → segment, all 12 cells:
+
+| | |
+|---|---|
+| mean \|change\| | **0.0019** |
+| max \|change\| | **0.0045** |
+| sign flips | **0** |
+| cells over the 0.010 tolerance | **0** |
+
+Every cell is inside the tolerance with a factor of two to spare, and the
+largest single move (0.0045) is smaller than the §50 rerun term. **This is one
+of the few pre-registered predictions in this project that came true**, and it
+is worth saying so plainly, because §45, §46 and §47 all returned outcomes
+their predictions did not anticipate.
+
+It also makes the crafting-mode question dead: pooled and segment crafting
+give the same held-out answer, so §47's reading was never budget-conditional.
+
+### 53b. OUTCOME A-2 confirmed at the shipping budget
+
+The d-vector cells at t = 1, which is where §47's verdict turns:
+
+| purifier | matched (seg) | held-out (seg) | swing |
+|---|---|---|---|
+| DiffWave-LibriSpeech | **+0.0707** | **−0.0075** [−0.0136, −0.0031] | −0.078 |
+| DiffWave-SC09 | **+0.0752** | **−0.0113** [−0.0172, −0.0064] | −0.087 |
+
+Held out, both cells are **non-positive** under segment crafting, exactly as
+under pooled crafting. Per §A.4, and without discretion:
+
+* **C2's reversal stays demoted to a matched-encoder observation.** It is a
+  property of optimising against the d-vector while constrained, not of the
+  constraint, **at both budgets now measured**.
+* §45e keeps its loss of the "most transferable" billing.
+* **§47e is CLOSED.** C2 can now be written.
+
+### 53c. The full held-out grid at the shipping budget
+
+Holm over this control's 12 cells, n = 29:
+
+| purifier | t | WavLM-SV | ECAPA | d-vector |
+|---|---|---|---|---|
+| DiffWave-Libri | 1 | **−0.0579** * | **−0.0717** * | −0.0075 |
+| DiffWave-Libri | 3 | **−0.0154** * | −0.0239 | −0.0010 |
+| DiffWave-SC09 | 1 | **−0.0637** * | **−0.0647** * | **−0.0113** * |
+| DiffWave-SC09 | 3 | **−0.0313** * | **−0.0248** * | −0.0045 |
+
+\* CI excludes zero and Holm p < .05. **Nine of twelve cells are negative and
+significant; the other three are negative and small.** Not one cell is
+positive.
+
+So in the held-out condition the constraint **helps every encoder, including
+the d-vector**, and the d-vector's help is simply the smallest — which is what
+C1 predicts for the encoder whose identity direction survives purification
+worst, and which is the reading §47d offered as fitted-after-the-fact
+interpretation. It is still interpretation; one confirmed prediction about
+crafting mode does not convert it into a tested mechanism.
+
+### 53d. What the paper now says about C2
+
+Both arms exist at the shipping budget, one variable apart, so the contrast is
+the result rather than a caveat:
+
+> With the cloner's own encoder in the optimisation ensemble, the invariance
+> constraint **reverses** on that encoder (+0.071, +0.075). With it held out,
+> the same constraint at the same budget **helps** it (−0.008, −0.011), and
+> helps every other encoder more. The reversal is a property of optimising
+> against an encoder, not of the constraint, and the matched condition is the
+> one almost every published protection result occupies.
+
+That is a stronger and more useful sentence than the one the project started
+the week with, and it is the one §47 forced.
+
+### 53e. Cost, against the estimate
+
+§47e budgeted ~1 GPU-h for one crafting arm. It took **~2 h** (29 speakers at
+237–368 s each, plus four eval channels), because the per-speaker cost was
+estimated from the repro probe's 4 min rather than from the seg recipe's real
+range. The estimate was low by 2×, which is worth recording next to §0's
+observation that PLAN_V2's Phase D was under-scoped by the same factor.

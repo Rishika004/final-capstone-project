@@ -214,11 +214,19 @@ the same on ECAPA, and **reverses on the d-vector** (+0.071, +0.075).
 
 **This must be reported with its correction in the same breath.** Holding the
 d-vector *out* of the optimisation ensemble — one variable, everything else
-identical — **the reversal disappears and changes sign**: +0.074/+0.079 matched
-against −0.008/−0.012 held out, with non-overlapping intervals. A mixed model
-agrees from a second direction: the `recipe × encoder` interaction is
-p = 2·10⁻¹³ in the matched condition and **p = 0.19 held out**, on a cohort
-with power to detect a matched-sized interaction.
+identical, **at the same budget the rest of the paper ships** — **the reversal
+disappears and changes sign**: +0.071/+0.075 matched against −0.008/−0.011 held
+out, with non-overlapping intervals. In that held-out grid the constraint helps
+*every* encoder, nine of twelve cells significantly, and none is positive; the
+d-vector is simply helped least, which is what C1 predicts for the encoder whose
+identity direction survives purification worst.
+
+Two independent checks agree. A mixed model puts the `recipe × encoder`
+interaction at p = 2·10⁻¹³ in the matched condition and **p = 0.19 held out**,
+on a cohort with power to detect a matched-sized interaction. And the result is
+not an artefact of the crafting mode: measured at both the pooled and the
+segment budget, the held-out cells move by a mean of 0.0019 with no sign
+flips — inside a tolerance fixed before the second arm was crafted.
 
 So the reversal is a property of **optimising against the d-vector while
 constrained**, not of the constraint. It is reported as a **matched-encoder

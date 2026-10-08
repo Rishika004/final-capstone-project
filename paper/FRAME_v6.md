@@ -88,8 +88,16 @@ flips sign**: +0.0736/+0.0790 matched against −0.0084/−0.0120 held out, with
 non-overlapping CIs. The reversal is a property of optimising against the
 d-vector, not of the constraint. C2's reversal is demoted to a
 **matched-encoder observation**, and §45e may no longer be called the most
-transferable result. One crafting arm (`full_m30_seg_nodvec`, ~1 GPU-h) is now
-mandatory before C2 is written either way.
+transferable result.
+
+**§47e CLOSED by §53 (2026-10-08).** The mandatory `full_m30_seg_nodvec` arm
+ran: at the **shipping** budget the held-out d-vector cells are **−0.0075 and
+−0.0113**, non-positive exactly as at the pooled budget, so **OUTCOME A-2 is
+confirmed at both budgets** and C2 may now be written. The pooled→segment
+change is mean 0.0019, max 0.0045, **zero sign flips** — inside §49e's
+pre-registered 0.010 tolerance with a factor of two to spare. In the held-out
+grid **nine of twelve cells are negative and significant and none is
+positive**: the constraint helps every encoder, the d-vector least.
 
 **NOW TESTED AS AN INTERACTION (§52, 2026-10-08).** The 12-cell grid fits
 twelve simple effects and compares signs by eye; C2's claim is a
@@ -325,8 +333,8 @@ across encoders. Re-check before submission.
 | power/MDE on every null cell | **DONE (§48a, §48b, §52g).** |
 | council B1 / B8 / B9 / B10 | **DONE** in `THREAT_MODEL` §3, §6, §6a, §6b. |
 | council #9 EOT parity | **CUT** (council v4 §C.3, §E.10): 8 GPU-h defending a declared non-contribution. |
-| §47e mandatory held-out seg arm | **RUNNING** — `run_heldout_seg.sh`, ~6 min/speaker; read by `analyse_heldout_seg.py`, prediction pre-committed in §49e. |
-| Control B (the "speaker" control) | **BUILT AND QUEUED** — `run_control_b.sh`, 3 untrained inits; premise verified (+0.020/+0.006 separation against trained +0.614). **It can falsify the title.** |
+| §47e mandatory held-out seg arm | **DONE (§53).** A-2 confirmed at the shipping budget; §49e's pre-registered prediction held (mean change 0.0019, 0 sign flips). **C2 can now be written.** |
+| Control B (the "speaker" control) | **RUNNING** — `run_control_b.sh`, 3 untrained inits; premise verified (+0.020/+0.006 separation against trained +0.614). **It can falsify the title.** |
 | B7 protected-arm operating point | **BUILT AND QUEUED** — `eval_protected_asv.py`. 29 target trials, not 464; the caption must say so. |
 | #13c α through DiffWave | **BUILT AND QUEUED** — `run_13c.sh` + `band_matched_wav`; both checkpoints, both timesteps. |
 | Fig. 1, Tables 1–3, draft v6 | **DONE** — `make_fig1.py`, `make_tables_v7.py`, `draft_v6.md` (two [PENDING] slots marked). |

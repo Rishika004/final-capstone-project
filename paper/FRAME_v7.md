@@ -100,7 +100,11 @@ separates, x-vector and d-vector never distinguishable. Never a four-way
 ranking.
 
 **Inside C1, as its explanandum**, the d-vector reversal — with §47's
-correction attached in the same breath, never later.
+correction attached in the same breath, never later. **§53 closed §47e**: at
+the shipping budget the held-out d-vector cells are −0.0075 / −0.0113, A-2 is
+confirmed at both budgets, and §49e's pre-registered prediction held (mean
+change 0.0019, zero sign flips). Nine of twelve held-out cells are negative
+and significant; none is positive.
 
 **[PENDING #13c α through DiffWave]** — the one structural hole: α is measured
 on the mel purifier while the phenomenon lives on DiffWave.
