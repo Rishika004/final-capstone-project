@@ -320,11 +320,13 @@ much any result in this literature depends on encoder overlap.
 **The gradient estimator is a small lever, not the lever.** We compared BPDA
 against exact gradients through the purifier under one change. Tested as the
 equivalence claim it is (TOST, speaker as unit), **the pre-specified margin of
-0.01 fails**: the data support equivalence only at **0.032**. And the direction
-is systematic — exact gradients protect better in 10 of 12 cells, by **0.005**
-on average. That is an order of magnitude smaller than the effects at stake
-(0.076), so the estimator cannot explain why previously published adaptive
-attacks failed; but it is not zero, and we report the bound rather than a null.
+0.01 fails** — it holds in 7 of 24 cells — and the data support equivalence
+only at **0.032** (median cell 0.011). The direction is systematic: exact
+gradients protect better in **19 of 24 cells across both arms** (10 of 12 in
+the arm we analyse), by **0.005** on average. That is an order of magnitude
+smaller than the effects at stake (0.076), so the estimator cannot explain why
+previously published adaptive attacks failed; but it is not zero, and we report
+the bound rather than a null.
 
 **Out-of-sample.** On 31 disjoint dev-clean speakers with independently
 calibrated thresholds, the pattern reproduces directionally — all twelve cells
