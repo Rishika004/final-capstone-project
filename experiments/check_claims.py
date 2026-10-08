@@ -107,7 +107,8 @@ SAFE = re.compile(
     r"|never[\s:*\"']|\bnever\b"       # "never write", 'never "x"', "Never:"
     r"|(do|does|did) not|cannot|neither|nothing (here |in )?\w*\s*measures"
     r"|rather than|instead of|no longer|killed it|is wrong|would have"
-    r"|we are not|fail(s|ed)?\b|is absent|names? the set|supersede",
+    r"|we are not|fail(s|ed)?\b|is absent|names? the set|supersede"
+    r"|has lost|it lost|lost:|retired|demoted|killed|gained",
     re.IGNORECASE)
 
 
@@ -157,9 +158,14 @@ def main():
         # paragraph from the line that frames it, so the framing never reached
         # the list items and they flagged. Merge a list block into the
         # paragraph above when that paragraph ends in a colon.
+        def _ends_colon(t):
+            # "**And the three it has lost:**" ends in "**", not ":", so the
+            # emphasis markers come off before the test.
+            return re.sub(r"[*_`\s]+$", "", t).endswith(":")
+
         merged = []
         for ln, txt in paras:
-            if (merged and merged[-1][1].rstrip().endswith(":")
+            if (merged and _ends_colon(merged[-1][1])
                     and re.match(r"^\s*(\d+\.|[-*+•])\s", txt)):
                 merged[-1] = (merged[-1][0], merged[-1][1] + " " + txt)
             else:
