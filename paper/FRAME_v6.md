@@ -325,11 +325,20 @@ across encoders. Re-check before submission.
 | power/MDE on every null cell | **DONE (§48a, §48b, §52g).** |
 | council B1 / B8 / B9 / B10 | **DONE** in `THREAT_MODEL` §3, §6, §6a, §6b. |
 | council #9 EOT parity | **CUT** (council v4 §C.3, §E.10): 8 GPU-h defending a declared non-contribution. |
-| §47e mandatory held-out seg arm | **crafting** — `run_heldout_seg.sh`, read by `analyse_heldout_seg.py`, prediction pre-committed in §49e. |
-| Control B (the "speaker" control) | **PENDING** — `PREREG_council5_controls.md` B, not yet run. **It can falsify the title.** |
-| B7 protected-arm operating point | **PENDING** (~1 GPU-h). R2's top ask. |
-| #13c α through DiffWave | **PENDING** (~3 GPU-h). The last structural hole in C1. |
-| Listening panel | **launched, zero responses so far.** The 20 Jan gate reads off the naive subgroup (§6). |
+| §47e mandatory held-out seg arm | **RUNNING** — `run_heldout_seg.sh`, ~6 min/speaker; read by `analyse_heldout_seg.py`, prediction pre-committed in §49e. |
+| Control B (the "speaker" control) | **BUILT AND QUEUED** — `run_control_b.sh`, 3 untrained inits; premise verified (+0.020/+0.006 separation against trained +0.614). **It can falsify the title.** |
+| B7 protected-arm operating point | **BUILT AND QUEUED** — `eval_protected_asv.py`. 29 target trials, not 464; the caption must say so. |
+| #13c α through DiffWave | **BUILT AND QUEUED** — `run_13c.sh` + `band_matched_wav`; both checkpoints, both timesteps. |
+| Fig. 1, Tables 1–3, draft v6 | **DONE** — `make_fig1.py`, `make_tables_v7.py`, `draft_v6.md` (two [PENDING] slots marked). |
+| claims lint | **DONE** — `check_claims.py`; it found a real B1 violation in `THREAT_MODEL` §6. |
+| novelty re-check | **DONE** — `related_work.md` §13. C1 open; **C2.1 narrowed** after verifying MDD against the paper. |
+| CAM++/ERes2Net as calibrated verifiers | **not built** (council §E.9). |
+| Listening panel | **launched, zero responses.** The 20 Jan gate reads off the naive subgroup (§6). |
+
+The GPU chain runs unattended: `run_queue_w7.sh` waits for the arm, then
+Control B, then #13c; `run_queue_w7b.sh` waits for that and runs B7. One job
+at a time, liveness judged by log staleness, each stage skipped if its output
+already exists.
 
 **The three sentences the paper has gained, none of which it had on 2026-10-07:**
 
