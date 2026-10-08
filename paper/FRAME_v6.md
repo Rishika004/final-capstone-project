@@ -91,32 +91,94 @@ d-vector, not of the constraint. C2's reversal is demoted to a
 transferable result. One crafting arm (`full_m30_seg_nodvec`, ~1 GPU-h) is now
 mandatory before C2 is written either way.
 
+**NOW TESTED AS AN INTERACTION (§52, 2026-10-08).** The 12-cell grid fits
+twelve simple effects and compares signs by eye; C2's claim is a
+`recipe × encoder` interaction and the grid tests it nowhere. The mixed model
+`margin ~ recipe*encoder*purifier + (1|speaker)` does:
+
+| cohort | condition | interaction LRT |
+|---|---|---|
+| test-clean (§27) | matched | χ² 76.9, df 8, **p = 2.1e−13** |
+| dev-clean (§45) | matched | χ² 50.2, df 8, **p = 3.7e−8** |
+| test-clean (§47) | **held-out** | χ² 11.2, df 8, **p = 0.19** |
+
+Two analyses with different assumptions agree with §47. And **the whole
+interaction is the d-vector**: ECAPA vs WavLM is non-significant in all three
+cohorts (p = .26, .82, .80), so **C2 is a two-group claim**,
+{WavLM-SV, ECAPA} against {d-vector}. The "same-sign but mostly
+non-significant on ECAPA" phrasing above describes a difference in
+*significance* that the model says is not a difference in *effect* — ECAPA's
+cells are noisier, not smaller. Rewrite it that way.
+
+Power on our own null (§52g): the held-out cohort's MDE on that contrast is
+0.0823 and the matched effect 0.1463 is **1.78×** it, so a matched-sized
+interaction would have been found; an interaction **half** that size would not.
+Write "the matched-sized interaction is absent", never "the interaction
+vanishes".
+
 Stated as a **hypothesis supported by two samples**, 29 test-clean and 31
 dev-clean, read out separately and **never pooled**. §45: directionally
 reproduced out of sample — 12 of 12 cells with the predicted sign, r = 0.96
-against the first sample, all six mild-purifier cells significant under Holm,
-and the d-vector reversal significant on both purifiers — but **underpowered at
-n = 31**, with none of the six t = 3 cells resolving. **Do not write
+against the first sample (**descriptive only; the p-value on r and on the
+12-of-12 count are withdrawn, §48c**), all six mild-purifier cells significant
+under Holm, and the d-vector reversal significant on both purifiers — but
+**underpowered at n = 31**. **§48b: no t = 3 cell could have resolved** — the
+pre-registration named three cells underpowered and the arithmetic says six, so
+"none of the six t = 3 cells resolving" is not an outcome. **Do not write
 "replicated".** §27/§30e remain analysis-choice insensitivity, not replication.
+
+**§49 (budget × crafting attribution).** The m20 null was a **budget** effect,
+not a segment-crafting effect: crafting mode moves these cells by 0.0072 on
+average with zero sign flips, budget by 0.0281 with two. So write "at the loud
+budget" and drop the segment-crafting hedge. The d-vector reversal is
+**budget-insensitive** (+0.069…+0.079 in all three recipes) while the
+WavLM/ECAPA benefit is **budget-dependent** — two different mechanisms.
 C1 is the explanation, generated after observing the reversal, not a prediction.
 **#5 DONE (§45) — OUTCOME B of the three pre-registered branches: directionally reproduced out of sample, underpowered at n = 31. The pre-registration's own sensitivity check turned out to be vacuous (the paired endpoint is threshold-invariant by construction, §45g).**
-**#13b DONE (§46) — OUTCOME B.** The prospective test ran on CAM++ and
-ERes2Net with the rule and the per-encoder prediction each committed before
-the next measurement. All 8 cells have the predicted sign; **none is
-distinguishable from zero**, so by the pre-registration's own §7.4 a null is
-not a confirmation. **C1 keeps "explanation" and the ban on "predicted"
-stands.** What the test did buy: C1's core clause — every encoder's identity
-direction is purifier-hostile — now holds on **five encoders across four
-architecture families**, two never seen by the optimiser (§46b).
+**#13b DONE (§46) — OUTCOME B, and RELABELLED INCONCLUSIVE by §48a.** The
+prospective test ran on CAM++ and ERes2Net with the rule and the per-encoder
+prediction each committed before the next measurement. All 8 cells have the
+predicted sign. **C1 keeps "explanation" and the ban on "predicted" stands.**
+
+But §48a measured what that test could detect: **8 of 8 cells sit below their
+own 80 %-power detectable effect, median power 21 %** (range 8.6–57.5 %). So
+"none is distinguishable from zero" is true and **uninformative**, and the word
+**null must not be used** — §46 is *inconclusive*. And on the per-speaker sign,
+which is the more powerful test here, **one cell survives Holm** (CAM++ /
+SC09 / t = 3, 22/29, p_holm .0325) with two more just outside. That cell is
+**not** promoted: `PREREG_13b` §7.4 fixed the rule on the mean paired
+difference before scoring, and switching endpoint to harvest it is the §25
+failure mode.
+
+**Consequence: §46 becomes two sentences in Limitations, not a results
+subsection** (R3's position, §C.2, now settled by arithmetic). What the test
+genuinely bought moves into C1 and is **not** underpowered: C1's core clause
+holds on **five encoders across four architecture families**, two never seen by
+the optimiser (§46b). That is a level claim and it is the part worth keeping.
 
 ### C3 — The paradigm's measured ceiling (§22b, §30, §29)
 1. **Coverage, not generalisation** (§22b). Same files, same thresholds, one
    variable: clone success 12–14 % on crafted-against encoders vs 75–92 % on the
    held-out one.
-2. **The gradient estimator is not the lever** (§30). BPDA matches exact within
-   4 points everywhere; exact gradients help only against the purifier they were
-   computed through, at its strongest setting (§30d). Report as a TOST
-   equivalence, not as a failure to reject. **[PENDING #8]**
+2. **The gradient estimator is a small lever, not the lever** (§30, §51).
+   **#8 TOST DONE (§51), and the pre-specified test FAILED.** Equivalence at
+   the `PLAN_V3`-pre-specified margin D = 0.01 holds in only **7 of 24 cells**;
+   the data support equivalence at **D = 0.032**. And the sign is systematic:
+   exact gradients protect *better* in 10 of 12 cells, **mean −0.005**, which
+   §30's per-cell Holm family was too coarse to resolve.
+
+   So: **never write "equivalent"**, and never "no significant difference,
+   therefore the same". Write "exact gradients protect better by 0.005 on
+   average, bounded above by 0.032 in the worst cell and 0.007 at the median".
+
+   The contribution **survives and improves**: 0.005 margin units cannot
+   explain why De-AntiFake's and VocalBridge's adaptive attacks failed when the
+   effects at stake are 0.076. A measured bound with a measured direction beats
+   a null. Two riders: the 0.032 bound is **larger** than §49's budget contrast
+   (0.028), the d-vector t = 3 cells (0.014) and §47's held-out cells (0.012),
+   so those were never cross-estimator claims and must not be read as such;
+   and BPDA remains the default at half the GPU cost, with that cost now
+   **stated** as ≈0.005 of protection rather than assumed to be zero.
 3. **A learned refinement stage recovers most of what purification leaves**
    (§29). Full PhonePuRe restores identity on 29/29 files; end-to-end clone
    success rises from 6/0/29 % to 38/27/71 % — reduced, not removed — and the
@@ -145,10 +207,10 @@ moves to §2 as "the protection we analyse".
 |---|---|---|---|---|
 | 1 | Intro: purification defeats protection; our question; C1–C3 | 0.6 | related_work §0, §0b | — |
 | 2 | Setup: rewritten threat model, corpus, disjoint calibration, encoders, purifiers with denoise gain and conditioning disclosed, the protection analysed, metrics, operating point | 0.6 | §21, §23, §26d, §40, §42 | ~~#2~~ ~~#6~~ ~~#7~~ #11 #19 (clean channel done, purified channels open) |
-| 3 | **C1.** Fig. 1: α per encoder vs matched random at t = 50/200 | 0.9 | §32, §37, §43, `encoder_subspace_xsess_fe.csv` | ~~#3~~ #8 #13c |
-| 4 | **C2.** Table 1: 4 cells × 3 encoders, paired Δ with CI and Holm, plus the unpurified row | 0.7 | §27a–c, §30e | #5 #8 |
-| 5 | **C3.** Table 2: coverage contrast and the PhonePuRe two-number row; BPDA in one sentence | 0.8 | §22b, §29, §30, §40 | ~~#4~~ #8 |
-| 6 | Limitations and conclusion | 0.4 | council §B | — |
+| 3 | **C1.** Fig. 1: α per encoder vs matched random at t = 50/200 | 0.9 | §32, §37, §43, §44, `encoder_subspace_xsess_fe.csv` | ~~#3~~ ~~#8~~ #13c |
+| 4 | **C2.** Table 1: 4 cells × 3 encoders, paired Δ with CI and Holm; the unpurified row; **the matched-vs-held-out pair (§47, §53) and the interaction LRT (§52)** | 0.7 | §27a–c, §30e, §47, §49, §52 | ~~#5~~ ~~#8~~ §47e arm |
+| 5 | **C3.** Table 2: coverage contrast and the PhonePuRe two-number row; the BPDA **bound** in one sentence | 0.8 | §22b, §29, §30, §40, §51 | ~~#4~~ ~~#8~~ |
+| 6 | Limitations and conclusion — **now carries §46 (two sentences, inconclusive), §48b's pre-registration defect, §50's rerun term, and THREAT_MODEL §6b's four unmeasured capabilities** | 0.4 | council §B, §46, §48, §50 | — |
 
 Purifier transfer (the new-base figures from `foreign_tc_*.csv`) is supporting
 context in §2–3, not a headline: it is two checkpoints of one architecture, and
@@ -166,7 +228,16 @@ the one architecturally different purifier (§29) breaks it. **#2 DONE
 | "an explanation generated after observing the reversal" | "retro-validation", "predicted", "without being told" |
 | "two samples, 29 + 31 speakers, read out separately and never pooled"; "directionally reproduced out of sample, underpowered at n = 31" (§45) | "replicated"; "a hypothesis supported by one sample"; any pooling of the two corpora, or any comparison of ABSOLUTE rates between them (§45g: dev-clean EER is up to 5.6x worse) |
 | "reduced, not removed, by full PhonePuRe" | "reverses De-AntiFake"; "survives purification" without "stage 1" |
-| "no advantage over BPDA (equivalence tested)" | "exact gradients are why prior work failed" |
+| "exact gradients protect better by 0.005 on average (10 of 12 cells); the difference is bounded by 0.032 in the worst cell, 0.007 at the median" (§51) | "no advantage over BPDA"; "equivalent"; "equivalence tested" — the pre-specified D = 0.01 TOST **failed** in 17 of 24 cells; "exact gradients are why prior work failed" |
+| "§46 is inconclusive: 8 of 8 cells below their 80 %-power detectable effect, median power 21 %" (§48a) | "every effect null"; "a reported null"; §46 as a results subsection |
+| per-speaker agreement k/n with an exact sign test, Holm within section (§48c) | "12 of 12 cells, p = …"; "8 of 8 cells, p = …"; the r = 0.961 **p-value** |
+| "all six t = 1 cells informative and significant; no t = 3 cell could have resolved" (§48b) | reading any t = 3 non-significance as a failed replication |
+| "C2 is an interaction, significant in the matched condition (p = 2e−13) and not detectable held out (p = 0.19, with power for a matched-sized effect)" (§52, §52g) | "the interaction vanishes held out"; treating p = 0.19 as proof of no interaction |
+| "{WavLM-SV, ECAPA} against {d-vector}" — a two-group claim (§52c) | three distinct per-encoder constraint effects; "mostly non-significant on ECAPA" as if ECAPA's effect were smaller rather than noisier |
+| "at the loud budget" (§49) | hedging the claim on segment crafting — crafting mode moves it 0.0072, budget 0.0281 |
+| "the minimum over an eight-configuration, three-architecture measured set" (THREAT_MODEL §6a) | "min over purifiers"; "robust to purification" |
+| "matched-encoder (upper bound)" on every verdict drawn from §27, §29e, §40, §41, §45 (THREAT_MODEL §3) | "held-out (realistic)" — "realistic" is withdrawn |
+| "crafting is stochastic at fixed seed; two identical runs differ by up to 0.03 on one utterance" (§50) | within-run CIs presented as the whole uncertainty of a crafting comparison |
 | "single-sample stochastic gradient (EOT size 1)" | bare "EOT" beside baselines' 1/5/10/15 sweeps |
 | "iterated mel denoiser in a DiffPure-style loop, denoise gain 0.19" | "diffusion purifier" for v7 |
 | "two checkpoints of one architecture" | "a property of speech diffusion purifiers" |
@@ -236,3 +307,44 @@ across encoders. Re-check before submission.
 * Cut for this submission: the reduced-N adaptive attack through PhonePuRe
   stage 2; more optimisation steps (§24a); further gradient-estimator work
   (§30); additional same-family purifiers.
+
+---
+
+## 8. Status after the 2026-10-08 statistics pass (§48–§52)
+
+`PLAN_V3` W8 is **brought forward and largely closed**, at zero GPU. What moved:
+
+| item | status |
+|---|---|
+| #8 TOST for §30 | **DONE (§51).** Pre-specified margin **failed**; bound is 0.032, direction systematic. |
+| #8 mixed model | **DONE (§52).** C2 is an interaction: p = 2e−13 matched, p = 0.19 held out. |
+| #8 sign-test reframing of floor p-values | **DONE (§48c).** Across-cell p-values withdrawn; per-speaker exact sign test, Holm within section. |
+| #8 all ten α pairs under Holm | **DONE (§44).** |
+| #8 log-ratio + BCa for retention | **DONE (§33).** |
+| `analyse_mismatch_final.py` | **DONE (§49).** The budget × crafting attribution: it is the budget. |
+| power/MDE on every null cell | **DONE (§48a, §48b, §52g).** |
+| council B1 / B8 / B9 / B10 | **DONE** in `THREAT_MODEL` §3, §6, §6a, §6b. |
+| council #9 EOT parity | **CUT** (council v4 §C.3, §E.10): 8 GPU-h defending a declared non-contribution. |
+| §47e mandatory held-out seg arm | **crafting** — `run_heldout_seg.sh`, read by `analyse_heldout_seg.py`, prediction pre-committed in §49e. |
+| Control B (the "speaker" control) | **PENDING** — `PREREG_council5_controls.md` B, not yet run. **It can falsify the title.** |
+| B7 protected-arm operating point | **PENDING** (~1 GPU-h). R2's top ask. |
+| #13c α through DiffWave | **PENDING** (~3 GPU-h). The last structural hole in C1. |
+| Listening panel | **launched, zero responses so far.** The 20 Jan gate reads off the naive subgroup (§6). |
+
+**The three sentences the paper has gained, none of which it had on 2026-10-07:**
+
+1. C2's encoder-dependence is a **tested interaction** in the matched condition
+   and **not detectable** held out — two analyses, one conclusion (§47, §52).
+2. The m20 null was a **budget** effect; segment crafting is nearly inert
+   (0.0072 against 0.0281), so the claim is "at the loud budget" (§49).
+3. The gradient estimator costs about **0.005**, bounded by 0.032 — a measured
+   quantity where there was a null (§51).
+
+**And the three it has lost:**
+
+1. "BPDA ≡ exact" as an equivalence (§51).
+2. §46 as a reported null, and as a results subsection (§48a).
+3. The across-cell sign p-values and the r = 0.961 p-value (§48c).
+
+Every loss was found by our own arithmetic before a reviewer's, which is the
+only version of this that is worth anything.
