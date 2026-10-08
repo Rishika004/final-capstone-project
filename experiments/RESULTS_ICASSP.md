@@ -4520,3 +4520,284 @@ almost none of them report the rerun term. We measured it on one utterance,
 which is enough to bound it and not enough to characterise it; a proper estimate
 would be two full arms crafted twice, ~4 GPU-h, and is not scheduled before the
 GPU stop.
+
+---
+
+## 51. §30 as an equivalence test: the pre-specified margin fails, and the claim has to change (2026-10-08)
+
+`experiments/analyse_tost.py`. Zero GPU. `tost_bpda.csv`. Council v4 E2 —
+R3 called this "the highest-value statistic" left in the project.
+
+### 51a. The gap, which is logical rather than statistical
+
+§30 reports "1 of 21 Holm cells significant" and concludes BPDA and exact
+gradients give the same protection. **A non-rejection is not evidence of
+equivalence.** And the conclusion is load-bearing twice over:
+
+* `FRAME_v6` C3.2 states it as a contribution — "the gradient estimator is not
+  the lever";
+* the #5 dev-clean confirmatory run was crafted with `--grad-estimator bpda`
+  **on the strength of it** (`run_devclean_replication.sh`), so if the two are
+  not equivalent, the headline replication runs a different recipe from the
+  headline it replicates.
+
+So it has to be tested as the equivalence claim it is. Schuirmann's two
+one-sided tests, paired per speaker, n = 29, percentile bootstrap, Holm within
+each arm.
+
+**The margin D = 0.01 was fixed in `PLAN_V3` W8 on 2026-10-05**, before this
+analysis existed. It is pre-specified, not tuned.
+
+### 51b. The pre-specified test fails
+
+| arm | equivalent at D = 0.01 | median achieved bound | worst achieved bound |
+|---|---|---|---|
+| constrained (`fullnsT`, what ships) | **6 of 12** | 0.0070 | 0.0300 |
+| unconstrained (`full`) | **1 of 12** | 0.0117 | 0.0320 |
+
+Equivalence at the pre-registered margin holds in **7 of 24 cells**. Every cell
+is equivalent only at **D = 0.032**, and that bound is set by one cell in both
+arms — DiffWave-SC09 t = 1 on WavLM-SV (Δ = −0.0145 and −0.0142).
+
+The cells that fail in the shipping arm, all of them WavLM or ECAPA:
+
+| channel | encoder | Δ | 90 % CI | achieved |
+|---|---|---|---|---|
+| DiffWave-SC09 t=1 | WavLM-SV | −0.0145 | [−0.0300, −0.0030] | 0.0300 |
+| DiffWave-LibriSpeech t=1 | WavLM-SV | −0.0116 | [−0.0241, −0.0021] | 0.0241 |
+| DiffWave-SC09 t=1 | ECAPA | −0.0066 | [−0.0142, −0.0001] | 0.0142 |
+| DiffWave-LibriSpeech t=1 | ECAPA | −0.0074 | [−0.0143, −0.0012] | 0.0143 |
+| DiffWave-SC09 t=3 | WavLM-SV | −0.0049 | [−0.0115, +0.0007] | 0.0115 |
+| DiffWave-LibriSpeech t=3 | WavLM-SV | −0.0016 | [−0.0071, +0.0036] | 0.0071 |
+
+**The margin is not moved to make the verdict pass.** The achieved bound is
+reported as the honest statement and the pre-specified failure is reported as a
+failure.
+
+### 51c. What the test found that the Holm table hid: the sign is systematic
+
+Δ = exact − BPDA, and a **negative** Δ means exact gradients protect *better*.
+
+| arm | cells negative | mean Δ | median Δ |
+|---|---|---|---|
+| constrained | **10 of 12** | −0.0046 | −0.0027 |
+| unconstrained | **9 of 12** | −0.0045 | −0.0052 |
+
+So exact gradients are **consistently and slightly better**, by about
+**0.005 margin units**, across channels where §30's per-cell Holm test found
+nothing. §30d had already noticed this on the matched purifier at t = 200 and
+treated it as the exception; it is not the exception, it is the pattern, and it
+is simply too small for a 12-cell Holm family to resolve cell by cell.
+
+(The cells share speakers, so this is a description of 24 non-independent cells,
+not a pooled test. It is reported as a direction and a magnitude, never with a
+p-value — §48c's rule.)
+
+### 51d. Does this break anything that rests on §30?
+
+**The dev-clean replication: no.** §45's informative cells are the six at
+t = 1, with effects 0.055–0.066 — **1.7–2.1× the 0.032 bound**. Its t = 3 cells
+(0.010–0.030) sit inside the bound, but §48b already retired all six of them as
+unresolvable at n = 31, so nothing is being claimed there in the first place.
+
+**But the bound is larger than several effects the paper does report**, and
+that must be said plainly:
+
+| effect | size | vs bound 0.032 |
+|---|---|---|
+| §47 matched-vs-held-out swing | 0.082 | **2.6× above** |
+| §27/§49 WavLM at t = 1 | 0.076 | **2.4× above** |
+| §49 budget contrast (B) | 0.028 | inside |
+| §45/§49 d-vector t = 3 cells | 0.014 | inside |
+| §47 held-out d-vector cells | 0.012 | inside |
+| §49 crafting-mode contrast (A) | 0.007 | inside |
+
+The two headline effects clear it. The small ones do not, and none of them was
+measured across estimators, so this is a statement about what a BPDA-crafted
+replication could detect, not a retraction of anything measured within one
+estimator.
+
+### 51e. How much of the bound is §50's rerun noise?
+
+Not most of it. The widest CI has half-width 0.0135, so SE ≈ 0.0082, while §50
+bounds the run-to-run contribution to a paired mean at ≤0.0015 — under a fifth
+of the SE, and far less in quadrature. **The spread is genuine between-speaker
+variation in how much exact beats BPDA**, not an artefact of rerunning the
+optimiser. The rerun term widens these intervals slightly and so makes
+equivalence harder, which is the safe direction for an equivalence claim, but
+it does not explain the failure.
+
+### 51f. What the paper says now
+
+| write this | not this |
+|---|---|
+| "exact gradients protect better by 0.005 on average (10 of 12 cells), and the difference is bounded above by 0.032 in the worst cell and 0.007 at the median" | "BPDA and exact gradients are equivalent"; "no significant difference, therefore the same" |
+| "the estimator's effect is an order of magnitude smaller than the constraint effects this paper reports (0.005 against 0.076)" | "the gradient estimator makes no difference" |
+| "equivalence at the pre-registered 0.01 margin fails in 17 of 24 cells; the data support equivalence only at 0.032" | quoting 0.032 without saying the pre-registered test failed |
+| "BPDA was used for the dev-clean replication; its informative effects exceed the estimator bound by 2×" | using BPDA interchangeably with exact without the bound |
+
+**§30b's main conclusion survives, and is now better supported.** "Our delta
+over the published negative results is the gradient estimator" is still dead:
+0.005 margin units cannot explain why De-AntiFake's and VocalBridge's adaptive
+attacks failed, when the effects at stake are 0.076. What dies is the *word*
+equivalence and the inference that produced it. The replacement is stronger
+because it is a measured bound with a measured direction rather than a null.
+
+**And the practical rule changes slightly.** §30b made BPDA "the default
+estimator going forward — same numbers, half the GPU time". The numbers are not
+quite the same: BPDA costs about 0.005 of protection, consistently. It remains
+the right default at half the cost, and that price is now stated rather than
+assumed to be zero.
+
+---
+
+## 52. C2 tested as the interaction it actually is — and it vanishes held out (2026-10-08)
+
+`experiments/analyse_mixed.py`. Zero GPU. `mixed_testclean.csv`,
+`mixed_devclean.csv`, `mixed_heldout.csv`. Council v4 E4 — R3 calls this "the
+paper's missing primary analysis".
+
+### 52a. Why twelve cells could not test C2
+
+C2 does not claim "the constraint helps". It claims the constraint's effect
+**depends on the encoder** — helping WavLM-SV and ECAPA, reversing on the
+d-vector. That is a `recipe × encoder` interaction.
+
+The 12-cell grid fits twelve separate simple effects and then compares their
+signs by eye. It can show that some cells are negative and others positive. It
+cannot test whether the **difference between encoders** is real, which is the
+claim. So:
+
+```
+margin ~ recipe * encoder * purifier + (1 | speaker)
+```
+
+fitted on the per-speaker rows, speaker as a random intercept because every
+cell reuses the same panel — the non-independence §48c withdrew the sign
+p-values over.
+
+**Status: pre-specified secondary.** `PLAN_V3` W8 names the model, so it is not
+chosen after seeing results. But `PREREG_05` §4 fixes the confirmatory endpoint
+as the per-cell paired difference with Holm over 12, and that stays the result.
+This model cannot rescue a failed cell and is not read for a verdict.
+
+### 52b. The interaction is overwhelming where the paper measured it — and absent where it did not
+
+| cohort | condition | `recipe × encoder` LRT | d-vector vs WavLM contrast |
+|---|---|---|---|
+| test-clean, segment (§27) | **matched** | χ² = 76.9, df = 8, **p = 2.1e−13** | **+0.1463** [+0.0951, +0.1975], p = 2.1e−8 |
+| dev-clean, segment (§45) | **matched** | χ² = 50.2, df = 8, **p = 3.7e−8** | **+0.1148** [+0.0583, +0.1714], p = 6.9e−5 |
+| test-clean, pooled (§47) | **held-out** | χ² = 11.2, df = 8, **p = 0.19** | +0.0532 [−0.0044, +0.1108], p = 0.070 |
+
+**Read the third row.** In the held-out condition the encoder-dependence of the
+constraint's effect is **not detectable at all** — not a smaller interaction, no
+interaction, on 29 speakers and 696 rows with the same model that returns
+p = 2e−13 on the matched arm.
+
+§47 reached this by comparing two d-vector cells. The mixed model reaches it by
+testing the interaction directly, on all twelve cells at once, with the speaker
+correlation modelled. **Two analyses with different assumptions and different
+failure modes agree**, which is worth more than either alone.
+
+### 52c. The whole interaction is the d-vector. ECAPA and WavLM are indistinguishable.
+
+| cohort | ECAPA vs WavLM contrast | p |
+|---|---|---|
+| test-clean, matched | +0.0297 | 0.26 |
+| dev-clean, matched | −0.0068 | 0.82 |
+| test-clean, held-out | −0.0076 | 0.80 |
+
+In **none** of the three cohorts does the constraint treat ECAPA differently
+from WavLM-SV. So C2 is a **two-group** claim — {WavLM-SV, ECAPA} against
+{d-vector} — and the three-way phrasing in §27 and `FRAME_v6` ("improves WavLM
+in all four cells, is same-sign but mostly non-significant on ECAPA") describes
+a difference in *significance* that the model says is not a difference in
+*effect*. ECAPA's cells are noisier, not smaller.
+
+That is a cleaner claim and it mirrors what C1 was forced into at §44: name the
+groups the statistics support, not the ordering the point estimates suggest.
+
+### 52d. The marginal effects, named correctly
+
+Under treatment contrasts with a three-way interaction in the model, the
+`recipe` coefficient is the effect **at the reference level of every other
+factor** — here DiffWave-LibriSpeech t = 1 — and not an average. Both
+quantities are therefore printed and labelled, because calling the first
+"pooled" would be wrong:
+
+| | at DiffWave-LibriSpeech t=1 | averaged over all four purifier × t |
+|---|---|---|
+| WavLM-SV | −0.0756 | −0.0562 (spread −0.0781 … −0.0255) |
+| ECAPA | −0.0459 | −0.0367 (spread −0.0459 … −0.0289) |
+| d-vector | +0.0707 | +0.0436 (spread +0.0140 … +0.0752) |
+
+The model is saturated in `recipe × encoder × purifier`, so fitted cell means
+equal observed cell means and the averaged column is the mean of the four
+per-purifier cell effects — arithmetic, not extrapolation. The reference-level
+column reproduces §49's `m30_seg` grid exactly, which is the check that the
+model is fitting what the grid measured.
+
+### 52e. Where the variance lives, and what it says about n = 29
+
+| cohort | between-speaker SD | residual SD | ICC |
+|---|---|---|---|
+| test-clean, matched | 0.0875 | 0.0703 | **0.61** |
+| dev-clean, matched | 0.0704 | 0.0803 | 0.44 |
+| test-clean, held-out | 0.0658 | 0.0791 | 0.41 |
+
+**41–61 % of the spread is between speakers.** Two consequences, both already
+acted on elsewhere and now quantified:
+
+* It is why the paired per-speaker endpoint is so much more powerful than the
+  binary rate (§2a's order-of-magnitude claim) — pairing removes the dominant
+  variance component.
+* It is why **n = speakers is the binding limit**, not n = cells or n = seeds.
+  Adding purifiers or timesteps buys little; adding speakers buys a lot. That is
+  the design lesson for anything after the GPU stop, and it argues against the
+  18-cell factorial `PLAN_V3` §4 already forbade.
+
+### 52f. What this does to C2 in the paper
+
+C2's claim is now **supported as an interaction** in the matched condition on
+two independent speaker panels, and **unsupported in the held-out condition**.
+Combined with §47, the statement the paper can defend is:
+
+> The invariance constraint's effect is encoder-dependent **when the encoder is
+> in the crafting ensemble** (interaction p = 2e−13 on test-clean, p = 4e−8 on
+> dev-clean), and that dependence is **not detectable when it is held out**
+> (p = 0.19). The dependence is carried entirely by the d-vector; WavLM-SV and
+> ECAPA are statistically indistinguishable in all three cohorts.
+
+Still forbidden: "replicated" (§45).
+
+### 52g. §48's lesson applied to our own null
+
+§48 refused to let §46 call a low-power result a null. The same test must be
+applied here before the held-out p = 0.19 is used for anything. The contrast
+that carries C2 is d-vector against WavLM, so its standard error sets the
+bound:
+
+| cohort | contrast | SE | MDE80 | \|observed\|/MDE | matched effect / MDE |
+|---|---|---|---|---|---|
+| test-clean, matched | +0.1463 | 0.0261 | 0.0731 | **2.00** | 2.00× |
+| dev-clean, matched | +0.1148 | 0.0288 | 0.0808 | **1.42** | 1.81× |
+| test-clean, held-out | +0.0532 | 0.0294 | 0.0823 | **0.65** | **1.78×** |
+
+**The held-out null is informative, but only against a matched-sized effect.**
+An interaction as large as the matched one (0.1463) is 1.78× that cohort's
+detectable effect, so it would have been found. The observed held-out contrast
+is 0.65× the MDE, so the cohort **cannot** exclude an interaction of roughly
+half the matched size.
+
+The defensible sentence is therefore narrower than "the interaction vanishes":
+
+> Held out, the encoder-dependence is not detectable (p = 0.19), and the
+> cohort had the power to detect an interaction of the magnitude seen in the
+> matched condition (1.78× its minimum detectable effect). It could not have
+> detected one half that size, so the claim is that the matched-sized
+> interaction is absent, not that no interaction exists.
+
+That is still enough for §47's verdict — OUTCOME A-2 turns on the reversal
+disappearing, and a reversal half the matched size would still not be the
++0.074 the matched arm reports — but it is the version that survives a
+statistics reviewer who reads §48 and then reads this.
