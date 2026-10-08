@@ -159,6 +159,36 @@ def main():
         def unit(v):
             return v / (v.pow(2).mean().sqrt() + 1e-12) * scale
 
+        # ===================================================================
+        # DISABLED 2026-10-08 -- RESULTS §57. THIS PATH IS BROKEN.
+        #
+        # The block below evaluated the gradient AT `wav`, which is the global
+        # MAXIMUM of cos(embed(w), embed(wav)). For any L2-normalised
+        # embedding ||f||^2 == 1, so 2*J^T f == 0 and the gradient there is
+        # ANALYTICALLY ZERO. Measured: 1.2e-08 to 5.7e-07, against 0.14-0.57
+        # one small step away, and the resulting "directions" FLIP SIGN under
+        # an input jitter of 1e-5 (cosines -0.98, -0.74, -0.11).
+        #
+        # Everything RESULTS §55 reported from this path is withdrawn. The
+        # script refuses to run rather than being silently fixed, because a
+        # fix is a REDESIGN that needs its own pre-registration (§57e):
+        #   1. evaluate off the maximum -- a perturbed point, or a different
+        #      utterance's embedding, so cosine-to-self < 1;
+        #   2. a positive control that must pass BEFORE a verdict is read;
+        #   3. a control that is not noise-like by construction.
+        #
+        # Until that exists, this measurement does not.
+        # ===================================================================
+        sys.exit(
+            "[13c] REFUSING TO RUN: this path is void (RESULTS 57).\n"
+            "  The identity direction was taken at the maximum of\n"
+            "  cosine-to-self, where the gradient is analytically zero, so it\n"
+            "  measured numerical residue. Directions from it flip sign under\n"
+            "  a 1e-5 input jitter.\n"
+            "  A valid version is a REDESIGN needing its own pre-registration;\n"
+            "  see RESULTS 57e. Use experiments/check_direction_sanity.py to\n"
+            "  gate the replacement before reading any verdict from it.")
+
         dirs = {}
         for e in encs:
             with torch.no_grad():

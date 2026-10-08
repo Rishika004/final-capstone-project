@@ -5148,3 +5148,122 @@ one §25 keeps teaching: a silent "file not found" that degrades n is worse than
 a crash, because the output still looks like a result. The script now reports
 the missing list and the usable count on every run, which is how this was
 caught at all.
+
+---
+
+## 57. AUDIT — §55 is void; §54 survives the same test (2026-10-08)
+
+Audit run after both pre-registered falsifiers fired. **Judged against what the
+code should do, not against which answer would be convenient** — looking for
+bugs only in unwelcome results is the bias §25 keeps catching. One fatal bug
+found, in code written the same day. One suspicion raised against the other
+result and then **refuted by its own test**.
+
+### 57a. The mathematics
+
+For any **L2-normalised** embedding f, with c(x) = ⟨f(x), f(x₀)⟩: c ≤ 1 with
+equality at x₀, so x₀ is a global **maximum** and ∇c(x₀) = 0. Directly,
+‖f‖² ≡ 1 ⟹ 2 Jᶠᵀf = 0, and ∇c(x₀) = Jᶠ(x₀)ᵀ f(x₀) = **0**.
+
+Evaluating an identity direction *at the original signal* therefore returns
+numerical residue, which normalisation inflates to unit scale.
+
+### 57b. §55 (#13c) is VOID — confirmed twice over
+
+`exp_encoder_subspace_wav.py` does exactly that. Gradient magnitude, speaker 61:
+
+| encoder | c at x₀ | ‖grad‖ at x₀ | ‖grad‖ one step away | ratio |
+|---|---|---|---|---|
+| WavLM-SV | 1.0000001 | 5.66e−07 | 0.365 | 6.4e5× |
+| ECAPA-TDNN | 1.0000001 | 2.90e−07 | 0.567 | 2.0e6× |
+| d-vector | 1.0000000 | 1.17e−08 | 0.145 | 1.2e7× |
+
+Magnitude alone does not prove a direction is meaningless, so the decisive test
+is **stability**: recompute the direction, and recompute it after a 1e−5 input
+jitter. A real direction reproduces; residue does not.
+
+| path | repeat | 1e−5 jitter |
+|---|---|---|
+| **mel** (trained and untrained) | 1.0000 | **0.9986 … 0.9999** |
+| **waveform** (#13c) | 1.0000 (8/9) | **−0.9975 … +0.9958** |
+
+**The waveform directions flip sign under a jitter of one part in 100 000** —
+cosines of −0.98, −0.97, −0.94, −0.74, and for the d-vector −0.11, −0.24,
+−0.22, i.e. simply unrelated. 8 of 9 cells fail. One repeat test also failed
+(d-vector, 0.564).
+
+**§55 is withdrawn in full.** Its 20-of-20 reversal, its disjunction about the
+phase-randomised control, and its conclusion that C1 fails to transfer are all
+**unsupported — not refuted, unsupported**. Whether α transfers to a waveform
+purifier is now simply **unmeasured**, as it was before the run.
+
+### 57c. §54 (Control B) SURVIVES, and the suspicion against it is on record
+
+The mel path splits into two populations, which looked alarming:
+
+| direction | c at the evaluation point | ‖grad‖/‖mel‖ |
+|---|---|---|
+| trained encoders (five) | 0.636 – 0.955 | 4.7e−05 – 1.2e−04 |
+| **CAM++ untrained** | **0.995 – 0.999** | **2.7e−07 – 4.4e−07** |
+
+An untrained network maps every input to nearly the same point, so even the mel
+round trip barely moves its embedding; its relative gradient sits near float32
+epsilon, 200–400× weaker than any trained encoder's. **The hypothesis was that
+Control B compared a healthy measurement against numerical noise.**
+
+**That hypothesis is refuted by the stability test.** The untrained direction
+reproduces at cosine **1.0000** against itself and **0.9991–0.9999** under
+jitter — matching the trained positive control exactly. A small gradient is not
+an ill-defined one: backprop computes it to full *relative* precision, unlike
+finite differences.
+
+**So §54 stands. The word "speaker" stays out of the title, and C1 stays
+demoted on those grounds.** The suspicion is recorded rather than deleted,
+because a reviewer will raise it and the answer should already be written down.
+
+### 57d. The ledger after the audit
+
+| claim | before audit | after |
+|---|---|---|
+| α below matched random, trained encoders, mel purifier | established | **still established** |
+| the effect does not need learned identity (§54) | established | **still established** |
+| α does not transfer to DiffWave (§55) | established | **UNMEASURED** |
+| C1's reading as being about *speaker* identity | dead | **still dead** |
+
+The paper is **not** recovered. One of today's two blows was real and remains;
+the other was an artefact and is withdrawn, which removes a claim *we had made
+against ourselves* rather than restoring one in our favour.
+
+### 57e. What a valid #13c would need
+
+Not a re-run — a redesign, and it needs its own pre-registration:
+
+1. **Evaluate off the maximum.** Take the direction at a perturbed point, or
+   against a *different* utterance's embedding, so cosine-to-self is below 1
+   and the gradient is genuine. The mel path's accidental virtue — a
+   reconstruction that differs from the original — must become deliberate.
+2. **A positive control that must pass** before any verdict is read: the
+   repeat and jitter tests above, on the waveform path, at the operating point
+   actually used.
+3. **A control that is not noise-like.** `band_matched_wav` randomises phase,
+   which a speech denoiser removes preferentially. Whether that mattered is
+   now moot — the targets were residue too — but it would matter in a valid
+   run.
+
+### 57f. The process failure, recorded
+
+Both the bug and the misreading were in code written the same day the
+experiments ran, reviewed by nobody, and the verdict was applied to the paper's
+framing within the hour: the title changed and C1 was demoted on the strength
+of §54 and §55 together. §54 turned out to deserve it. §55 did not.
+
+The pre-registrations did their job — the decision rules were fixed in advance
+and applied without discretion. What was missing is an **instrument check
+before the first verdict is read**. Every α script inherited its correctness
+from `exp_encoder_subspace.py` by assumption, and the one place the pattern was
+changed is the one place it broke.
+
+**Rule added here:** a new measurement path ships with a positive control and a
+reproducibility check *before* its first verdict is read, exactly as a new
+crafting arm ships with a skip-guard. `experiments/check_direction_sanity.py`
+implements both and is now importable by any α script.
