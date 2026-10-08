@@ -295,9 +295,9 @@ Primary endpoint, the paired per-speaker clone margin (protected − unprotected
 
 | attacker's purifier | WavLM-SV | ECAPA | d-vector |
 |---|---|---|---|
-| none | −0.150 | −0.242 | −0.136 |
-| De-AntiFake stage 1 | −0.050 | −0.110 | −0.042 |
-| **full PhonePuRe (1 + 2)** | **−0.030** | **−0.060** | **−0.034** |
+| none | −0.1495 | −0.2420 | −0.1355 |
+| De-AntiFake stage 1 | −0.0499 | −0.1095 | −0.0420 |
+| **full PhonePuRe (1 + 2)** | **−0.0295** | **−0.0604** | **−0.0341** |
 
 Protection is **cut to about a fifth and does not reach zero**: pooled over
 purifiers, every encoder is still significantly protected (−0.076 / −0.137 /

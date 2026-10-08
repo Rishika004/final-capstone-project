@@ -138,7 +138,7 @@ def t2_ceiling():
         cells = []
         for e in ENCS:
             v = rows.get((e, key))
-            cells.append("--" if v is None else "%+.3f" % v)
+            cells.append("--" if v is None else "%+.4f" % v)
         L.append(f"{lab} & " + " & ".join(cells) + r" \\")
     L += [r"\bottomrule", r"\end{tabular}",
           r"\vspace{2pt}", r"\footnotesize",
