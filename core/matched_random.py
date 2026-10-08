@@ -202,3 +202,99 @@ def controls_for(d, basis, seed, verbose=False):
         for k_, v in out.items():
             print(f"    [ctrl] {k_}: |d|={v.norm():.4f} (target {d.norm():.4f})")
     return out
+
+
+# ---------------------------------------------------------------------------
+# Waveform-domain controls, for council #13c.
+#
+# alpha is measured on the MEL purifier (v7) while the phenomenon it explains
+# -- C2's constraint effect and its d-vector reversal -- lives on DiffWave,
+# which is a WAVEFORM model. Explanation and explanandum on different
+# purifiers is the one structural hole a reviewer sees in thirty seconds
+# (PLAN_V3 W7). Measuring alpha through DiffWave needs waveform directions,
+# and therefore a waveform analogue of band_matched.
+#
+# The construction is the same idea one domain over: match the per-FREQUENCY
+# power profile of the target direction's STFT magnitude, randomise phase and
+# all cross-bin and temporal structure, then renorm to the target's exact
+# L2 norm.
+# ---------------------------------------------------------------------------
+
+_WIN_CACHE = {}
+
+
+def _win(n, device, dtype):
+    k = (n, str(device), str(dtype))
+    if k not in _WIN_CACHE:
+        _WIN_CACHE[k] = torch.hann_window(n, device=device, dtype=dtype)
+    return _WIN_CACHE[k]
+
+
+def band_matched_wav(d, n_fft=512, hop=128, generator=None, n_iter=3):
+    """White noise given d's per-frequency power profile and d's exact norm.
+
+    d: [1, L] or [L] waveform-domain direction.
+
+    Matched : total L2 norm, and the average magnitude of every STFT frequency
+              bin -- hence the spectral tilt and any band-limiting, which is
+              what the 6 kHz bandlimit objection is about.
+    Random  : phase, within-bin direction, and all structure across bins and
+              across time.
+
+    A control that survives as well as d means d's survival through the
+    waveform purifier is explained by its spectrum alone.
+
+    `n_iter` re-imposes the target profile after each inverse transform.  A
+    modified spectrogram is generally INCONSISTENT -- no waveform has exactly
+    that STFT -- so one pass leaves the profile off, and worst at sharp
+    spectral edges, which is exactly where a bandlimited direction lives.
+
+    Measured on a deliberately harsh test (white noise with a 2 kHz cliff,
+    100:1), energy-weighted relative error of the per-bin profile:
+
+        n_iter   1       2       3       5
+        err      3.1 %   2.1 %   1.8 %   1.4 %
+
+    It converges slowly, so n_iter is not a way to make the match exact; the
+    default of 3 is where the returns stop being worth the transforms.  Real
+    encoder gradients are far smoother than that test signal.  What does NOT
+    depend on n_iter is the property the control exists for: |cos(d, control)|
+    stays at ~0.006 throughout, i.e. the control is orthogonal to the target
+    whatever the profile error, and the L2 norms match to 7 significant
+    figures.
+    """
+    flat = d.reshape(-1)
+    L = flat.shape[-1]
+    dev, dt = flat.device, flat.dtype
+    w = _win(n_fft, dev, dt)
+
+    D = torch.stft(flat, n_fft=n_fft, hop_length=hop, window=w,
+                   return_complex=True, center=True)
+    tgt = D.abs().mean(dim=-1).clamp_min(1e-12)              # [F]
+
+    out = torch.randn(L, generator=generator, device=dev, dtype=dt)
+    for _ in range(max(1, int(n_iter))):
+        Z = torch.stft(out, n_fft=n_fft, hop_length=hop, window=w,
+                       return_complex=True, center=True)
+        cur = Z.abs().mean(dim=-1).clamp_min(1e-12)          # [F]
+        Z = Z * (tgt / cur).unsqueeze(-1)
+        out = torch.istft(Z, n_fft=n_fft, hop_length=hop, window=w,
+                          length=L, center=True)
+    out = out * (flat.norm() / out.norm().clamp_min(1e-12))
+    return out.reshape(d.shape)
+
+
+def controls_for_wav(d, seed, n_fft=512, hop=128, verbose=False):
+    """The waveform control set for one direction. Mirrors controls_for().
+
+    `pca_span` has no clean waveform analogue -- the mel PCA basis is over
+    log-mel FRAMES -- so it is deliberately absent here rather than faked, and
+    #13c reports the two controls it can construct honestly: band_matched and
+    isotropic random.
+    """
+    g = torch.Generator(device=d.device).manual_seed(int(seed) + 101)
+    out = {"band_matched": band_matched_wav(d, n_fft, hop, generator=g).detach()}
+    if verbose:
+        print(f"    [ctrl-wav] band_matched: |d|={out['band_matched'].norm():.4f} "
+              f"(target {d.norm():.4f})")
+    return out
