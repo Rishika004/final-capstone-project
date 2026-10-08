@@ -41,15 +41,31 @@ acoustic property of the voice that any speaker-verification model has to read.
 So it should transfer across models rather than being tied to one. And because
 its output is ordinary speech, a restoration model has nothing to subtract.
 
-Our own probe (`experiments/results/parametric_probe.csv`, 20 speakers, old
-base) supports both halves:
+> **THESE NUMBERS MAY NOT APPEAR IN THE PAPER.**
+> `experiments/results/parametric_probe.csv` is 20 speakers on the
+> **superseded** base, which `FRAME_v6`'s base rule forbids quoting anywhere,
+> including the abstract and figures. They are here to *motivate Step 1* and
+> for no other purpose. Step 1 re-measures them on the current base; until it
+> does, there is no quotable number for this hypothesis at all.
 
-| warp strength | WavLM-SV | ECAPA | d-vector (the untargeted one) | survival loss R |
+| warp strength | WavLM-SV | ECAPA | d-vector | survival loss R |
 |---|---|---|---|---|
 | 0.88 | 0.95 | 0.43 | **0.55** | 0.019 |
 
-55 % on the untargeted model against 8–25 % for the additive method, and
-essentially no loss through the purifier.
+55 % against 8–25 % for the additive method on the same model, and essentially
+no loss through the purifier.
+
+**Which column counts, and the complication.** The d-vector is untargeted by
+the additive system *and* is the encoder DiffVC conditions on, so breaking it
+blocks cloning causally rather than only by proxy. But §42h rates it a mediocre
+verifier (minDCF 0.39–0.57), so a protection number scored on it inherits that
+weakness, exactly as the WavLM-SV claims do. ECAPA is the only verifier §42h
+rates as trustworthy, and it reads 0.43 here.
+
+So **report ECAPA as the headline and the d-vector separately as the cloner's
+own conditioner**, each with its operating point stated. No single column is
+both the untargeted condition and the trustworthy instrument, and any sentence
+implying otherwise is wrong.
 
 **The untested part** is that ClearMask *optimises* its transform parameters
 while our probe used fixed magnitudes, and ClearMask never evaluates under any
@@ -76,8 +92,16 @@ cheap to answer and nothing else should be built until it is.
 Reuse the blinded-stimulus and loudness-matching code from W1
 (`experiments/make_listening_stimuli.py`, `utils/loudness.py`). Build a
 same/different task on warped versus original audio. **Write the decision rule
-and the sample size before collecting a single response.** If listeners do not
-hear the same speaker, write that up and stop.
+and the sample size before collecting a single response.**
+
+**Run it as a FRONTIER, not a single point** — several warp strengths, plus the
+additive arm and both anchors, in one panel. A single-point test at 0.88
+returns one bit and that bit is probably "different person", which ends the
+phase while telling you nothing about whether an acceptable operating point
+exists lower down. The frontier costs the same and answers both questions.
+(Improvement contributed by the review session, 2026-10-09.)
+
+If no warp strength is heard as the same speaker, write that up and stop.
 
 **Step 1 — re-measure the baseline on the current base.**
 The probe is 20 speakers on the superseded base, which `FRAME_v6`'s base rule
@@ -87,10 +111,25 @@ model, and PhonePuRe. A phoneme-conditioned restorer cannot know the original
 formants, so warping may survive the stage that defeated the additive method.
 That is worth knowing early.
 
-**Step 2 — optimise the transform.**
+**Step 2 — optimise the transform. NOT FUNDED YET; Step 1 decides.**
 Parameters, not a 64 000-sample perturbation, so the search is low-dimensional.
 Grid search or CMA-ES; do not assume PGD is the right tool. Optimise against an
 ensemble, with the purifier in the loop, under an explicit naturalness budget.
+
+**Why it waits.** Optimisation only pays if there is headroom between the
+fixed-magnitude frontier and the naturalness budget, and the measured frontier
+says there may be none: 58 % protection at UTMOS 2.41, against a floor of 3.0
+that the shipping additive arm clears by 0.07. If Step 0 rejects 0.88 and
+Step 1 confirms that frontier on the current base, Step 2 is a search inside an
+empty box. **Let Step 1 set the budget rather than fixing it now.**
+
+**One idea worth recording before it is lost.** A fixed warp moves every
+speaker's formants the same way, which is plausibly why it reads as "different
+person" rather than "same person, odd recording". Warping *toward each
+speaker's own distribution edge* instead of a global constant is cheap, is not
+what ClearMask does, and is the one route that might buy transfer without the
+full perceptual cost. It is a Step 2 variant, not a replacement for the gate.
+(Contributed by the review session, 2026-10-09.)
 
 **Step 3 — evaluate.**
 Untargeted models, all four restoration settings, against both the additive
