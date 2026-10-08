@@ -80,9 +80,32 @@ named conditions and never collapsed into one:
   cloner conditions on. Comparable to AntiFake, which crafts against four
   encoders including GE2E and evaluates on a GE2E-based synthesiser. It is
   *not* called "deployment".
-* **held-out (realistic)** — the cloner's encoder is excluded from crafting.
-  Stronger than anything published, because it models an attacker whose
-  identity encoder we do not possess.
+* **held-out** — the cloner's encoder is excluded from crafting. Stronger than
+  anything published, because it models an attacker whose identity encoder we
+  do not possess.
+  *(The word "realistic" is withdrawn, council v4 B1. It was a claim about
+  which condition deployment resembles, and nothing here measures that. The
+  conditions are named by what they do, not by how plausible they are.)*
+
+**Which condition each reported result lives in — council v4 B1.** This table
+is the honest answer and it is not flattering. `--craft-encoders all` is the
+default in `run_rebase_mismatch_m30_seg.sh:70` and in the dev-clean runner, so
+**the matched-encoder arm is where almost everything sits**:
+
+| result | condition |
+|---|---|
+| §27, §30e (C2's constraint grid) | **matched** |
+| §29e (PhonePuRe end-to-end), §40 (quality), §41 (front end) | **matched** |
+| §45 (#5 dev-clean replication) | **matched** |
+| §42g/h (operating points) | purifier channels, no crafting arm |
+| §22b (the coverage contrast) | **both**, one variable — this is the point of it |
+| §47 (Control A, the held-out C2 grid) | **held-out** |
+| §32, §37, §43, §44, §46b (α) | crafting-free; the condition does not apply |
+
+So every verdict sentence drawn from §27, §29e, §40, §41 or §45 carries
+"matched-encoder (upper bound)" or it is wrong. §47 is the one C2 cell measured
+held out, and it reverses the headline (the d-vector reversal disappears), which
+is why the distinction is a reported quantity rather than a caveat.
 
 The **gap between them is a reported quantity**, not an inconvenience: clone
 success is 12–14 % on crafted-against encoders against 75–92 % on the held-out
@@ -156,21 +179,97 @@ one α table may be quoted — two tables in two files is the §25 failure mode.
 A defence that holds against one attacker configuration and fails against
 another has failed. So, for a fixed utterance:
 
-> **Defence succeeds** iff the budget in (a) is met **and**
-> max over { purifier R ∈ 𝓡, seed s ∈ S, refinement on/off } of
+> **Defence succeeds** iff **an external quality floor** is met **and**
+> max over { purifier R ∈ 𝓡₇, seed s ∈ S, refinement on/off } of
 > cos(E(G(R_s(x_p))), E(x_enrol)) < τ,
 > reported **per encoder E**, never pooled.
 
-Three consequences we accept:
+**The quality conjunct, rewritten so it can fail — council v4 B8.** The
+previous version read "the budget in (a) is met", and (a) *is* the crafting
+constraint: the psychoacoustic cap and the SNR floor are enforced by projection
+inside the optimiser, so every file it emits satisfies them **by
+construction**. Withdrawing PESQ > 3.0 (rightly, it was never met) deleted the
+only conjunct that could ever be false, leaving a success criterion with a
+vacuous half. That is not a conservative error; it makes the definition
+unfalsifiable on the axis reviewers care most about.
+
+The floor is therefore **external to the optimiser and stated as a number the
+shipping arm might miss**:
+
+| | floor | shipping arm (§40) | met? |
+|---|---|---|---|
+| WER, ground-truth transcript | ≤ +3 points over clean | 8.8 % vs 7.9 % (+0.9, n.s.) | **yes** |
+| UTMOS | ≥ 3.0 | 3.07 | **yes, by 0.07** |
+| NISQA MOS | ≥ 3.0 | 3.27 | **yes** |
+| naive-listener "same speaker?" | majority still same speaker | **not yet measured** | **open** |
+
+Three of the four are met and the margin on UTMOS is 0.07, which is inside
+nothing — it is a single point estimate with no interval, on a predictor, not
+an opinion score. The fourth is open and only the listening panel can close it.
+So the criterion is now one the shipping arm **could** fail, and on one row it
+has not yet been shown to pass.
+
+Two consequences we accept:
 
 * Taking the max over seeds is why `fails_all_seeds` is recorded beside the
   mean (§28).
-* Taking the max over 𝓡 means §29's PhonePuRe row is part of the verdict, not
+* Taking the max over 𝓡₇ means §29's PhonePuRe row is part of the verdict, not
   a footnote: on the d-vector the defence fails there.
 * Reporting per encoder is why there is no single headline number. The honest
   summary is that the defence holds on WavLM-SV and ECAPA under a mismatched
   purifier and fails on the d-vector, and the paper's contribution is the
   *explanation* of that split rather than the split itself.
+
+### 6a. 𝓡₇ enumerated — council v4 B9
+
+The old wording quantified over "purifier R ∈ 𝓡" without ever saying what 𝓡
+contains. Under Kerckhoffs with permanently published audio the set an attacker
+may draw from is **unbounded and includes models released after the
+protection**, so a max over it is not something any paper can report. What we
+measure is a max over a **seven-element set**, named here, and the verdict is
+labelled that way everywhere:
+
+| # | R | representation | ours? | sections |
+|---|---|---|---|---|
+| 1 | identity (no purifier) | — | — | §26b, §27c, §41c |
+| 2 | purifier v7, DDIM, t = 50 | mel | **matched** | §21–28, §30 |
+| 3 | purifier v7, DDIM, t = 200 | mel | **matched** | §21–28, §30d |
+| 4 | DiffWave-LibriSpeech (De-AntiFake ckpt), t = 1 | waveform | foreign | §27, §33, §45, §47 |
+| 5 | DiffWave-LibriSpeech, t = 3 | waveform | foreign | §27, §33, §45, §47 |
+| 6 | DiffWave-SC09 (philsyn ckpt), t = 1 | waveform | foreign | §27, §33, §45, §47 |
+| 7 | DiffWave-SC09, t = 3 | waveform | foreign | §27, §33, §45, §47 |
+| 8 | PhonePuRe stage 1 + 2 (stage 1 = #5 at their t = 3) | waveform + learned refiner | foreign | §29 |
+
+Eight configurations, **three architectures** (one mel denoiser, one waveform
+diffusion model at two checkpoints, one phoneme-conditioned refiner), and the
+DiffWave rows are two checkpoints of a single architecture (§33e). So:
+
+> **Write:** "the minimum over an eight-configuration, three-architecture
+> measured set, the strongest of which (PhonePuRe stage 1 + 2) defeats the
+> defence on the d-vector."
+> **Never:** "min over purifiers", "robust to purification", or any phrasing
+> that implies the set is the attacker's rather than ours.
+
+### 6b. Capabilities granted in principle and not measured — council v4 B10
+
+R4 asked for this list at two consecutive councils. It is now part of the
+document rather than an answer given verbally:
+
+| capability | why it matters here | status |
+|---|---|---|
+| **Codec / channel transport** (Opus, AAC, telephony) | δ is bandlimited to 6 kHz, which is exactly where a low-bitrate codec spends least; a codec is also the single most likely thing to happen to published audio | **unmeasured.** R4's first question for two councils. |
+| **Multi-clip aggregation** | the attacker who collects ten clips can average speaker embeddings; our per-utterance seed is independent across clips, so the perturbation may average away while identity does not | **unmeasured** |
+| **Cropping / re-segmentation** | segment crafting optimises the worst 1.6 s partial; an attacker who crops may discard it | **unmeasured** |
+| **Speech-enhancement preprocessing** (not diffusion: spectral subtraction, RNNoise, Demucs) | a cheaper and far more widely deployed denoiser than anything in 𝓡₇ | **unmeasured** |
+| **Resampling ±2 %** | front-end confound | **measured**, §41e |
+| **Purifier retry / best-of-five** | attacker patience | **measured**, §28c |
+| **Exact gradients through the purifier** | adaptive attack | **measured**, §30 |
+| **A second cloner** | every end-to-end number is DiffVC | **unmeasured**; mandatory if the paper moves to SPSC |
+
+The four unmeasured rows are **granted to the attacker in the threat model and
+not evaluated**, which is a limitation of the evaluation and not a property of
+the defence. None of them is cheap enough to add before the GPU stop, and
+claiming robustness to any of them would be unsupported.
 
 The **continuous** margin `cos − τ`, paired per speaker, is the primary
 endpoint everywhere; binary rates are secondary because they discard most of

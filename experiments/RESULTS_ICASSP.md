@@ -4133,3 +4133,390 @@ reviewer noticing the held-out wavs were already on disk, to turn it into an
 experiment that cost under an hour.
 
 The project had the data to falsify its own headline for weeks and did not look.
+
+---
+
+## 48. Council v4 B3/B4/B6 — what §45 and §46 could have detected, and the honest unit of agreement (2026-10-08)
+
+`experiments/analyse_power.py`. Zero GPU, recomputed from the per-speaker
+files rather than from the summary CSVs, so the SD is the real paired SD and
+not an inversion of a CI. `power_cells.csv`, `power_cells_sign.csv`.
+
+Three council v4 defects, all arithmetic rather than opinion: **B3** no power
+analysis in `PREREG_13b` (`PREREG_05` §5 has one), **B4** §46 is mislabelled
+"null" when it is inconclusive, **B6** the p-values on "12 of 12" and "8 of 8"
+signs treat cells as independent when they are 2–3 factors over the same
+speakers.
+
+Convention throughout: MDE80 is the smallest |effect| the cell could detect at
+80 % power, two-sided α = .05, normal approximation (MDE80 = 2.8016 × SE).
+The confirmatory test is Wilcoxon, whose efficiency against the t-test is
+0.955 on normal data, so these MDEs are if anything **slightly optimistic** —
+they are used only to label a cell informative or not, never to produce a
+p-value.
+
+### 48a. §46 (#13b) could not have resolved anything — B3 confirmed, and sharpened
+
+| encoder | purifier | t | Δ | SE | MDE80 | \|Δ\|/MDE | power |
+|---|---|---|---|---|---|---|---|
+| CAM++ | DiffWave-LibriSpeech | 1 | −0.0066 | 0.0119 | 0.0334 | 0.20 | **8.6 %** |
+| CAM++ | DiffWave-LibriSpeech | 3 | −0.0102 | 0.0086 | 0.0240 | 0.42 | 22.0 % |
+| CAM++ | DiffWave-SC09 | 1 | −0.0167 | 0.0114 | 0.0319 | 0.52 | 31.1 % |
+| CAM++ | DiffWave-SC09 | 3 | −0.0178 | 0.0083 | 0.0232 | 0.77 | 57.5 % |
+| ERes2Net | DiffWave-LibriSpeech | 1 | −0.0145 | 0.0150 | 0.0419 | 0.35 | 16.2 % |
+| ERes2Net | DiffWave-LibriSpeech | 3 | −0.0095 | 0.0097 | 0.0272 | 0.35 | 16.3 % |
+| ERes2Net | DiffWave-SC09 | 1 | −0.0163 | 0.0144 | 0.0403 | 0.41 | 20.6 % |
+| ERes2Net | DiffWave-SC09 | 3 | −0.0190 | 0.0101 | 0.0283 | 0.67 | 47.0 % |
+
+**8 of 8 cells sit below their own 80 %-power detectable effect.** MDE range
+0.0232–0.0419 against observed |Δ| 0.0066–0.0190. Median achieved power
+**21.3 %**.
+
+R3 estimated "~10 % power" by inverting the delivered CIs. That is the low end:
+computed from the paired SDs the spread is **8.6 % to 57.5 %, median 21.3 %**.
+The conclusion is unchanged and if anything safer — no cell reaches 60 % — but
+the quoted figure is corrected here rather than repeated.
+
+**B4 stands: §46 is INCONCLUSIVE, not null.** A test with 21 % median power
+cannot support "every effect null". §46f stated the weakness in advance, which
+is to its credit, but the section's heading and its summary sentence both say
+"null" and must not.
+
+### 48b. §45 (#5) — six cells uninformative, not the three the pre-registration named
+
+| purifier | t | encoder | Δ | MDE80 | \|Δ\|/MDE | power | informative |
+|---|---|---|---|---|---|---|---|
+| DiffWave-LibriSpeech | 1 | WavLM-SV | −0.0553 | 0.0477 | 1.16 | 90.1 % | yes |
+| DiffWave-LibriSpeech | 1 | ECAPA-TDNN | −0.0620 | 0.0502 | 1.24 | 93.4 % | yes |
+| DiffWave-LibriSpeech | 1 | d-vector | +0.0596 | 0.0400 | 1.49 | 98.7 % | yes |
+| DiffWave-LibriSpeech | 3 | WavLM-SV | −0.0232 | 0.0307 | 0.76 | 56.3 % | **no** |
+| DiffWave-LibriSpeech | 3 | ECAPA-TDNN | −0.0133 | 0.0300 | 0.44 | 23.7 % | **no** |
+| DiffWave-LibriSpeech | 3 | d-vector | +0.0127 | 0.0238 | 0.53 | 32.0 % | **no** |
+| DiffWave-SC09 | 1 | WavLM-SV | −0.0596 | 0.0490 | 1.22 | 92.7 % | yes |
+| DiffWave-SC09 | 1 | ECAPA-TDNN | −0.0605 | 0.0503 | 1.20 | 92.1 % | yes |
+| DiffWave-SC09 | 1 | d-vector | +0.0664 | 0.0400 | 1.66 | 99.6 % | yes |
+| DiffWave-SC09 | 3 | WavLM-SV | −0.0300 | 0.0350 | 0.86 | 66.9 % | **no** |
+| DiffWave-SC09 | 3 | ECAPA-TDNN | −0.0249 | 0.0314 | 0.79 | 60.1 % | **no** |
+| DiffWave-SC09 | 3 | d-vector | +0.0102 | 0.0279 | 0.36 | 17.5 % | **no** |
+
+The split is clean and it is **the timestep, not the encoder**: all six t = 1
+cells are informative and all six t = 3 cells are not. §45d already said "the
+power went entirely to t = 3"; this quantifies it.
+
+**A correction to the pre-registration.** `PREREG_05` §5 pre-declared three
+cells underpowered (LibriSpeech t=3 WavLM, and both t=3 d-vector cells).
+The arithmetic says **six** — all of t = 3, including the three ECAPA and WavLM
+t = 3 cells the pre-registration expected to resolve. So §45's "none of the six
+t = 3 cells resolving" is not a disappointing outcome in three cells and a
+surprise in three others: **no t = 3 cell could have resolved**, and the
+pre-registered underpowered list was itself too short by half. That is a defect
+in the pre-registration, recorded here, not an outcome.
+
+It does not change the §45 verdict (OUTCOME B), which rests on the six t = 1
+cells, all informative and all significant.
+
+### 48c. B6 — the sign p-values are dropped and replaced by a per-speaker sign test
+
+The claims "12 of 12" and "8 of 8" were quoted with p-values computed as if
+each cell were an independent draw. Each section's cells are 3 encoders × 2
+purifiers × 2 timesteps over **one** speaker panel; the number of independent
+facts is nearer 2–4. Those p-values are **withdrawn**, as is the p-value on
+the r = 0.961 cross-sample correlation (§45c) — the correlation itself stays as
+a descriptive statistic.
+
+What replaces them: an exact one-sided binomial test on per-speaker agreement
+*inside* each cell, Holm-corrected within that section's own pre-registered
+family. The unit is the speaker, which is the unit everything else in the paper
+uses.
+
+**§45, chance 15.5 of 31** — agreement spans 17–28; **4 of 12** cells above
+chance under Holm:
+
+| cell | k/n | p | p_holm |
+|---|---|---|---|
+| d-vector / SC09 / t=1 | 28/31 | 2e−6 | **0.00002** |
+| d-vector / LibriSpeech / t=1 | 27/31 | 1e−5 | **0.0002** |
+| WavLM-SV / SC09 / t=1 | 24/31 | 0.0017 | **0.0166** |
+| WavLM-SV / LibriSpeech / t=1 | 23/31 | 0.0053 | **0.0480** |
+| ECAPA / LibriSpeech / t=1 | 21/31 | 0.0354 | 0.2123 |
+| ECAPA / SC09 / t=3 | 21/31 | 0.0354 | 0.2123 |
+| *(the other six)* | 17–22/31 | 0.015–0.360 | 0.118–0.720 |
+
+Four cells sit at 17–19 of 31, which is **a coin flip** (one-sided p = .14–.36).
+R3's "four of twelve dev-clean cells are coin flips at 17–19/31" is confirmed
+exactly.
+
+**§46, chance 14.5 of 29** — agreement spans 16–22; **1 of 8** cells above
+chance under Holm:
+
+| cell | k/n | p | p_holm |
+|---|---|---|---|
+| CAM++ / SC09 / t=3 | 22/29 | 0.0041 | **0.0325** |
+| ERes2Net / LibriSpeech / t=3 | 21/29 | 0.0121 | 0.0844 |
+| ERes2Net / SC09 / t=3 | 21/29 | 0.0121 | 0.0844 |
+| CAM++ / SC09 / t=1 | 19/29 | 0.0680 | 0.3401 |
+| *(the other four)* | 16–18/29 | 0.13–0.36 | 0.53–0.71 |
+
+**This is the one place the arithmetic cuts the other way, and it must be
+reported.** §46 was written as "every effect null". On the per-speaker sign —
+which is the more powerful test here, because the effects are small but
+consistent within speaker — **one cell is significant after Holm** and two more
+sit just outside. So §46 is not a clean null in either direction: it is
+underpowered on magnitude (48a) *and* carries one surviving positive cell.
+
+That cell is **not promoted to a finding**. `PREREG_13b` §7.4 fixed the
+decision rule before scoring and the rule is on the mean paired difference, not
+on the sign; changing the endpoint now to harvest a significant cell is exactly
+the §25 failure mode. It is recorded as what it is: one cell of eight, on a
+secondary endpoint, inside an inconclusive test.
+
+### 48d. What the paper must now say
+
+| write this | not this |
+|---|---|
+| "§46 is inconclusive: 8 of 8 cells below their 80 %-power detectable effect, median power 21 %" | "every effect null"; "a reported null"; any sentence treating §46 as evidence against C1's predictive power |
+| "all six t = 1 cells informative and significant; no t = 3 cell could have resolved" | "6 of 12 cells replicated"; reading t = 3 non-significance as a failure |
+| per-speaker agreement k/n with an exact sign test, Holm-corrected within the section | "12 of 12 cells, p = ..."; "8 of 8 cells, p = ..."; the r = 0.961 **p-value** |
+| "r = 0.961 between the two samples' point estimates (descriptive)" | r quoted with a p-value or a CI |
+| "the pre-registration's underpowered list named three cells; the arithmetic says six" | silently using the three-cell list |
+
+**Consequence for §46's status in the draft.** R3 wanted §46 demoted to a
+limitations paragraph and the council disagreed internally (§C.2). The
+arithmetic here settles it in R3's favour: a 21 %-power test with one
+Holm-surviving cell on a secondary endpoint earns **two sentences in
+Limitations**, not a results subsection. What §46 genuinely bought survives
+intact and moves to C1: α below matched-random now holds on **five encoders
+across four architecture families, two never seen by the optimiser** (§46b).
+That is a level claim, it is not underpowered, and it is the part worth
+keeping.
+
+---
+
+## 49. The budget × crafting attribution, finally available — and it is the budget (2026-10-08)
+
+`experiments/analyse_mismatch_final.py`, the file
+`run_rebase_mismatch_m30_seg.sh` has pointed at since 2026-09-22 and which did
+not exist. Council v4 E5. Zero GPU: every corner was already on disk.
+`mismatch_final.csv`.
+
+### 49a. Why it could not be read before
+
+§25 recorded a rebase that moved **two** variables at once — budget
+(m30_f15 → m20_f20) and crafting mode (pooled → segment partials) — and came
+back with the sign flipped. `analyse_budget_2x2.py` says so in its own
+docstring: "this is NOT a 2×2 … the two rows are the DIAGONAL of a budget ×
+crafting table. What a difference between them proves is that {budget,
+crafting} together matter — not which one."
+
+The off-diagonal cell (m30 + segment) was run on 2026-09-22 and has been on
+disk ever since. Three corners is enough, because each remaining comparison
+moves exactly one factor.
+
+| recipe | budget | crafting | on disk |
+|---|---|---|---|
+| `*_tc_m30` | margin 30 / floor 15 | pooled | yes |
+| `*_tc_m30_seg` | margin 30 / floor 15 | **segment** (ships) | yes |
+| `*_tc_m20` | margin 20 / floor 20 | segment | yes |
+| — | margin 20 / floor 20 | pooled | **no, and not scheduled** |
+
+The fourth corner buys only an interaction term and no claim rests on one. It
+is recorded here as a deliberate absence rather than left as a hole.
+
+### 49b. A — crafting mode, budget held fixed: it changes almost nothing
+
+m30 pooled → m30 segment, 12 cells:
+
+**mean |change| 0.0072, max 0.0192, zero sign flips.**
+
+Every cell keeps its sign and nearly its magnitude. The largest single move is
+WavLM-SV at t = 1 (−0.0575 → −0.0756 on LibriSpeech, −0.0589 → −0.0781 on
+SC09), and it moves *in the claim's favour*.
+
+### 49c. B — budget, crafting held fixed: this is the factor
+
+m20 segment → m30 segment, same 12 cells:
+
+**mean |change| 0.0281, max 0.0595, two sign flips** (ECAPA at t = 1 on both
+purifiers, +0.0066 → −0.0459 and +0.0016 → −0.0380).
+
+Four times the crafting-mode effect, and it is the only one of the two that
+flips a sign. Per-encoder significance makes the same point without the
+arithmetic:
+
+| | WavLM-SV | ECAPA | d-vector |
+|---|---|---|---|
+| m30 pooled | **4/4** | 3/4 | 2/4 |
+| m30 segment (ships) | **4/4** | 2/4 | 2/4 |
+| m20 segment | **0/4** | **0/4** | 4/4 |
+
+Dropping the budget from m30 to m20 costs WavLM-SV every significant cell and
+ECAPA every significant cell. Switching crafting mode at m30 costs ECAPA one
+cell, on point estimates that moved by 0.003–0.007.
+
+### 49d. Two things this corrects
+
+**1. The m20 null was a budget effect, not a segment-crafting effect.** §25's
+flip is now attributed. The claim's correct statement is "at the loud budget",
+and the hedge about segment crafting can be dropped.
+
+**2. `PLAN_V3` §5's reason for cutting `tau_lse` work is wrong on its facts.**
+That table says: "§23c/§27a already ran this experiment by accident: segment
+crafting reallocated budget to the d-vector and **ECAPA fell from 3/4 to 1/4
+significant cells**." The attribution says ECAPA went **3/4 → 2/4**, not 3/4 →
+1/4, on point estimates that moved by +0.0026 to +0.0070 — a significance
+threshold crossed by two cells whose effects barely moved, not a reallocation.
+
+The *conclusion* of that cut still stands, for a better reason: `tau_lse` is a
+crafting-loop edit whose plausible effect (≈0.007, the whole crafting-mode
+contrast) sits at or below the §34 noise floor for exactly this class of edit
+(0.0096–0.0557 paired SD). It is unmeasurable here, not harmful. The ledger
+entry should say that instead.
+
+### 49e. The d-vector reversal is budget-insensitive, which fits §47
+
+Across all three recipes the reversal barely moves: **+0.069 to +0.079** at
+t = 1 in every one of them, including m20 where WavLM and ECAPA have collapsed
+to nothing. So:
+
+* the constraint's **benefit** to WavLM/ECAPA is **budget-dependent** — it needs
+  perturbation budget to spend, which is the §27 reading;
+* the constraint's **cost** to the d-vector is **budget-independent** at these
+  two budgets, and §47 showed it is **ensemble-membership-dependent** instead.
+
+Those are two different mechanisms, and nothing before this section separated
+them. It also sharpens §47e's open question: the mandatory `full_m30_seg_nodvec`
+arm is testing whether *crafting mode* changes the held-out result, and A says
+crafting mode moves these cells by ≈0.007 on average with no sign flips. That
+is a prediction, recorded before the arm is crafted: **the seg held-out grid
+should reproduce §47's pooled held-out grid to within about 0.01, and must not
+flip a sign.** If it does flip, something other than budget or crafting mode is
+operating and §47's reading would need re-examination.
+
+### 49f. Multiplicity, declared
+
+Each recipe is Holm-corrected within its own 12 cells, which is the
+pre-specified confirmatory family for the shipping recipe (§27a). Because
+reporting the best of three recipes *would* be multiplicity, the across-recipe
+correction (m = 36) is printed beside it in every row of `mismatch_final.csv`,
+and any sentence that compares recipes must quote that column. Under m = 36 the
+shipping recipe keeps **7 of its 8** significant cells; the one it loses is
+ECAPA at t = 1 on LibriSpeech (p_holm .032 → .103), which was already its
+weakest. The claim is robust to the stricter family.
+
+---
+
+## 50. The crafting loop does not reproduce itself, and nothing had measured that (2026-10-08)
+
+`experiments/check_seg_nodvec_repro.py`. ~15 min GPU.
+`repro_seg_nodvec_probe.csv`, `repro_seg_nodvec_probe2.csv`.
+
+### 50a. The question this was meant to answer
+
+§47e makes `full_m30_seg_nodvec` mandatory. Its counterpart
+`fullnsT_m30_seg_nodvec` has been on disk since **2026-09-20** — crafted before
+the W0 provenance columns existed, before `--craft-seed` was a flag, and before
+the W1 selection fixes landed (all off by default, pinned by a 15-test golden
+file). Pairing a 2026-09-20 arm with one crafted from HEAD risks exactly §25's
+failure mode: two arms, two code versions, one comparison.
+
+The golden file pins the *objective* and the *ship-iterate selector*. It does
+not pin the crafting loop. So one speaker of the **existing** arm was re-crafted
+from HEAD with the runner's flags and compared against the stored row.
+
+**It did not reproduce. Worst difference 0.0323 across 7 columns × 6 rows.**
+
+### 50b. The control that makes that number readable
+
+A disagreement has two possible causes and the comparison above cannot tell
+them apart: the code changed, or **the loop is not deterministic**. Nothing in
+the repo had ever tested the second. So the same flags were run a second time
+from HEAD:
+
+| comparison | worst \|difference\| | columns differing |
+|---|---|---|
+| **HEAD vs HEAD** (same flags, same seed, same file) | **0.0328** | 29 |
+| stored v1 vs HEAD | 0.0323 | 36 |
+
+**The two are the same size.** HEAD does not reproduce itself any better than
+it reproduces recipe-v1.
+
+Per-column, on the endpoint that matters (`cos_after_purify`): ECAPA 0.021,
+d-vector 0.003–0.008, WavLM 0.0003–0.005. PESQ moves 0.005, SNR 0.01 dB. The
+first optimiser step is **bit-identical** in both runs (`null-reg R=0.1165`,
+`score=+0.951`); divergence accumulates from about step 40 (`R=0.0119` against
+`0.0120`). That is the signature of floating-point non-associativity in CUDA
+reductions, not of a logic difference — the seed is honoured, the arithmetic is
+not replayable.
+
+### 50c. Two consequences, one good and one that must be written down
+
+**The good one.** The stored-vs-HEAD difference carries **no information about
+code version**. Re-crafting `fullnsT_m30_seg_nodvec` would buy nothing, because
+two HEAD runs differ by as much as HEAD differs from v1. So §47e's one-arm
+estimate stands — for a reason §47e did not know — and the seg control costs
+~1 GPU-h rather than ~2.
+
+**The one that must be written down.** Every one-variable crafting comparison
+in this project carries a run-to-run term that nothing had quantified:
+
+* §30 (BPDA vs exact) compared two separate crafting runs.
+* §47 (Control A) compared two separate crafting runs.
+* §49's contrast A (pooled vs segment) compared two separate crafting runs.
+* The whole §34 "noise floor for a crafting-loop edit" (paired per-speaker SD
+  0.0086–0.0557) was measured **from** §30, so it already **contains** this
+  term — it was simply attributed entirely to the edit.
+
+So §34's floor is not understated; it is **mis-attributed**. Part of what it
+calls the cost of changing the crafting loop is the cost of running the
+crafting loop twice. That makes every gate stated as a multiple of it
+*conservative*, which is the safe direction, but the attribution is now on
+record.
+
+### 50d. What it does to the claims that rest on small effects
+
+The arithmetic matters only where an effect is small. Paired over n = 29 the
+run-to-run term averages down by √29 ≈ 5.4, so a per-speaker term of 0.003–0.008
+on the d-vector contributes roughly **0.0006–0.0015** to the standard error of a
+paired mean.
+
+| claim | effect | run-to-run contribution to SE | ratio |
+|---|---|---|---|
+| §47 matched-vs-held-out contrast | **0.082** | ≤0.0015 | ~55× |
+| §49 budget contrast (B) | 0.028 mean | ≤0.0015 | ~19× |
+| §27/§49 WavLM at t=1 | 0.076 | ≤0.0015 | ~50× |
+| §49 crafting-mode contrast (A) | **0.0072** mean | ≤0.0015 | ~5× |
+| §47 held-out d-vector cells | **0.0084, 0.0120** | ≤0.0015 | ~6–8× |
+
+Every headline survives with room to spare. The two that sit closest are
+§49's crafting-mode contrast and §47's held-out d-vector cells — both already
+reported as small, and both now reportable as **small relative to an effect but
+still 5–8× a measured rerun floor**, which is a stronger statement than "small"
+alone.
+
+**Nothing is re-run and no verdict changes.** §47's OUTCOME A-2 rests on a
+0.082 swing with non-overlapping intervals; this section bounds the noise it
+sits above rather than questioning it.
+
+### 50e. What the paper says, and what it does not
+
+> Crafting is stochastic at fixed seed: CUDA reduction order makes the
+> optimiser's trajectory non-replayable, and two runs of identical code on
+> identical input differ by up to 0.03 in post-purification cosine on a single
+> utterance. Every paired comparison in this paper is therefore reported with
+> the speaker as the unit, where that term enters only as √n-reduced variance,
+> and the empirical floor for a crafting-loop change (§34) is measured
+> between-runs and so already includes it.
+
+**Not** claimed: that this is a bug, or that determinism would be better.
+`torch.use_deterministic_algorithms(True)` would change the numerics of the
+frozen base, so it is **not** enabled — the base never moves (PLAN_V3's rule).
+Determinism is the right default for new work and the wrong change for a frozen
+recipe.
+
+**A methodological point worth the sentence it costs**, beside §36's
+single-draw selection disclosure: a purifier-in-the-loop paper that reports one
+crafting run per arm and a within-run CI is understating its uncertainty, and
+almost none of them report the rerun term. We measured it on one utterance,
+which is enough to bound it and not enough to characterise it; a proper estimate
+would be two full arms crafted twice, ~4 GPU-h, and is not scheduled before the
+GPU stop.
