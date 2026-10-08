@@ -148,6 +148,16 @@ def main():
     if not encoders:
         raise SystemExit("no encoder directions found")
 
+    # RESULTS 58: if the file carries the 57f instrument gate, name the cells
+    # that failed it. They stay in the pre-registered statistic; they are
+    # reported beside it so a reader can see what the mean contains.
+    if "gate_passed" in df:
+        bad = df[(df.gate_passed.astype(str) == "False") & (~df.is_control)]
+        if len(bad):
+            print(f"[matched] instrument gate (57f/58) FAILED for {len(bad)} cell(s): "
+                  + "; ".join(f"spk{s_}: {sorted(g_.direction)}"
+                              for s_, g_ in bad.groupby("speaker")))
+            print("[matched] no verdict may be read from those cells on their own.")
     has_matched = any(str(c).startswith("band_matched") for c in piv.columns)
     if a.control == "band_matched" and not has_matched:
         raise SystemExit(

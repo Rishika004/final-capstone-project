@@ -99,6 +99,7 @@ import torch._dynamo   # noqa: F401  (import-order gotcha; see exp_purifier_awar
 import transformers    # noqa: F401
 
 from core.matched_random import clean_mel_basis, controls_for, DEFAULT_K
+from experiments.check_direction_sanity import check_direction, scale_to_rms
 from utils.provenance import provenance, add_prereg_arg
 
 
@@ -189,6 +190,14 @@ def main():
     ap.add_argument("--no-controls", action="store_true", dest="no_controls",
                     help="omit the council #3 matched controls, reproducing the "
                          "2026-10-01 run exactly")
+    ap.add_argument("--no-gate", action="store_true", dest="no_gate",
+                    help="skip the RESULTS 57f instrument check (check_direction_"
+                         "sanity) that is otherwise run on every gradient direction "
+                         "of every speaker and recorded as gate_passed on the row. "
+                         "RESULTS 58 found the Kaldi-fbank directions (CAM++, "
+                         "ERes2Net, untrained CAM++) fail it on clips with digital "
+                         "silence; a row with gate_passed=False may not carry a "
+                         "verdict.")
     ap.add_argument("--out", default=OUT)
     add_prereg_arg(ap)
     a = ap.parse_args()
@@ -280,8 +289,43 @@ def main():
             sample_rate=SAMPLE_RATE, x_wav=wav_o, device=device)
 
         def unit(v):
-            """Scale a mel direction to the protocol's per-element RMS."""
-            return v / (v.pow(2).mean().sqrt() + 1e-12) * a.rms
+            """Scale a mel direction to the protocol's per-element RMS, exactly.
+
+            `scale_to_rms` refuses residue-sized input instead of scaling it up
+            (RESULTS 58, risk 3: an additive epsilon cost #13c's d-vector arm
+            1.2 % of its RMS because its "gradient" was numerical residue)."""
+            return scale_to_rms(v, a.rms)
+
+        def direction_of(e, jitter=0.0, seed=1):
+            """The identity direction, at an input jittered by `jitter` x RMS.
+
+            jitter = 0 is the measurement, unchanged from the 2026-10-01 code.
+            jitter > 0 is the RESULTS 57f instrument check: everything that
+            depends on the input -- mel, phase, the reference embedding -- is
+            recomputed from the jittered input, and a direction that does not
+            reproduce under a jitter of 1e-5 is not a measurement."""
+            if jitter:
+                g_ = torch.Generator().manual_seed(seed)
+                x_in = wav_o + jitter * wav_o.pow(2).mean().sqrt() * \
+                    torch.randn(wav_o.shape, generator=g_).to(device)
+                mel_in = wav_to_logmel(x_in, device).detach()
+                inv_, phase_, win_, len_, T_ = _build_mel_to_wav(
+                    n_fft=N_FFT, hop_length=HOP_LENGTH, n_mels=N_MELS,
+                    sample_rate=SAMPLE_RATE, x_wav=x_in, device=device)
+            else:
+                x_in, mel_in = wav_o, mel_o
+                inv_, phase_, win_, len_, T_ = inv, phase, win, wav_len, T_frames
+            with torch.no_grad():
+                o = e.embed(x_in).detach()
+            m = mel_in.clone().requires_grad_(True)
+            w = _mel_to_wav_differentiable(m, inv_, phase_, win_, N_FFT,
+                                           HOP_LENGTH, T_, len_)
+            w = w / (w.abs().max() + 1e-6)
+            c = (e.embed(w) * o).sum()
+            g, = torch.autograd.grad(c, m)
+            # The identity direction: steepest DESCENT of similarity to self,
+            # i.e. the direction that moves this encoder's embedding away fastest.
+            return (-g).detach(), float(c), float(g.norm() / mel_in.norm())
 
         # The frozen-VAD twin is per speaker: the keep-set is a property of
         # this utterance. Built here so it sees the same wav_o the directions
@@ -332,19 +376,16 @@ def main():
                     enc_list.append(FrozenVADDvec(e, keep))
                     break
 
-        dirs = {}
+        dirs, gate = {}, {}
         for e in enc_list:
-            with torch.no_grad():
-                o = e.embed(wav_o).detach()
-            m = mel_o.clone().requires_grad_(True)
-            w = _mel_to_wav_differentiable(m, inv, phase, win, N_FFT,
-                                           HOP_LENGTH, T_frames, wav_len)
-            w = w / (w.abs().max() + 1e-6)
-            c = (e.embed(w) * o).sum()
-            g, = torch.autograd.grad(c, m)
-            # The identity direction: steepest DESCENT of similarity to self,
-            # i.e. the direction that moves this encoder's embedding away fastest.
-            dirs[e.name] = unit(-g).detach()
+            g, _, _ = direction_of(e)
+            dirs[e.name] = unit(g)
+            if not a.no_gate:
+                ok_, rep = check_direction(lambda j, e=e: direction_of(e, j),
+                                           name=f"spk{spk} {e.name}")
+                gate[e.name] = bool(ok_)
+                if not ok_:
+                    print(rep)
         gen = torch.Generator(device=device).manual_seed(spk)
         dirs["random"] = unit(torch.randn(mel_o.shape, generator=gen,
                                           device=device)).detach()
@@ -362,11 +403,14 @@ def main():
         dirs.update(controls)
 
         for name, d in dirs.items():
+            tgt = name.split(":", 1)[1] if name.startswith("band_matched:") else name
             r = dict(speaker=spk, direction=name,
                      rms=round(float(d.pow(2).mean().sqrt()), 4),
                      is_control=name.startswith(("band_matched", "pca_span")),
-                     controls_for=(name.split(":", 1)[1]
-                                   if name.startswith("band_matched:") else ""),
+                     controls_for=(tgt if name.startswith("band_matched:") else ""),
+                     # a control inherits its target's gate; random / pca_span
+                     # are not gradients and have no gate ("")
+                     gate_passed=("" if a.no_gate else gate.get(tgt, "")),
                      pca_k=(a.pca_k if name == "pca_span" else ""),
                      pca_subset=(a.pca_subset if name == "pca_span" else ""),
                      pca_var=(pca_info.get("var_explained", "")
@@ -426,6 +470,15 @@ def main():
         print("  direction with its own spectral envelope, which is what C1 claims.")
         print("  Read against the pre-registered branches in core/matched_random.py;")
         print("  the CI and Wilcoxon p decide, not these means.")
+    if not a.no_gate and "gate_passed" in df:
+        bad = df[(df.gate_passed.astype(str) == "False") & (~df.is_control)]
+        print(f"\n[A2] INSTRUMENT GATE (RESULTS 57f/58): {len(bad)} direction cell(s) "
+              f"failed check_direction_sanity" + (":" if len(bad) else "."))
+        for spk_, grp in bad.groupby("speaker"):
+            print(f"       spk{spk_}: {sorted(grp.direction)}")
+        if len(bad):
+            print("       No verdict may be read from those cells; report them beside any "
+                  "mean that includes them.")
     print(f"\n[A2] saved {a.out}")
     print("[A2] Read against the pre-registered criteria in this file's docstring.")
 

@@ -64,6 +64,27 @@ signed-rank p, Holm-corrected across the encoders tested.
            where it clears.
 
 No other cell may be read as the gate.
+
+WHAT THE CONTROLS DO NOT MATCH (RESULTS 58, risk 1 -- read before quoting them)
+-----------------------------------------------------------------------------
+Both `band_matched` and `band_matched_wav` match a TIME-AVERAGED spectral
+profile and randomise everything else. In time they are therefore as flat as
+white noise whatever the target looks like: measured on the 2026-10-08 cohort,
+an encoder direction keeps 77-99 % of its energy in its loudest 5 % of
+elements (kurtosis 45-3255), its band-matched control 49-69 % (kurtosis 8-27),
+isotropic noise 28 % (kurtosis 3); in the waveform domain the control is
+Gaussian to three digits (kurtosis 2.96-3.01). `tests/test_matched_random.py`
+pins this.
+
+So `band_matched ~ random` in alpha -- which is what every mel cell shows,
+within 0.012 -- means "matching the spectrum did not help the control". It does
+NOT mean "the control is as structured as the target", and the control cannot
+tell "encoder-specific" from "not noise-like". The comparison supports C1 only
+in the direction it is read: the encoder directions sit BELOW isotropic noise
+too (22-29 of 29 speakers, every encoder, trained or untrained), so the
+control's weakness runs against the claim rather than for it. Where a target
+sits ABOVE its control (RESULTS 55 on DiffWave, since withdrawn for a different
+reason) this control cannot support a verdict at all.
 """
 import os
 

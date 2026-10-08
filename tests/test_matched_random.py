@@ -18,8 +18,8 @@ PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJ not in sys.path:
     sys.path.insert(0, PROJ)
 
-from core.matched_random import (band_matched, pca_span, controls_for,
-                                 _per_band_rms, DEFAULT_K)
+from core.matched_random import (band_matched, band_matched_wav, pca_span,
+                                 controls_for, _per_band_rms, DEFAULT_K)
 
 N_MELS, T = 80, 251          # the project's mel geometry (evaluation/evaluate.py)
 RMS = 0.2                    # the protocol's per-element RMS
@@ -162,3 +162,37 @@ def test_clean_mel_basis_is_orthonormal_and_caches():
     # Top components of clean log-mel must explain a large share of variance;
     # if they did not, "the clean-speech principal subspace" would be a misnomer.
     assert 0.5 < info["var_explained"] <= 1.0
+
+
+# ----------------------------------------------- what the controls do NOT match
+# RESULTS 58, risk 1. Both controls match a time-AVERAGED spectral profile and
+# randomise everything else, so in time they are as flat as white noise
+# whatever the target looks like. band_matched ~ random in alpha therefore means
+# "matching the spectrum did not help the control", and NOT "the control is as
+# structured as the target". The two tests below pin that property so nobody
+# reads the control as more than it is, and so that a control that also
+# matches temporal structure has to change them knowingly.
+
+def _frame_cv(x):
+    e = x.reshape(N_MELS, T).pow(2).sum(dim=0)
+    return float(e.std() / e.mean())
+
+
+def test_band_matched_is_temporally_white_whatever_the_target():
+    d = _target()
+    d[..., : T // 2] = 0.0                       # concentrated in time, like a gradient
+    d = d / d.pow(2).mean().sqrt() * RMS
+    c = band_matched(d, torch.Generator().manual_seed(11))
+    assert _frame_cv(d) > 0.9
+    assert _frame_cv(c) < 0.35, _frame_cv(c)    # white noise sits near 0.16
+
+
+def test_band_matched_wav_is_gaussian_in_time_whatever_the_target():
+    g = torch.Generator().manual_seed(12)
+    d = torch.randn(64000, generator=g)
+    d[torch.rand(64000, generator=g) > 0.03] = 0.0      # a sparse, spiky target
+    kurt = lambda x: float(((x - x.mean()) ** 4).mean() / x.var() ** 2)  # noqa: E731
+    assert kurt(d) > 20
+    c = band_matched_wav(d, generator=torch.Generator().manual_seed(13))
+    assert 2.6 < kurt(c) < 3.4, kurt(c)                 # Gaussian: 3
+    assert torch.allclose(c.norm(), d.norm(), rtol=1e-5)

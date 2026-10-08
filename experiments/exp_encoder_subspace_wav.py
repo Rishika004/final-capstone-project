@@ -66,6 +66,7 @@ if PROJ not in sys.path:
     sys.path.insert(0, PROJ)
 
 from core.matched_random import band_matched_wav  # noqa: E402
+from experiments.check_direction_sanity import scale_to_rms  # noqa: E402
 from experiments.exp_nullspace_survival import survival  # noqa: E402
 from experiments.librispeech import (cross_session_split,  # noqa: E402
                                      list_librispeech, load_flac,
@@ -157,7 +158,10 @@ def main():
         print(f"[13c] {n}/{len(spks)} spk{spk}  rms={rms:.4f}", flush=True)
 
         def unit(v):
-            return v / (v.pow(2).mean().sqrt() + 1e-12) * scale
+            # RESULTS 58, risk 3: the additive epsilon this used to carry cost
+            # the d-vector arm 1.2 % of its RMS, because its "gradient" was
+            # residue (RMS 4.6e-11). scale_to_rms refuses residue outright.
+            return scale_to_rms(v, scale)
 
         # ===================================================================
         # DISABLED 2026-10-08 -- RESULTS §57. THIS PATH IS BROKEN.

@@ -54,6 +54,14 @@ def main():
         sys.exit("[ctrlB] no untrained directions in the file")
 
     nspk = d.speaker.nunique()
+    # RESULTS 58: if the file carries the 57f instrument gate, say which cells
+    # failed it and what the primary is without them. The verdict below is
+    # still read off all speakers, exactly as B.3 fixed it; this is reported
+    # beside it, not instead of it.
+    gate_bad = {}
+    if "gate_passed" in d:
+        bad = d[(d.gate_passed.astype(str) == "False") & (~d.is_control)]
+        gate_bad = {s_: sorted(g_.direction) for s_, g_ in bad.groupby("speaker")}
     print("=" * 96)
     print(f"CONTROL B -- does 'speaker' do any work?   n = {nspk} speakers, "
           f"{len(unt)} random inits")
@@ -105,6 +113,15 @@ def main():
     print("=" * 96)
     print(f"  alpha_untrained at t = 50 (mean over {len(unt)} inits) = "
           f"{au50:.4f}")
+    if gate_bad:
+        print(f"  instrument gate (57f/58) FAILED for {len(gate_bad)} speaker(s): "
+              + "; ".join(f"spk{k}: {v}" for k, v in gate_bad.items()))
+        keep = ~d.speaker.isin(list(gate_bad))
+        au_ok = float(np.mean([d[keep & (d.direction == n)]["alpha_t50"].mean()
+                               for n in unt]))
+        print(f"  sensitivity -- the same primary on the {d[keep].speaker.nunique()} "
+              f"gate-passing speakers = {au_ok:.4f} (reported beside the verdict, "
+              f"which B.3 reads off all speakers)")
     print(f"  thresholds: B-1 if <= {B1_MAX:.2f}, B-2 if >= {B2_MIN:.2f}, "
           f"else B-3\n")
     if au50 <= B1_MAX:

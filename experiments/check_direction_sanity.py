@@ -29,6 +29,26 @@ So: **a direction is not a measurement until it has passed these two checks.**
 A trained encoder is the positive control: whatever threshold is read, it must
 pass, or the check is measuring something other than what it claims.
 
+WHAT THE SECOND AUDIT ADDED (RESULTS 58)
+----------------------------------------
+* Run the gate PER SPEAKER, not on one speaker. It was calibrated on speaker
+  61, where every mel-path direction passes. On speaker 121 the three
+  Kaldi-fbank directions (CAM++, ERes2Net, untrained CAM++) and the fbank
+  front-end control fail it, the untrained one with a sign flip (-0.23).
+* The cause is the front end, not precision: `torchaudio.compliance.kaldi.
+  fbank` floors mel energies at float32 epsilon before the log, a clip with
+  DIGITAL silence (121: 8637 consecutive zero samples, 22 % of fbank bins on
+  the floor) puts the gradient on a knife-edge there, and a 1e-5 relative
+  input jitter is not small for a log of zero. The float64 twin of the same
+  direction agrees with float32 at cosine 0.998-0.9999, so the gradient is
+  computed exactly; it is the FUNCTION that is discontinuous.
+* A failed gate therefore means "no verdict from this cell", and the cell is
+  reported beside any mean that includes it (`exp_encoder_subspace.py`
+  records `gate_passed` on every row). It does not by itself mean the whole
+  path is void: the same directions pass on the 27 speakers without digital
+  silence. Only two cohort speakers have it (121, 260;
+  `results/audit_digital_silence.csv`), and 260 passes at 1e-5.
+
 USE
 ---
     from experiments.check_direction_sanity import check_direction
@@ -65,6 +85,24 @@ JITTER = 1e-5
 def _cos(a, b):
     return F.cosine_similarity(a.reshape(1, -1).double(),
                                b.reshape(1, -1).double()).item()
+
+
+def scale_to_rms(v, rms, min_rms=1e-9):
+    """`v` rescaled to per-element RMS `rms`, exactly -- or a loud refusal.
+
+    Every alpha script scales its directions with ``v / (rms(v) + 1e-12) * rms``.
+    The additive epsilon is harmless for a real gradient (RMS 1e-5 .. 1e-4 in
+    log-mel units) and was NOT harmless for the residue #13c measured: the
+    d-vector's x0 "gradient" had RMS 4.6e-11, so the epsilon cost that arm
+    1.2 % of its RMS and its band-matched control inherited the deficit
+    (RESULTS 58, risk 3). A direction whose RMS is below `min_rms` is residue,
+    not a measurement, and this refuses it instead of scaling it up.
+    """
+    cur = float(v.pow(2).mean().sqrt())
+    if not cur > min_rms:
+        raise ValueError(f"scale_to_rms: input RMS {cur:.3e} <= {min_rms:g}; "
+                         f"this is numerical residue, not a direction")
+    return v * (float(rms) / cur)
 
 
 def check_direction(direction_fn, name="direction", jitter=JITTER):

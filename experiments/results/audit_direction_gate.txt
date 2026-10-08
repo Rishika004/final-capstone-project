@@ -1,0 +1,372 @@
+[sanity] spk61 wav WavLM-SV
+           cosine at eval point : 1.0000001
+           gradient norm        : 5.657e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: -0.9812
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000001 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): -0.9812 < 0.95  -- the direction FLIPS SIGN
+           Do not read a verdict from this path.
+
+[sanity] spk61 wav ECAPA-TDNN
+           cosine at eval point : 1.0000001
+           gradient norm        : 2.895e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.7589
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000001 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): 0.7589 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk61 wav Resemblyzer d-vector
+           cosine at eval point : 1.0000000
+           gradient norm        : 1.166e-08
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.0396
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000000 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): 0.0396 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk61 wav CAM++
+           cosine at eval point : 1.0000001
+           gradient norm        : 1.736e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: -0.7673
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000001 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): -0.7673 < 0.95  -- the direction FLIPS SIGN
+           Do not read a verdict from this path.
+
+[sanity] spk61 wav ERes2Net
+           cosine at eval point : 1.0000000
+           gradient norm        : 3.392e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.8186
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000000 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): 0.8186 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk61 mel WavLM-SV
+           cosine at eval point : 0.9547443
+           gradient norm        : 4.683e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9992
+           VERDICT: usable
+
+[sanity] spk61 mel ECAPA-TDNN
+           cosine at eval point : 0.6729139
+           gradient norm        : 8.959e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9997
+           VERDICT: usable
+
+[sanity] spk61 mel Resemblyzer d-vector
+           cosine at eval point : 0.6359345
+           gradient norm        : 9.484e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk61 mel CAM++
+           cosine at eval point : 0.8351704
+           gradient norm        : 1.206e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9993
+           VERDICT: usable
+
+[sanity] spk61 mel ERes2Net
+           cosine at eval point : 0.8851399
+           gradient norm        : 8.559e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9990
+           VERDICT: usable
+
+[sanity] spk61 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9986250
+           gradient norm        : 4.355e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9992
+           VERDICT: usable
+
+[sanity] spk61 mel CAM++ (untrained, seed 1)
+           cosine at eval point : 0.9993588
+           gradient norm        : 2.675e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9990
+           VERDICT: usable
+
+[sanity] spk61 mel CAM++ (untrained, seed 2)
+           cosine at eval point : 0.9988702
+           gradient norm        : 4.524e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9995
+           VERDICT: usable
+
+[sanity] spk61 mel frontend:fbank-linear
+           cosine at eval point : 0.9542927
+           gradient norm        : 1.373e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk61 mel frontend:wav-linear
+           cosine at eval point : 0.8440145
+           gradient norm        : 8.146e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk121 wav WavLM-SV
+           cosine at eval point : 1.0000000
+           gradient norm        : 3.886e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: -0.9814
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000000 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): -0.9814 < 0.95  -- the direction FLIPS SIGN
+           Do not read a verdict from this path.
+
+[sanity] spk121 wav ECAPA-TDNN
+           cosine at eval point : 1.0000000
+           gradient norm        : 1.096e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: -0.9198
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000000 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): -0.9198 < 0.95  -- the direction FLIPS SIGN
+           Do not read a verdict from this path.
+
+[sanity] spk121 wav Resemblyzer d-vector
+           cosine at eval point : 1.0000000
+           gradient norm        : 7.511e-09
+           repeat reproducibility: 0.5642
+           jitter reproducibility: 0.0925
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000000 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (repeat): 0.5642 < 0.99
+             - UNSTABLE (jitter 1e-05): 0.0925 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk121 wav CAM++
+           cosine at eval point : 1.0000000
+           gradient norm        : 5.842e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.0061
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000000 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): 0.0061 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk121 wav ERes2Net
+           cosine at eval point : 1.0000000
+           gradient norm        : 2.223e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.0018
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000000 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): 0.0018 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk121 mel WavLM-SV
+           cosine at eval point : 0.9869962
+           gradient norm        : 7.843e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk121 mel ECAPA-TDNN
+           cosine at eval point : 0.5641760
+           gradient norm        : 3.552e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9996
+           VERDICT: usable
+
+[sanity] spk121 mel Resemblyzer d-vector
+           cosine at eval point : 0.6566310
+           gradient norm        : 2.711e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk121 mel CAM++
+           cosine at eval point : 0.7569585
+           gradient norm        : 4.327e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9489
+           VERDICT: NOT A MEASUREMENT
+             - UNSTABLE (jitter 1e-05): 0.9489 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk121 mel ERes2Net
+           cosine at eval point : 0.7614840
+           gradient norm        : 4.515e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9431
+           VERDICT: NOT A MEASUREMENT
+             - UNSTABLE (jitter 1e-05): 0.9431 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk121 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9947958
+           gradient norm        : 3.026e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: -0.2308
+           VERDICT: NOT A MEASUREMENT
+             - UNSTABLE (jitter 1e-05): -0.2308 < 0.95  -- the direction FLIPS SIGN
+           Do not read a verdict from this path.
+
+[sanity] spk121 mel CAM++ (untrained, seed 1)
+           cosine at eval point : 0.9962256
+           gradient norm        : 1.897e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.2027
+           VERDICT: NOT A MEASUREMENT
+             - UNSTABLE (jitter 1e-05): 0.2027 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk121 mel CAM++ (untrained, seed 2)
+           cosine at eval point : 0.9942867
+           gradient norm        : 3.631e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.4936
+           VERDICT: NOT A MEASUREMENT
+             - UNSTABLE (jitter 1e-05): 0.4936 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk121 mel frontend:fbank-linear
+           cosine at eval point : 0.9540619
+           gradient norm        : 2.782e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.8860
+           VERDICT: NOT A MEASUREMENT
+             - UNSTABLE (jitter 1e-05): 0.8860 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk121 mel frontend:wav-linear
+           cosine at eval point : 0.8043489
+           gradient norm        : 2.893e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk237 wav WavLM-SV
+           cosine at eval point : 0.9999999
+           gradient norm        : 2.201e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: -0.9979
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 0.9999999 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): -0.9979 < 0.95  -- the direction FLIPS SIGN
+           Do not read a verdict from this path.
+
+[sanity] spk237 wav ECAPA-TDNN
+           cosine at eval point : 0.9999999
+           gradient norm        : 1.693e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: -0.8502
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 0.9999999 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): -0.8502 < 0.95  -- the direction FLIPS SIGN
+           Do not read a verdict from this path.
+
+[sanity] spk237 wav Resemblyzer d-vector
+           cosine at eval point : 1.0000000
+           gradient norm        : 3.241e-08
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.3216
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000000 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): 0.3216 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk237 wav CAM++
+           cosine at eval point : 0.9999999
+           gradient norm        : 1.018e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9220
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 0.9999999 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): 0.9220 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk237 wav ERes2Net
+           cosine at eval point : 1.0000000
+           gradient norm        : 3.605e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: -0.6022
+           VERDICT: NOT A MEASUREMENT
+             - STATIONARY: cosine at the evaluation point is 1.0000000 > 0.9995, i.e. this is the maximum of the objective and the gradient there is zero by construction
+             - UNSTABLE (jitter 1e-05): -0.6022 < 0.95  -- the direction FLIPS SIGN
+           Do not read a verdict from this path.
+
+[sanity] spk237 mel WavLM-SV
+           cosine at eval point : 0.9618502
+           gradient norm        : 2.358e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk237 mel ECAPA-TDNN
+           cosine at eval point : 0.5637492
+           gradient norm        : 9.594e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9998
+           VERDICT: usable
+
+[sanity] spk237 mel Resemblyzer d-vector
+           cosine at eval point : 0.7032455
+           gradient norm        : 9.516e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk237 mel CAM++
+           cosine at eval point : 0.7177231
+           gradient norm        : 1.185e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9989
+           VERDICT: usable
+
+[sanity] spk237 mel ERes2Net
+           cosine at eval point : 0.8485053
+           gradient norm        : 7.066e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9990
+           VERDICT: usable
+
+[sanity] spk237 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9972911
+           gradient norm        : 5.496e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9995
+           VERDICT: usable
+
+[sanity] spk237 mel CAM++ (untrained, seed 1)
+           cosine at eval point : 0.9986988
+           gradient norm        : 3.532e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9992
+           VERDICT: usable
+
+[sanity] spk237 mel CAM++ (untrained, seed 2)
+           cosine at eval point : 0.9979450
+           gradient norm        : 6.719e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9995
+           VERDICT: usable
+
+[sanity] spk237 mel frontend:fbank-linear
+           cosine at eval point : 0.9329989
+           gradient norm        : 1.201e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk237 mel frontend:wav-linear
+           cosine at eval point : 0.8583290
+           gradient norm        : 7.621e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable

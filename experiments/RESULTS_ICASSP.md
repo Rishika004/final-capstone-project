@@ -5267,3 +5267,588 @@ changed is the one place it broke.
 reproducibility check *before* its first verdict is read, exactly as a new
 crafting arm ships with a skip-guard. `experiments/check_direction_sanity.py`
 implements both and is now importable by any α script.
+
+---
+
+## 58. AUDIT 2 — §57 re-checked on three speakers and four jitter magnitudes, and the three risks it left open (2026-10-08)
+
+Second audit, run with the same rule as §57: judged against what the code
+should do, not against which answer is convenient. §57 was taken as a claim
+to be verified, not as a result. The brief fixed, before anything ran: no
+pre-registered threshold, endpoint or decision rule is touched; nothing is
+re-run to obtain a different verdict; every new measurement path is gated
+through `check_direction_sanity.py` before a verdict is read from it; §1–§47
+are not edited.
+
+Instruments, all new and all re-runnable (`experiments/`):
+
+| script | what it measures | output |
+|---|---|---|
+| `audit_direction_stability.py` | §57a–c on speakers 61, 121, 237; jitter 1e−5, 1e−4, 1e−3, 1e−2, two jitter *modes*, two draws per magnitude; a float64 twin; the raw-norm gradient and the top singular direction; concentration statistics | `audit_direction_stability*.csv`, `*_gate.txt` |
+| `audit_summarise_stability.py` | the tables below | — |
+| `audit_frontend_alpha.py` | risk 2: α of two no-network directions, 29 speakers, gated per speaker | `audit_frontend_alpha.csv`, `audit_frontend_cells.csv` |
+| `audit_rms_sensitivity.py` | risk 3: α against scale and sign on both purifiers | `audit_rms_sensitivity.csv` |
+| `audit_alpha_vs_structure.py` | risk 3: α against concentration across every §54 cell | `audit_alpha_vs_structure.csv` |
+| (CPU, inline) | digital silence per cohort speaker | `audit_digital_silence.csv` |
+
+### 58a. §57b — the waveform path is residue: CONFIRMED, and sharpened
+
+Reproduced on three speakers (§57 had one), every encoder, and the §57 numbers
+for speaker 61 come back to the digit (5.66e−07, 2.90e−07, 1.17e−08).
+
+| encoder | cos at x₀ | ‖∇‖ at x₀ (f32) | ‖∇‖ at x₀ (f64, CPU) | ‖∇‖ 1e−2 off x₀ | repeat | gate pass (1e−5 / 1e−4 / 1e−3) |
+|---|---|---|---|---|---|---|
+| WavLM-SV | 1.0000000 ± 1e−7 | 5.7e−07 … 3.9e−06 | — | 0.20 … 0.42 | 1.0000 | 0/3 0/3 0/3 |
+| ECAPA-TDNN | 1.0000000 ± 1e−7 | 2.9e−07 … 1.7e−06 | — | 0.34 … 5.3 | 1.0000 | 0/3 0/3 0/3 |
+| d-vector | 1.0000000 | 7.5e−09 … 3.2e−08 | — | 0.019 … 0.057 | 0.564 … 1.000 | 0/3 0/3 0/3 |
+| CAM++ | 1.0000000 ± 1e−7 | 1.7e−07 … 5.8e−05 | **2.5e−15 … 7.7e−14** | 0.46 … 3.7 | 1.0000 | 0/3 0/3 0/3 |
+| ERes2Net | 1.0000000 | 3.4e−07 … 2.2e−05 | — | 0.32 … 2.3 | 1.0000 | 0/3 0/3 0/3 |
+| CAM++ untrained s0 | 1.0000000 | 1.4e−07 … 2.9e−06 | **2.1e−16 … 4.5e−14** | 0.016 … 0.73 | 1.0000 | — |
+
+Four things §57 did not have:
+
+1. **The float64 twin is decisive.** Recomputed in double on CPU with the same
+   input, the gradient at x₀ collapses by eight to nine orders of magnitude
+   (1.7e−07 → 2.5e−15) while the gradient one step away does not move
+   (0.4554 → 0.4576; cosine between the f32 and f64 off-maximum directions
+   0.9976–0.9996). The f32 and f64 "directions" at x₀ have cosine 0.000. That is
+   the analytic zero of §57a, measured.
+2. **There is no direction to recover, even off the maximum.** Two independent
+   jitter draws at the same magnitude, with the reference embedding held fixed
+   so the evaluation point moves off the maximum, give two *different*
+   gradients: cosine 0.08–0.30 at 1e−2 for WavLM-SV, ECAPA, CAM++, ERes2Net
+   (d-vector 0.74–0.83). The gradient near x₀ is a response to the jitter,
+   ≈ −ε JᵀJ n, not a property of the signal. §57e's "evaluate off the
+   maximum" must mean a *large, fixed, deliberate* displacement — which is
+   what the mel path's reconstruction happens to be — or a different
+   utterance's embedding; a small one gives a different answer every time.
+3. **What the residue is.** For four of five encoders it is mostly the
+   gradient of the *raw embedding norm* — the one component L2 normalisation
+   discards and float32 rounding re-admits — |cos| 0.98–0.999 (WavLM-SV),
+   0.79–0.97 (ECAPA), 0.83–0.99 (CAM++), 0.65–0.92 (ERes2Net); d-vector
+   0.08–0.42, i.e. nothing. The sign of that component is the sign of a
+   rounding error, which is why §57 saw cosines of −0.98: the same axis,
+   sign lost.
+4. **It is not the top singular direction either**, so §55 cannot be rescued
+   "up to sign": |cos| with v₁ of the encoder Jacobian (power iteration,
+   converged to 0.958–1.000) is 0.10–0.25 for every encoder but ECAPA
+   (0.29–0.81 on one speaker), and the off-maximum gradients are no closer
+   (≤ 0.14; d-vector 0.32–0.67).
+
+**Verdict: §57b confirmed. §55 stays withdrawn in full**, and its directions
+are not a sign-ambiguous version of anything meaningful. The gate rejects all
+15 waveform cells at all three magnitudes.
+
+### 58b. §57c — the mel path and Control B: CONFIRMED on the numerics, QUALIFIED on the front end
+
+**The "float32 epsilon" suspicion is refuted more strongly than §57 refuted
+it.** §57 argued from jitter. The float64 twin of the untrained direction
+(CAM++ in double on CPU, through our mel front end, V and Kaldi fbank in
+double) agrees with the float32 GPU direction at cosine **0.9981–0.9999** on
+all three speakers and all three inits, with gradient norms equal to three
+digits (3.026e−07 vs 3.026e−07). A relative gradient of 3e−07 is computed
+exactly. §54's numbers are not numerical noise.
+
+**But the gate does not pass everywhere, and the failures have one cause.**
+
+| mel direction | cos at eval | ‖∇‖/‖mel‖ | jitter 1e−5 (3 spk) | jitter 1e−3 | gate 1e−5 / 1e−4 / 1e−3 |
+|---|---|---|---|---|---|
+| WavLM-SV | 0.955–0.987 | 7.8e−06–4.7e−05 | +0.999 … +1.000 | +0.993 … +0.999 | 3/3 3/3 3/3 |
+| ECAPA-TDNN | 0.564–0.673 | 3.6e−05–9.6e−05 | +1.000 | +0.998 … +0.999 | 3/3 3/3 3/3 |
+| d-vector | 0.636–0.703 | 2.7e−05–9.5e−05 | +1.000 | +1.000 | 3/3 3/3 3/3 |
+| CAM++ | 0.718–0.835 | 4.3e−05–1.2e−04 | **+0.949** … +0.999 | **+0.669** … +0.953 | 2/3 2/3 1/3 |
+| ERes2Net | 0.761–0.885 | 4.5e−05–8.6e−05 | **+0.943** … +0.999 | +0.888 … +0.988 | 2/3 2/3 2/3 |
+| CAM++ untrained s0 | 0.9948–0.9986 | 3.0e−07–5.5e−07 | **−0.231** … +1.000 | **−0.404** … +0.985 | 2/3 2/3 2/3 |
+| CAM++ untrained s1 | 0.9962–0.9994 | 1.9e−07–3.5e−07 | **+0.203** … +0.999 | −0.097 … +0.984 | 2/3 2/3 2/3 |
+| CAM++ untrained s2 | 0.9943–0.9989 | 3.6e−07–6.7e−07 | **+0.493** … +1.000 | −0.064 … +0.987 | 2/3 2/3 2/3 |
+| frontend:fbank-linear | 0.933–0.954 | 2.8e−06–1.4e−05 | **+0.886** … +1.000 | +0.023 … +0.999 | 2/3 2/3 2/3 |
+| frontend:wav-linear | 0.804–0.858 | 2.9e−05–8.2e−05 | +1.000 | +1.000 | 3/3 3/3 3/3 |
+
+Every failure is speaker 121, and every failing direction goes through
+**Kaldi fbank** (`extra_encoders.fbank` → `torchaudio.compliance.kaldi.fbank`,
+3D-Speaker's own front end). WavLM-SV (raw waveform), ECAPA (SpeechBrain
+fbank, relative −80 dB floor), the d-vector (power mel, no log) and the
+wav-linear projection (no front end at all) pass on 121 at every magnitude.
+
+The mechanism, measured: Kaldi fbank floors each mel energy at float32 epsilon
+before the log. Speaker 121's reference clip contains **8637 consecutive
+exact-zero samples** (0.54 s of digital silence) and **22.4 % of its fbank
+bins sit on that floor** (`audit_digital_silence.csv`). A log of zero is a
+knife-edge: the gradient is exactly zero on the floor and 1/E just above it,
+and a "1e−5 relative input jitter" lifts 22 % of the bins from −15.9 to about
+−7 nats, which is not a small perturbation of the features. The untrained
+network, a near-constant map whose gradient is the *difference* of two nearly
+equal embeddings, feels this most, hence the sign flip. The float64 twin on
+121 still agrees at 0.9999, so the gradient is exact; it is the *function* that
+is discontinuous there.
+
+Exactly two cohort speakers have digital silence: **121 and 260** (260: 8794
+zero samples, 16.1 % floored). The other 27 have no floored bin and no zero
+run longer than 6 samples. 260 passes at 1e−5 for fbank-linear, CAM++ and untrained s0 (0.990, 0.976,
+0.998) and fails for ERes2Net and untrained s1, so the pre-run prediction
+that both would fail was right in the union and wrong per cell; 58f has the
+complete record.
+
+**What this does to §54, with the threshold untouched** (`PREREG` B.3 reads
+the mean over all 29; this is reported beside it, not instead of it):
+
+| | all 29 (§54, the pre-registered primary) | 27 without 121 & 260 | 121 & 260 alone |
+|---|---|---|---|
+| α_untrained, mean of 3 inits, t = 50 | **0.5970** | **0.6222** | 0.258 |
+| per init | 0.638 / 0.573 / 0.580 | 0.671 / 0.587 / 0.608 | 0.198 / 0.385 / 0.191 |
+| B-1 (≤ 0.63) | fires | fires, by 0.008 | — |
+
+Trained cells do not move (CAM++ 0.631 → 0.632, ERes2Net 0.576 → 0.577,
+WavLM-SV 0.568 → 0.569, ECAPA 0.463 → 0.454, d-vector 0.388 → 0.384), and
+every paired difference against its own control stays significant on 27
+(p ≤ 2.4e−4).
+
+**Verdict: §54 stands.** The suspicion §57c raised and refuted is refuted
+again, by a stronger test. The qualification is that two of the 29 cells
+behind the primary are front-end knife-edges rather than directions of the
+untrained network, that they pull the primary down by 0.025, and that
+without them B-1 fires by 0.008 — which is the honest distance between the
+verdict and its threshold, and the paper should say so. Nothing is re-run:
+the threshold was fixed in advance and the all-29 primary is what B.3 asked
+for.
+
+### 58c. Risk 1 — the band-matched controls are noise-like in both domains: CONFIRMED, and harmless in the direction the mel claim is read
+
+What "equal RMS" leaves unequal, means over three speakers (full table in
+`audit_direction_structure.csv`; `top5` = share of energy in the loudest 5 % of
+elements, `frame_cv` = coefficient of variation of per-frame energy):
+
+| mel domain | top5 | frame_cv | kurtosis | peak / RMS |
+|---|---|---|---|---|
+| encoder directions (5 trained) | 0.81–0.99 | 1.2–3.4 | 45–567 | 16–44 |
+| untrained CAM++ (3 inits) | 0.80–0.84 | 3.5–5.7 | 561–1614 | 38–53 |
+| frontend:fbank-linear / wav-linear | 0.77 / 0.999 | 4.0 / 6.4 | 753 / 3255 | 38 / 81 |
+| **band_matched** (each) | 0.49–0.69 | 0.26–0.43 | 8–27 | 8.7–11.5 |
+| pca_span | 0.33 | 0.31 | 3.8 | 5.2 |
+| random | 0.28 | 0.16 | 3.0 | 4.1 |
+
+| waveform domain | top5 | frame_cv | kurtosis |
+|---|---|---|---|
+| encoder directions (residue, §58a) | 0.58–0.69 | 1.5–5.4 | 14–215 |
+| **band_matched_wav** (each) | 0.276–0.280 | 0.13–0.17 | **2.96–3.01** |
+| random | 0.279 | 0.085 | 3.00 |
+
+`band_matched_wav` is Gaussian to three digits whatever its target: it matches
+a time-averaged magnitude profile, and randomising phase under that
+constraint *is* stationary Gaussian noise. §55b's diagnosis is confirmed by
+construction, not just by its psr. `band_matched` (mel) has no phase to
+randomise and shares the property in kind: it is white across frames
+(frame_cv 0.26–0.43 against 0.16 for noise and 1.2–6.4 for its target), and in
+every §54 cell it lands within 0.012 of isotropic noise (below it on 10–21 of
+29 speakers — a coin). Matching the per-band power bought nothing because the
+purifier is not reading the per-band power.
+
+Why this does not threaten the mel verdicts: the control's weakness only
+matters where a target sits *above* its control, which is the §55 pattern. In
+the mel domain every encoder direction, trained or untrained, sits below
+**isotropic noise** itself — 22–29 of 29 speakers for all eight gradient
+directions — so the comparison would survive replacing the control with plain
+white noise. "The gap is not spectral" (Fig. 1, §37) remains a correct
+reading; "the control is as structured as the target" was never one, and
+`core/matched_random.py` now says so. Pinned: `test_band_matched_is_temporally_
+white_whatever_the_target`, `test_band_matched_wav_is_gaussian_in_time_
+whatever_the_target`.
+
+What the controls *cannot* do is tell "encoder-specific" from "not noise-like",
+which is risk 3's question and is taken up in 58e.
+
+### 58d. Risk 2 — is α the network or the front end? THE FRONT END. F-1 fires, and so does the secondary condition
+
+`audit_frontend_alpha.py`, reading fixed in its docstring before the run,
+B.3's 0.63 / 0.70 cut points reused unchanged. Same protocol as every α
+section: purifier v7 DDIM, t = 50 and 200, the 29 cross-session test-clean
+speakers, `--rms 0.2`, seeds 2026,7, `survival()`, `controls_for`. Every
+gradient direction gated per speaker before its α was measured; exactly one
+speaker failed (121, the Kaldi-fbank directions, as 58b predicts), so the
+primary set is 28 for those and 29 for the rest, with all-29 beside it.
+
+Two directions with **no network**:
+
+* `frontend:fbank-linear` — normalize(W · vec(Kaldi fbank + CMN)), W a fixed
+  Gaussian [512 × 31840], seed 2026, the same W for every speaker. CAM++'s
+  front end, nothing after it.
+* `frontend:wav-linear` — normalize(W · x), W fixed Gaussian [512 × 64000].
+  No front end at all: the only thing between the random projection and the
+  mel is V, the fixed-phase mel→wav inverse the mel path differentiates
+  through. It isolates the measurement's own reconstruction Jacobian.
+
+Trained CAM++ and Control B's untrained CAM++ were measured in the same run as
+in-run references. They reproduce §54 to the digit (0.631 / 0.637 vs 0.631 /
+0.638; random 0.714, pca_span 0.844), which is also the instrument's
+across-run stability, measured.
+
+| direction, t = 50 | n | α | vs own band-matched control | 95 % CI | p | below | vs random |
+|---|---|---|---|---|---|---|---|
+| **frontend:fbank-linear** | 28 | **0.550** | −0.165 | [−0.202, −0.145] | 7.5e−09 | 28/28 | −0.169 |
+| (all 29) | 29 | 0.544 | −0.166 | [−0.203, −0.146] | 3.7e−09 | 29/29 | −0.170 |
+| **frontend:wav-linear** | 29 | **0.177** | −0.507 | [−0.539, −0.467] | 3.7e−09 | 29/29 | −0.537 |
+| CAM++ (trained, in-run) | 28 | 0.631 | −0.079 | [−0.104, −0.057] | 5.2e−07 | 24/28 | −0.088 |
+| CAM++ untrained s0 (in-run) | 28 | 0.648 | −0.077 | [−0.129, −0.044] | 1.2e−04 | 23/28 | −0.071 |
+| random | 29 | 0.714 | | | | | |
+| pca_span | 29 | 0.844 | | | | | |
+
+At t = 200: fbank-linear 0.340 (−0.128, 28/28), wav-linear 0.149 (−0.318,
+29/29), CAM++ 0.386, untrained 0.450, random 0.465. Holm over the four
+front-end cells: every p_holm < 1e−8.
+
+**F-1.** A direction with no network in it — a fixed random linear projection
+of the fbank features — lands at **0.550**, inside the trained band
+0.388–0.631, between WavLM-SV (0.568) and ECAPA (0.463), *below* the trained
+CAM++ it shares a front end with (0.631), and below its own spectrum-matched
+control on every one of 28 speakers. The C1 contrast does not need a speaker
+encoder, does not need learned weights (§54), and does not need a network.
+
+**The secondary condition also fires, and it is the sharper finding.** The
+waveform projection, which has *no front end either*, is the most
+purifier-hostile direction ever measured on this purifier: **0.177**, under
+the d-vector's 0.388, under the d-vector's t = 200 value (0.262), 0.54 below
+random. The only operator that direction passes through is V. So the ordering
+on this purifier runs
+
+> V alone 0.18 < V + fbank 0.55 < V + fbank + CAM++ (untrained 0.65, trained 0.63) ≈ V + raw-waveform WavLM-SV 0.57 … < band-matched 0.71 ≈ random 0.71 < pca_span 0.84
+
+and every stage *added* on top of V makes the direction survive **better**,
+toward the noise level, not worse. "Purifier-hostile" is what the adjoint of
+the mel→wav inverse makes of any vector; front ends and networks smooth it.
+58c's structure table says what V's adjoint does: it multiplies by the linear
+mel magnitude (the chain rule through `exp`), so the log-mel direction of
+*anything* pulled back through V concentrates where the spectrogram is loud —
+wav-linear keeps 99.9 % of its energy in 5 % of its elements (peak/RMS 81),
+fbank-linear 77 % (38), the encoders 77–99 % (16–53), the controls 49–69 %
+(9–12), noise 28 % (4). The purifier, a denoiser in log-mel, removes a
+perturbation whose per-element RMS is 0.2 but whose peaks are 3–16 nats.
+That is the mechanism the α ordering had been read as evidence against.
+
+**What changes meaning.** Nothing is re-measured and no arithmetic in §32,
+§37, §43, §44, §46b or §54 is wrong; what each of them *says* is:
+
+* **C1's level clause** — "each encoder's own direction survives worse than a
+  random direction matched to it in norm and spectral envelope" — is true,
+  and is also true of a random projection, and truest of no projection at
+  all. It is a statement about directions pulled back through the
+  measurement's reconstruction, not about encoders. The paper may keep the
+  measurement and must drop the interpretation.
+* **C1's ordering clause** — that α ranks encoders — survives as a
+  description of how far each encoder's Jacobian spreads V's adjoint back
+  toward noise (d-vector least, CAM++ most). It no longer says anything about
+  an "invariant subspace" or about identity, and §32's mechanism for the
+  d-vector reversal (its direction "lives outside the invariant subspace")
+  loses its footing: the d-vector's direction is the one V's weighting
+  dominates most (58f: top-5 % share 0.997, peak/RMS 69, the highest of
+  the five).
+* **§54 / Control B.** B-1 fired because an untrained network is as hostile
+  as a trained one. 58d says the network is not needed either: the untrained
+  CAM++ (0.648 in-run) sits *above* the no-network fbank projection (0.550).
+  B.4's disjunction "identity or architecture" acquires its true third term
+  and collapses to it: **the measurement path**. "Speaker" stays out of the
+  title (that decision was correct for a reason that is now stronger), and
+  §54d's surviving sentence — "the gradient direction of a deep speech
+  network … survives worse than matched random" — must lose "of a deep speech
+  network".
+* **Fig. 1.** Gains two rows it cannot be read without: fbank-linear at
+  0.550 and wav-linear at 0.177, both from this run, both gated. The
+  level-led reading ("10/10 cells below their own control") is unchanged and
+  now unremarkable.
+* **§42h / C2**, the measurement-distortion contribution, is untouched by
+  this: it does not use α.
+
+The F-3 share, for the record: the front end explains (0.714 − 0.550) /
+(0.714 − 0.631) = 2.0× the trained-CAM++ gap, and V alone 6.5× of it. There
+is no residual gap for a network to explain.
+
+### 58e. Risk 3 — scale, local amplitude and sign: CONFIRMED on all three counts
+
+`audit_rms_sensitivity.py` (+ `audit_summarise_rms.py`), speakers 61, 121,
+237, seeds 2026,7. Each direction built once at unit RMS and rescaled, so the
+only thing that changes along a row is the scale.
+
+**(i) α is scale-dependent on both purifiers, and so is the contrast.**
+Purifier v7 DDIM, t = 50, mean over three speakers:
+
+| direction | rms 0.05 | 0.10 | **0.20 (protocol)** | 0.40 |
+|---|---|---|---|---|
+| random | 0.744 | 0.728 | 0.679 | 0.579 |
+| pca_span | 0.811 | 0.809 | 0.803 | 0.785 |
+| band_matched (3 controls) | 0.72–0.74 | 0.71–0.73 | 0.67–0.69 | 0.59–0.61 |
+| WavLM-SV | 0.597 | 0.597 | 0.596 | 0.565 |
+| d-vector | 0.532 | 0.526 | 0.517 | 0.492 |
+| CAM++ | 0.693 | 0.685 | 0.662 | 0.619 |
+| CAM++ untrained s0 | 0.594 | 0.582 | 0.548 | 0.505 |
+| frontend:fbank-linear | 0.580 | 0.562 | 0.525 | 0.469 |
+
+| contrast, paired per speaker | 0.05 | 0.10 | **0.20** | 0.40 |
+|---|---|---|---|---|
+| WavLM-SV − its control | −0.122 (3/3) | −0.109 (3/3) | −0.075 (2/3) | −0.028 (2/3) |
+| CAM++ − its control | −0.036 (2/3) | −0.029 (2/3) | −0.012 (1/3) | **+0.020** (1/3) |
+| fbank-linear − its control | −0.158 (3/3) | −0.165 (3/3) | −0.167 (3/3) | −0.142 (3/3) |
+| CAM++ − random | −0.051 | −0.043 | −0.018 | **+0.040** |
+
+Isotropic noise loses 0.17 of its α across an 8× range, so α is not a
+property of a direction alone but of (direction, amplitude, purifier). The
+contrasts the verdicts are read from move with it: WavLM-SV's halves between
+0.05 and 0.20 and halves again by 0.40; CAM++'s changes sign inside the
+sweep. The protocol value 0.2 (pre-registered, unchanged here) is the scale at
+which CAM++'s contrast is nearest zero, which is consistent with §54's weak
+CAM++ cell (24/29). `pca_span` is the one direction that is nearly
+scale-free (0.81 → 0.79), which is what "inside the invariant subspace" would
+look like if anything were.
+
+On DiffWave-LibriSpeech at t = 1 the dependence is the other way and far
+steeper — random 0.371 → 0.820 from rel_rms 0.025 → 0.2, i.e. the purifier
+removes small perturbations and passes large ones — and the contrast *flips
+sign* between 0.025 and 0.05: the §55 vector sits below its control at 0.025
+(−0.036, 2/3) and above it at the protocol 0.05 (+0.141, 0/3) and beyond. So
+even setting aside that §55's directions were residue, a DiffWave α contrast
+at a single rel_rms has no scale-free reading; a valid #13c needs a scale
+sweep in its design.
+
+**(ii) Equal RMS is not equal amplitude.** Every direction in a cell receives
+the same per-element RMS to 1.3e−06 (mel; `audit_direction_structure.csv`),
+and the waveform run's d-vector arm received 0.8–3.3 % *less* than its
+siblings because `unit()`'s additive 1e−12 was not negligible against a
+residue of RMS 4.6e−11 (speakers 61/121/237: −2.1 / −3.3 / −0.8 %, control
+inheriting the deficit). That is fixed (`scale_to_rms`, which refuses residue).
+What equal RMS does not equalise is local amplitude, at the protocol scale:
+
+| direction | peak |d| (nats) at rms 0.2 | top-5 % energy share |
+|---|---|---|---|
+| random | 0.84 | 0.28 |
+| pca_span | 1.04 | 0.33 |
+| band_matched controls | 1.8–2.2 | 0.49–0.69 |
+| CAM++ | 3.3 | 0.81 |
+| frontend:fbank-linear | 7.7 | 0.77 |
+| CAM++ untrained s0 / d-vector / WavLM-SV | 8.6–8.8 | 0.83–0.99 |
+
+A log-mel denoiser is asked whether it preserves a 0.8-nat ripple or a 9-nat
+spike of the same total energy. That is a different question from "does this
+direction lie in the invariant subspace", and the ordering of α across every
+direction kind in 58d (V alone 0.18, spikiest; noise 0.71, flattest) follows
+the spike height. [58f quantifies it across all 29 × 18 cells of §54.]
+
+**(iii) α is sign-asymmetric for the gradient directions and symmetric for
+every control.** α(+d) against α(−d) at the protocol scale, t = 50, three
+speakers (+d is §32's convention, the steepest descent of similarity to self):
+
+| direction | α(+d) | α(−d) | α(+d) − α(−d) | max per speaker |
+|---|---|---|---|---|
+| random | 0.679 | 0.680 | −0.001 | 0.008 |
+| pca_span | 0.803 | 0.804 | −0.000 | 0.001 |
+| band_matched (×3) | 0.670–0.692 | 0.671–0.685 | ±0.007 | 0.017 |
+| CAM++ | 0.662 | 0.676 | −0.015 | 0.016 |
+| WavLM-SV | 0.596 | 0.638 | −0.042 | 0.086 |
+| **CAM++ untrained s0** | 0.548 | **0.690** | **−0.143** | 0.464 |
+| **d-vector** | 0.517 | **0.676** | **−0.159** | 0.199 |
+| **frontend:fbank-linear** | 0.525 | **0.681** | **−0.156** | 0.399 |
+
+On these three speakers the negated d-vector, untrained and no-network
+directions survive like isotropic noise. Three speakers is too thin for a
+finding of that size, and the cohort run below corrects part of it: the
+untrained asymmetry here is speaker 121 (0.464 on the gate-failing cell).
+The controls do not care about sign, as a random vector should not. On
+DiffWave the same vectors are sign-symmetric (|Δ| ≤ 0.011), so the asymmetry
+belongs to the mel purifier at this amplitude.
+
+**The cohort.** `audit_sign_symmetry.py`, reading fixed in its docstring
+before the run: purifier v7 DDIM t = 50, 29 speakers, `--rms 0.2`, seeds
+2026,7, the eight gradient directions each measured as +d and −d, each
+against its own band-matched control (sign-symmetric, measured once), every
+direction gated per speaker (121: CAM++, ERes2Net, untrained, fbank-linear;
+260: ERes2Net — the 58f record). Primary endpoint: paired α(−d) − control and
+paired α(+d) − α(−d), BCa 95 % CI, Wilcoxon, Holm over the eight.
+
+| direction | n | α(+d) | **α(−d)** | control | −d − ctl [95 % CI] | p_holm | below | α(+d) − α(−d) [95 % CI] | p_holm |
+|---|---|---|---|---|---|---|---|---|---|
+| **d-vector** | 29 | 0.388 | **0.671** | 0.702 | −0.031 [−0.079, +0.009] | **0.21** | 17/29 | **−0.283** [−0.357, −0.199] | 6e−07 |
+| ECAPA-TDNN | 29 | 0.463 | 0.654 | 0.711 | −0.057 [−0.085, −0.022] | 0.008 | 22/29 | **−0.191** [−0.243, −0.145] | 4e−09 |
+| WavLM-SV | 29 | 0.568 | 0.613 | 0.708 | −0.095 [−0.119, −0.064] | <1e−4 | 25/29 | −0.045 [−0.062, −0.026] | 3e−04 |
+| ERes2Net | 27 | 0.577 | 0.603 | 0.719 | −0.116 [−0.134, −0.095] | <1e−4 | 26/27 | −0.027 [−0.038, −0.019] | 2e−07 |
+| CAM++ | 28 | 0.631 | 0.647 | 0.710 | −0.063 [−0.087, −0.040] | 1e−4 | 24/28 | −0.017 [−0.021, −0.013] | 8e−09 |
+| CAM++ untrained s0 | 28 | 0.649 | 0.653 | 0.725 | −0.072 [−0.105, −0.034] | 2e−4 | 24/28 | −0.004 [−0.091, +0.045] | 0.41 |
+| frontend:fbank-linear | 28 | 0.550 | 0.605 | 0.715 | −0.110 [−0.133, −0.065] | 1e−4 | 27/28 | −0.055 [−0.153, −0.028] | 8e−08 |
+| **frontend:wav-linear** | 29 | 0.177 | **0.828** | 0.684 | **+0.144** [+0.114, +0.180] | 2e−08 | 1/29 | **−0.651** [−0.690, −0.611] | 4e−09 |
+
+Read off the pre-fixed rule:
+
+* **d-vector — a signed vector.** The lowest α in the paper (0.388, the cell
+  §32's mechanism was built on) becomes 0.671 under negation, and that is not
+  distinguishable from its own control (p_holm 0.21, 17/29). The d-vector's
+  "identity direction" is purifier-hostile in one sign only.
+* **wav-linear — a signed vector, inverted.** 0.177 one way, 0.828 the
+  other, *above* its control on 28 of 29 speakers. The most hostile direction
+  on this purifier and one of the most survivable are the same axis.
+* **ECAPA — mixed.** Asymmetry −0.19 (the second largest), yet −d still sits
+  0.057 below its control. Half of ECAPA's contrast is its sign.
+* **WavLM-SV, ERes2Net, fbank-linear — mixed, mostly direction-like**:
+  asymmetries −0.03 … −0.06, −d still 0.09–0.12 below control.
+* **CAM++ and the untrained CAM++ — directions**: sign-symmetric (−0.017,
+  −0.004) and below their controls either way. §54's untrained cell is not a
+  sign artefact.
+
+The asymmetry follows spike height: wav-linear (peak/RMS 83) −0.65, d-vector
+(69) −0.28, ECAPA (49) −0.19, then everything at ≤ 38 within −0.06. So the
+C1 contrast is partly a subspace-like property that survives negation
+(WavLM-SV, ERes2Net, CAM++, the untrained, the fbank projection: −0.06 to
+−0.12 below control either way) and partly the purifier's response to one
+signed spike (the d-vector entirely, ECAPA by half, V alone in reverse).
+"Encoder directions live outside the invariant subspace" cannot be said of a
+quantity that changes by 0.28 when the direction is negated; what can be
+said is the signed statement, with the sign-symmetric remainder reported as
+the part that is a property of the direction.
+
+
+### 58f. The cohort: the gate record for every mel-path cell, and α against spike height across all of §54
+
+`audit_direction_stability.py --speakers 29 --paths mel`, i.e. the 58b
+instrument on every speaker of the cohort, every direction, three gate
+magnitudes, two jitter modes, two draws each (`audit_direction_stability_
+mel29.csv`, `_gate.txt`). Nothing in it is an α; it is the record §57f's rule
+needs and §54/§46b never had.
+
+**Gate pass counts, 29 speakers:**
+
+| direction | 1e−5 (calibrated) | 1e−4 | 1e−3 | failing speakers at 1e−5 |
+|---|---|---|---|---|
+| WavLM-SV | 29/29 | 29/29 | 29/29 | — |
+| ECAPA-TDNN | 29/29 | 29/29 | 29/29 | — |
+| d-vector | 29/29 | 29/29 | 28/29 | — (1995 flips sign at 1e−3: −0.992, i.e. the same axis) |
+| CAM++ | 28/29 | 25/29 | **8/29** | 121 |
+| ERes2Net | 27/29 | 27/29 | 24/29 | 121, 260 |
+| CAM++ untrained s0 / s1 / s2 | 28 / 27 / 28 | 28 / 27 / 28 | 14 / 18 / 14 | 121 / 121, 260 / 121 |
+| frontend:fbank-linear | 28/29 | 27/29 | 26/29 | 121 |
+| frontend:wav-linear | 29/29 | 29/29 | 29/29 | — |
+
+At the calibrated magnitude the failures are exactly the two digital-silence
+clips (58b), and only for Kaldi-fbank directions; the union over the three
+untrained inits is {121, 260}, so the 58b sensitivity (0.597 → 0.622) is the
+gate-clean figure, not an approximation of it. The 1e−3 column is not a
+calibrated threshold and is read only as a comparison: the raw-waveform,
+SpeechBrain-fbank, power-mel and no-front-end directions tolerate a 0.1 %
+jitter on every speaker, the Kaldi-fbank directions do not on 5–21 of them.
+The trained CAM++ direction reproduces at ≥ 0.95 on 8 speakers at that
+magnitude. Those are rougher functions of the input, not residue (58b's
+float64 check); but a verdict that leans on CAM++'s or ERes2Net's cell
+(§46b, §44, Fig. 1's two eval-only rows) is leaning on the least stable
+instrument in the set, and §46b's "every sign right" for CAM++ should be
+quoted with its 24/29 beside it.
+
+Effect on the published cells, with the pre-registered estimator and no
+threshold changed: CAM++ gate-clean n = 28, α 0.631, Δ vs own control −0.079
+[−0.104, −0.057], p = 5.2e−07, 24/28; ERes2Net n = 27, 0.577, −0.142
+[−0.164, −0.119], p = 1.5e−08, 27/27. Nothing moves.
+
+**α against spike height, every §54 cell.** `audit_alpha_vs_structure.py`
+joins §54's 522 α values (29 speakers × 18 directions) to the same vectors'
+concentration statistics from the run above (same seeds, same code path; the
+smoke run in 58h shows the vectors reproduce to 1e−4 in α):
+
+| Spearman ρ of α(t = 50) with … | top-5 % energy share | log kurtosis | per-frame CV | peak / RMS |
+|---|---|---|---|---|
+| all 522 cells | **−0.739** (p = 4e−91) | **−0.756** (1e−97) | −0.721 | **−0.752** |
+| within each speaker, across its 18 directions: mean ρ | −0.751 | −0.777 | −0.731 | −0.775 |
+| … speakers with ρ < 0 | 29/29 | 29/29 | 29/29 | 29/29 |
+| within ECAPA, across speakers | −0.614 | −0.848 | −0.822 | −0.852 |
+| within d-vector | −0.595 | −0.800 | −0.800 | −0.800 |
+| within ERes2Net | −0.757 | −0.688 | −0.499 | −0.535 |
+| within untrained s0 / s1 / s2 | −0.74 / −0.85 / −0.89 | −0.70 / −0.82 / −0.86 | | |
+| within WavLM-SV | −0.445 | −0.117 | +0.074 | −0.074 |
+| within CAM++ | +0.239 | +0.007 | −0.258 | −0.201 |
+| within the band-matched controls | −0.54 … +0.25 | | | |
+
+At t = 200 the same, slightly weaker (all cells −0.69; 29/29 speakers).
+
+Sorted by concentration, the 18 directions of §54 separate cleanly: every
+target has ≥ 0.77 of its energy in its loudest 5 % and α ≤ 0.638; every
+control has ≤ 0.79 and α ≥ 0.702. Within the targets the order is the
+encoder order the paper reports — CAM++ (top-5 share 0.83, peak/RMS 21,
+α 0.631) … ECAPA (0.95, 49, 0.463) … d-vector (0.997, 69, 0.388) — and across
+speakers, for ECAPA, the d-vector, ERes2Net and every untrained init, the
+spikier the direction that speaker's clip produces, the lower its α
+(ρ −0.69 … −0.89). WavLM-SV and CAM++ are the two whose α does not track
+their own spikiness across speakers; their ordering relative to the others
+still does. `pca_span` is the one direction off the trend in the other
+direction: it is as flat as noise and survives *better* than noise (0.844),
+being smooth across bands by construction.
+
+So the per-encoder α ordering that §32 read as "how far each encoder's
+identity direction lies outside the invariant subspace" is, to a rank
+correlation of −0.75 over every cell measured, "how tall a spike each
+encoder's Jacobian makes out of V's adjoint". 58e(iii) says the spike's sign
+matters too. Both are properties of the measurement's response to a
+concentrated signed perturbation; neither is a property of identity.
+
+### 58g. The ledger — what each finding invalidates, and what must be re-run
+
+Rule applied throughout: a confirmed *instrument* bug invalidates the cells it
+touched and names a re-measurement; a confirmed *interpretation* finding
+leaves the arithmetic alone and changes what the section may say. No
+pre-registered threshold, endpoint or decision rule has been edited; where one
+now looks wrong it is said here.
+
+| # | finding | status | invalidates | re-run? |
+|---|---|---|---|---|
+| 1 | §57b: waveform path evaluates at the maximum; residue; no first-order direction exists there | **confirmed** (3 spk, f64, 4 jitters) | §55 in full (already withdrawn) | no — a redesign (§57e), now with 58e(i)'s scale sweep as a requirement |
+| 2 | §57c: untrained direction is numerical noise | **refuted** (f64 cos 0.998–0.9999) | nothing | no |
+| 3 | Kaldi-fbank directions are a knife-edge on digital-silence clips; gate fails on 121 for CAM++/ERes2Net/untrained ×3/fbank-linear | **confirmed** (instrument) | the 121 cells of §46b, §54, Fig. 1 (CAM++, ERes2Net rows) and the 121/260 untrained cells carry no verdict on their own; §54's primary 0.597 contains them (0.622 without) | no — the pre-registered primary is read on all 29 as written; the sensitivity is reported beside it; the per-cell gate is now recorded by the script |
+| 4 | `unit()` epsilon vs residue: d-vector arm of #13c got 0.8–3.3 % less RMS | **confirmed** (instrument, void path) | nothing live (§55 already void; mel cells exact to 1.3e−06) | no; fixed |
+| 5 | band-matched controls are temporally white / Gaussian | **confirmed** (construction) | the reading "the control is as structured as the target" (never written); "the gap is not spectral" stands | no; documented + tested |
+| 6 | the front end alone reproduces the C1 contrast (F-1); V alone is the most hostile direction measured | **confirmed** (29 spk, gated, p < 1e−8) | the *interpretation* of §32, §37, §43, §44, §46b, §54, Fig. 1 as statements about encoders, networks or identity; §32's "invariant subspace" mechanism for the d-vector reversal | no — the measurements stand; two gated rows are added to Fig. 1 from `audit_frontend_alpha.csv` |
+| 7 | α is scale-dependent; the contrast shrinks with scale and CAM++'s flips sign; DiffWave's flips between 0.025 and 0.05 | **confirmed** (3 spk) | the reading of any single-scale α as a property of a direction; the pre-registered `--rms 0.2` / `--rel-rms 0.05` are not neutral and this is said, not changed | no (a scale sweep belongs in any future α design) |
+| 8 | equal RMS ≠ equal amplitude: targets peak 4–10× above controls | **confirmed** | the "subspace" reading of the contrast | no |
+| 9 | α is sign-asymmetric for the gradient directions (Holm-significant for 7 of 8), symmetric for every control; the d-vector's contrast is entirely its sign, ECAPA's half, V alone inverts; CAM++ and the untrained are symmetric | **confirmed** (29 spk, gated) | C1's "subspace" wording; §32's d-vector mechanism (0.388 is one sign of an axis whose other sign is 0.671 ≈ control); the comparison was a signed vector against a sign-symmetric control | no re-run of any verdict; α(−d) is a new, gated measurement, reported beside α(+d) |
+
+**What the paper may now say about α, in one sentence:** on this mel purifier
+at this amplitude, the steepest-descent direction of similarity-to-self for
+*any* differentiable map of the reconstruction — a trained encoder, an
+untrained one, a random projection, no map at all — is a concentrated
+perturbation that the purifier removes more than spectrum-matched noise of
+the same RMS; for the d-vector and for V alone that is true of one sign
+only, for CAM++ and the untrained network of both, and the per-encoder
+differences track how tall a spike each map's Jacobian makes (ρ = −0.75 over
+every cell). What it may not say: that this is about speakers, identity,
+networks, architectures, or an invariant subspace.
+
+Pre-registered items that now look wrong, said rather than edited:
+* `PREREG_council5_controls.md` B.2's premise that an untrained network is the
+  right "no identity" control: the right control is no network, and it was
+  cheaper. B.3's cut points were reused for 58d and fired cleanly.
+* `run_13c.sh`'s single `--rel-rms 0.05`: 58e(i) shows the DiffWave contrast
+  changes sign between 0.025 and 0.05. Any valid #13c must sweep scale.
+* `exp_encoder_subspace.py`'s `--rms 0.2` is the scale at which the weakest
+  encoder contrast (CAM++) is nearest zero; a protocol that fixes one scale
+  should say which contrasts it is sensitive to.
+
+### 58h. Fixes committed, with tests (suite 70 → 79 passed)
+
+* `experiments/audit_sign_symmetry.py` and `audit_sign_symmetry_cells.csv` are the
+  58e(iii) cohort instrument and record.
+* `experiments/check_direction_sanity.py`: `scale_to_rms` (exact, refuses
+  residue); docstring carries the digital-silence limitation and the
+  per-speaker rule. `tests/test_direction_gate.py` (7 tests): the analytic zero
+  in float64 on a toy L2-normalised encoder, float32 residue, gate rejects at
+  the maximum, accepts off it at three magnitudes, names a sign flip,
+  `scale_to_rms` exact / refusing.
+* `experiments/exp_encoder_subspace.py`: every gradient direction is gated per
+  speaker (`direction_of(e, jitter)`, `gate_passed` on every row, `--no-gate`);
+  `unit()` uses `scale_to_rms`. Fixed-instrument check: the patched script
+  reproduces all 36 Control B cells it shares with speakers 61/121 to within
+  0.0001 (`_smoke_a2_gate.csv`), flagging 121's four failing cells.
+* `experiments/exp_encoder_subspace_wav.py`: `unit()` uses `scale_to_rms`
+  (the path stays disabled).
+* `experiments/analyse_control_b.py`, `analyse_matched_control.py`: report
+  gate-failing cells and the gate-clean sensitivity beside the pre-registered
+  verdict.
+* `core/matched_random.py`: the reading rule for `band_matched ≈ random`;
+  `tests/test_matched_random.py` +2 (temporal whiteness, Gaussianity).
+* New, re-runnable: `audit_direction_stability.py`, `audit_summarise_stability.py`,
+  `audit_frontend_alpha.py`, `audit_rms_sensitivity.py`, `audit_summarise_rms.py`,
+  `audit_alpha_vs_structure.py`, `audit_sign_symmetry.py`, and their outputs
+  under `results/audit_*`.
+
+What it cost: about 4.5 GPU-hours and one evening, against a lead claim that
+four councils, two audits and a pre-registration had read as a statement
+about speaker encoders.

@@ -1,0 +1,291 @@
+speaker,direction,rms,is_control,controls_for,gate_passed,alpha_t50,nsr_t50,psr_t50,dircos_t50,alpha_t200,nsr_t200,psr_t200,dircos_t200,code_sha,prereg_sha,argv
+61,frontend:fbank-linear,0.2,False,,True,0.6564,0.5475,0.7484,0.8771,0.4197,0.8136,0.5411,0.7757,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+61,frontend:wav-linear,0.2,False,,True,0.2653,1.1586,0.4061,0.6534,0.2053,1.5168,0.3729,0.5504,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+61,CAM++,0.2,False,,True,0.746,0.4016,0.8039,0.928,0.4659,0.6287,0.5503,0.8466,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+61,"CAM++ (untrained, seed 0)",0.2,False,,True,0.7223,0.4762,0.8,0.9028,0.4906,0.7157,0.6033,0.8132,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+61,random,0.2,False,,True,0.7368,0.4595,0.8109,0.9087,0.4753,0.6676,0.5715,0.8317,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+61,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7632,0.3988,0.8217,0.9288,0.491,0.6367,0.5821,0.8435,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+61,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7466,0.3961,0.803,0.9297,0.5053,0.6456,0.6015,0.8401,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+61,band_matched:CAM++,0.2,True,CAM++,True,0.7364,0.4529,0.8084,0.9109,0.4676,0.6724,0.5635,0.8299,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+61,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7661,0.3939,0.8233,0.9304,0.49,0.6412,0.5821,0.8418,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+61,pca_span,0.2,True,,True,0.8824,0.2139,0.9023,0.9779,0.6429,0.4664,0.7094,0.9063,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+121,frontend:fbank-linear,0.2,False,,False,0.3795,0.9179,0.5151,0.7367,0.2768,1.2177,0.4361,0.6346,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+121,frontend:wav-linear,0.2,False,,True,0.2739,1.019,0.3911,0.7004,0.2222,1.3242,0.3687,0.6027,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+121,CAM++,0.2,False,,False,0.6307,0.5407,0.717,0.8797,0.386,0.8519,0.5071,0.7612,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+121,"CAM++ (untrained, seed 0)",0.2,False,,False,0.3301,0.9991,0.4666,0.7074,0.2563,1.2959,0.4196,0.6109,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+121,random,0.2,False,,True,0.5761,0.7468,0.719,0.8012,0.3816,0.9273,0.5204,0.7333,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+121,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,False,0.5801,0.7106,0.7116,0.8151,0.3789,0.9142,0.5134,0.7381,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+121,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.5099,0.8229,0.6604,0.7722,0.3321,1.0377,0.4786,0.6939,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+121,band_matched:CAM++,0.2,True,CAM++,False,0.5573,0.7602,0.7001,0.7961,0.3648,0.951,0.5034,0.7247,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+121,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",False,0.5847,0.7009,0.714,0.8189,0.383,0.9039,0.5162,0.7418,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+121,pca_span,0.2,True,,True,0.6691,0.6214,0.7877,0.8494,0.5002,0.763,0.6292,0.795,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+237,frontend:fbank-linear,0.2,False,,True,0.5393,0.7176,0.6638,0.8125,0.3186,1.1078,0.4755,0.6701,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+237,frontend:wav-linear,0.2,False,,True,0.235,1.1434,0.357,0.6583,0.1923,1.5339,0.3521,0.5461,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+237,CAM++,0.2,False,,True,0.608,0.6014,0.7094,0.857,0.3566,0.9445,0.4905,0.727,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+237,"CAM++ (untrained, seed 0)",0.2,False,,True,0.5864,0.6736,0.707,0.8294,0.3672,1.0276,0.5266,0.6975,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+237,random,0.2,False,,True,0.7246,0.4908,0.8072,0.8977,0.4682,0.7122,0.5748,0.8145,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+237,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7339,0.4657,0.8096,0.9065,0.4744,0.7264,0.5863,0.8091,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+237,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.733,0.4575,0.8061,0.9094,0.4932,0.7164,0.6067,0.8129,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+237,band_matched:CAM++,0.2,True,CAM++,True,0.7273,0.471,0.8039,0.9047,0.4632,0.7195,0.5707,0.8117,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+237,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7412,0.45,0.8128,0.9119,0.48,0.7226,0.5923,0.8105,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+237,pca_span,0.2,True,,True,0.8585,0.2528,0.8855,0.9695,0.6258,0.4933,0.6978,0.8968,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+260,frontend:fbank-linear,0.2,False,,True,0.1005,2.3602,0.2577,0.3901,0.0731,2.8148,0.2183,0.3349,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+260,frontend:wav-linear,0.2,False,,True,0.1368,1.6977,0.2696,0.5075,0.1175,1.9817,0.2608,0.4505,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+260,CAM++,0.2,False,,True,0.5905,0.6395,0.7009,0.8425,0.3558,0.9958,0.5021,0.7086,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+260,"CAM++ (untrained, seed 0)",0.2,False,,True,0.0651,2.7884,0.1927,0.3376,0.0574,3.3221,0.1991,0.2883,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+260,random,0.2,False,,True,0.5719,0.7997,0.7322,0.781,0.3662,1.0439,0.5295,0.6919,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+260,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.557,0.7181,0.6858,0.8123,0.4042,0.9317,0.5525,0.7317,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+260,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.5516,0.7302,0.683,0.8076,0.3951,0.9562,0.5467,0.7227,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+260,band_matched:CAM++,0.2,True,CAM++,True,0.5771,0.7664,0.7271,0.7937,0.3716,0.9811,0.5206,0.7139,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+260,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.5514,0.7203,0.6796,0.8114,0.4047,0.9342,0.5538,0.7307,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+260,pca_span,0.2,True,,True,0.6706,0.6328,0.7936,0.845,0.4985,0.7604,0.6262,0.796,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+908,frontend:fbank-linear,0.2,False,,True,0.6723,0.5517,0.7678,0.8756,0.4397,0.8256,0.5702,0.7711,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+908,frontend:wav-linear,0.2,False,,True,0.1112,2.3296,0.2818,0.3945,0.0939,3.2848,0.3193,0.295,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+908,CAM++,0.2,False,,True,0.7503,0.4133,0.8118,0.9242,0.4782,0.6317,0.5657,0.8454,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+908,"CAM++ (untrained, seed 0)",0.2,False,,True,0.7555,0.4525,0.8292,0.9111,0.5388,0.6815,0.6521,0.8263,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+908,random,0.2,False,,True,0.7534,0.4696,0.8324,0.9052,0.4893,0.7068,0.5992,0.8166,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+908,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7691,0.4355,0.8389,0.9168,0.4965,0.6812,0.6007,0.8265,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+908,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7579,0.4116,0.8196,0.9247,0.5162,0.6627,0.6193,0.8336,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+908,band_matched:CAM++,0.2,True,CAM++,True,0.7479,0.4417,0.8176,0.9147,0.4799,0.6967,0.5848,0.8205,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+908,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7703,0.4331,0.8395,0.9176,0.4962,0.6928,0.6037,0.822,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+908,pca_span,0.2,True,,True,0.8926,0.1942,0.9093,0.9817,0.6439,0.4531,0.707,0.9109,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1089,frontend:fbank-linear,0.2,False,,True,0.5768,0.7739,0.7294,0.7908,0.3535,1.2061,0.5536,0.6387,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1089,frontend:wav-linear,0.2,False,,True,0.1481,1.4249,0.2577,0.5745,0.144,1.7507,0.2901,0.4961,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1089,CAM++,0.2,False,,True,0.6857,0.5348,0.7776,0.8818,0.4145,0.823,0.5369,0.7721,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1089,"CAM++ (untrained, seed 0)",0.2,False,,True,0.704,0.5705,0.8105,0.8686,0.4748,0.8788,0.6321,0.7512,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1089,random,0.2,False,,True,0.7228,0.5441,0.8228,0.8784,0.4619,0.7923,0.5893,0.7838,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1089,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7191,0.5377,0.8164,0.8807,0.4647,0.8299,0.6038,0.7695,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1089,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7103,0.4813,0.7883,0.901,0.4732,0.7759,0.599,0.7901,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1089,band_matched:CAM++,0.2,True,CAM++,True,0.7186,0.5364,0.8154,0.8812,0.4528,0.8176,0.5849,0.7742,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1089,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.728,0.5256,0.8224,0.8852,0.4672,0.8239,0.6053,0.7718,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1089,pca_span,0.2,True,,True,0.8603,0.2507,0.887,0.97,0.6171,0.5077,0.6921,0.8917,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1221,frontend:fbank-linear,0.2,False,,True,0.6198,0.5884,0.7191,0.8619,0.3903,0.887,0.5217,0.7481,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1221,frontend:wav-linear,0.2,False,,True,0.2475,1.0233,0.354,0.6989,0.1936,1.4102,0.3344,0.5786,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1221,CAM++,0.2,False,,True,0.5417,0.6656,0.6507,0.8325,0.3226,1.0408,0.4656,0.6928,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1221,"CAM++ (untrained, seed 0)",0.2,False,,True,0.7373,0.4612,0.8119,0.9081,0.5346,0.6903,0.6496,0.823,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1221,random,0.2,False,,True,0.7285,0.452,0.7995,0.9113,0.4732,0.6496,0.5643,0.8386,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1221,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7135,0.4617,0.7859,0.9079,0.4576,0.682,0.5539,0.8261,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1221,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7486,0.4227,0.8127,0.9211,0.5095,0.6318,0.6027,0.8454,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1221,band_matched:CAM++,0.2,True,CAM++,True,0.721,0.4456,0.7894,0.9134,0.4557,0.68,0.551,0.8269,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1221,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7275,0.4392,0.7946,0.9156,0.4623,0.6701,0.5566,0.8307,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1221,pca_span,0.2,True,,True,0.8632,0.249,0.8895,0.9704,0.6273,0.4799,0.6958,0.9016,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1284,frontend:fbank-linear,0.2,False,,True,0.5441,0.7632,0.6844,0.7949,0.3351,1.1595,0.5131,0.6531,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1284,frontend:wav-linear,0.2,False,,True,0.0817,2.7029,0.2352,0.3473,0.0705,3.3638,0.2445,0.2879,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1284,CAM++,0.2,False,,True,0.6934,0.5236,0.7827,0.8859,0.4412,0.7607,0.5545,0.7959,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1284,"CAM++ (untrained, seed 0)",0.2,False,,True,0.661,0.5915,0.768,0.8607,0.4709,0.8425,0.6157,0.7648,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1284,random,0.2,False,,True,0.7378,0.5218,0.8322,0.8866,0.4872,0.7556,0.6106,0.7979,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1284,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7164,0.5197,0.8074,0.8873,0.4693,0.7664,0.5914,0.7937,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1284,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7076,0.4663,0.7807,0.9063,0.4908,0.7088,0.6015,0.8158,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1284,band_matched:CAM++,0.2,True,CAM++,True,0.7259,0.5001,0.8117,0.8944,0.4777,0.7271,0.5907,0.8088,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1284,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7477,0.4724,0.827,0.9042,0.4916,0.7184,0.6055,0.8122,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1284,pca_span,0.2,True,,True,0.8605,0.2712,0.8915,0.9651,0.6374,0.4908,0.71,0.8977,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1320,frontend:fbank-linear,0.2,False,,True,0.5419,0.7627,0.6815,0.7951,0.3425,1.0683,0.5011,0.6835,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1320,frontend:wav-linear,0.2,False,,True,0.1203,1.8471,0.2526,0.4761,0.1006,2.3717,0.2589,0.3886,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1320,CAM++,0.2,False,,True,0.6019,0.6123,0.7057,0.8528,0.3792,0.9253,0.5166,0.734,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1320,"CAM++ (untrained, seed 0)",0.2,False,,True,0.6259,0.6801,0.7569,0.8269,0.4194,1.0008,0.5934,0.7068,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1320,random,0.2,False,,True,0.7249,0.4889,0.8069,0.8984,0.4662,0.7191,0.5743,0.8119,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1320,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7114,0.496,0.7942,0.8958,0.4617,0.7458,0.576,0.8016,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1320,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.6502,0.5789,0.7514,0.8654,0.4411,0.8602,0.5819,0.7583,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1320,band_matched:CAM++,0.2,True,CAM++,True,0.7181,0.488,0.7991,0.8987,0.4616,0.7429,0.575,0.8027,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1320,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7132,0.5005,0.7975,0.8942,0.4655,0.75,0.5819,0.8,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1320,pca_span,0.2,True,,True,0.8576,0.255,0.8851,0.969,0.6218,0.493,0.6933,0.8969,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1580,frontend:fbank-linear,0.2,False,,True,0.533,0.7559,0.6681,0.7978,0.3268,1.1277,0.4927,0.6635,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1580,frontend:wav-linear,0.2,False,,True,0.1997,1.1724,0.3077,0.649,0.169,1.5987,0.3186,0.5303,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1580,CAM++,0.2,False,,True,0.513,0.7387,0.6378,0.8043,0.2928,1.1929,0.4558,0.6424,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1580,"CAM++ (untrained, seed 0)",0.2,False,,True,0.6315,0.6493,0.753,0.8387,0.4379,0.9283,0.5975,0.7329,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1580,random,0.2,False,,True,0.7398,0.4602,0.8144,0.9084,0.4867,0.6663,0.5848,0.8322,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1580,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.713,0.5042,0.7985,0.8929,0.4734,0.733,0.587,0.8065,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1580,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.702,0.4917,0.7823,0.8974,0.4845,0.7559,0.6074,0.7977,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1580,band_matched:CAM++,0.2,True,CAM++,True,0.7162,0.4951,0.7992,0.8962,0.4716,0.7406,0.587,0.8036,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1580,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7179,0.495,0.8011,0.8962,0.4726,0.7382,0.5875,0.8045,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1580,pca_span,0.2,True,,True,0.8723,0.2378,0.8966,0.9729,0.653,0.4648,0.7201,0.9068,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1995,frontend:fbank-linear,0.2,False,,True,0.5049,0.7619,0.6347,0.7954,0.2901,1.2236,0.4584,0.6329,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1995,frontend:wav-linear,0.2,False,,True,0.0654,3.195,0.2187,0.2988,0.0649,3.2988,0.2228,0.2908,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1995,CAM++,0.2,False,,True,0.6748,0.5149,0.759,0.8891,0.409,0.7563,0.5128,0.7976,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1995,"CAM++ (untrained, seed 0)",0.2,False,,True,0.5045,0.7562,0.6325,0.7976,0.329,1.0681,0.4813,0.6834,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1995,random,0.2,False,,True,0.7198,0.5047,0.8063,0.8928,0.47,0.691,0.5713,0.8227,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1995,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.701,0.4899,0.7806,0.898,0.4463,0.737,0.5545,0.805,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1995,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.5751,0.6389,0.6824,0.8427,0.3722,0.9422,0.5113,0.7278,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1995,band_matched:CAM++,0.2,True,CAM++,True,0.7054,0.4908,0.7857,0.8977,0.4474,0.7145,0.5498,0.8136,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1995,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7124,0.4637,0.7852,0.9072,0.4477,0.7278,0.5537,0.8085,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+1995,pca_span,0.2,True,,True,0.8442,0.3044,0.8824,0.9567,0.6188,0.5167,0.6965,0.8884,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2830,frontend:fbank-linear,0.2,False,,True,0.5559,0.7036,0.6797,0.8178,0.3536,1.0739,0.5188,0.6815,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2830,frontend:wav-linear,0.2,False,,True,0.0484,3.8274,0.1913,0.2528,0.0385,4.8466,0.1903,0.2021,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2830,CAM++,0.2,False,,True,0.6085,0.6074,0.7119,0.8547,0.3916,0.9315,0.5351,0.7317,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2830,"CAM++ (untrained, seed 0)",0.2,False,,True,0.6184,0.6564,0.7397,0.836,0.4031,0.9833,0.5653,0.713,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2830,random,0.2,False,,True,0.7545,0.451,0.8277,0.9115,0.4917,0.6815,0.5951,0.8263,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2830,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7593,0.4161,0.8224,0.9232,0.504,0.6581,0.6033,0.8353,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2830,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.6351,0.5464,0.7237,0.8775,0.4497,0.8086,0.5782,0.7776,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2830,band_matched:CAM++,0.2,True,CAM++,True,0.7628,0.4129,0.8253,0.9243,0.4973,0.6497,0.5931,0.8385,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2830,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7628,0.4157,0.8261,0.9234,0.5025,0.656,0.601,0.8361,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2830,pca_span,0.2,True,,True,0.8803,0.2223,0.9018,0.9762,0.6532,0.4631,0.7199,0.9074,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2961,frontend:fbank-linear,0.2,False,,True,0.6426,0.5847,0.7443,0.8633,0.413,0.8429,0.5401,0.7647,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2961,frontend:wav-linear,0.2,False,,True,0.1573,1.4891,0.2821,0.5575,0.1369,1.6115,0.2597,0.5274,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2961,CAM++,0.2,False,,True,0.6529,0.5404,0.7422,0.8797,0.3968,0.8075,0.5101,0.778,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2961,"CAM++ (untrained, seed 0)",0.2,False,,True,0.7696,0.4143,0.8331,0.9239,0.5617,0.6219,0.6615,0.8492,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2961,random,0.2,False,,True,0.7553,0.442,0.8258,0.9146,0.4921,0.6315,0.582,0.8455,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2961,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7506,0.4469,0.8221,0.913,0.4927,0.6813,0.5962,0.8264,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2961,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7343,0.4426,0.803,0.9144,0.5333,0.6592,0.6388,0.8349,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2961,band_matched:CAM++,0.2,True,CAM++,True,0.7338,0.4487,0.8043,0.9124,0.4648,0.6899,0.5647,0.8231,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2961,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.782,0.3961,0.8411,0.9297,0.512,0.6389,0.6076,0.8427,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+2961,pca_span,0.2,True,,True,0.8893,0.2006,0.907,0.9805,0.643,0.4477,0.7045,0.9127,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+3570,frontend:fbank-linear,0.2,False,,True,0.4842,0.8863,0.647,0.7484,0.2811,1.3401,0.4698,0.5981,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+3570,frontend:wav-linear,0.2,False,,True,0.2605,1.1112,0.3894,0.669,0.2001,1.4958,0.3599,0.5558,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+3570,CAM++,0.2,False,,True,0.5864,0.6905,0.7126,0.8229,0.3638,0.9861,0.511,0.7121,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+3570,"CAM++ (untrained, seed 0)",0.2,False,,True,0.5406,0.7747,0.6838,0.7905,0.3665,1.0836,0.5404,0.6783,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+3570,random,0.2,False,,True,0.677,0.5931,0.7871,0.8601,0.4489,0.8043,0.576,0.7792,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+3570,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.6521,0.5998,0.7604,0.8576,0.4275,0.8663,0.5656,0.7558,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+3570,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.6213,0.6026,0.7253,0.8565,0.3999,0.9316,0.5465,0.7317,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+3570,band_matched:CAM++,0.2,True,CAM++,True,0.6425,0.6375,0.7619,0.8432,0.4257,0.8579,0.5609,0.759,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+3570,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.6664,0.5681,0.7665,0.8695,0.4323,0.8438,0.5657,0.7643,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+3570,pca_span,0.2,True,,True,0.8068,0.3667,0.8593,0.9389,0.6032,0.5607,0.6916,0.8722,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4077,frontend:fbank-linear,0.2,False,,True,0.5691,0.7006,0.6949,0.819,0.3449,1.0739,0.506,0.6815,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4077,frontend:wav-linear,0.2,False,,True,0.0895,2.0103,0.2009,0.4456,0.0826,2.5039,0.2223,0.3713,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4077,CAM++,0.2,False,,True,0.6767,0.5376,0.7683,0.8808,0.418,0.7969,0.5345,0.7821,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4077,"CAM++ (untrained, seed 0)",0.2,False,,True,0.6972,0.5388,0.792,0.8803,0.4621,0.8489,0.6062,0.7624,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4077,random,0.2,False,,True,0.737,0.5277,0.8333,0.8844,0.4835,0.7744,0.6116,0.7907,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4077,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7618,0.4384,0.8318,0.9158,0.5012,0.7048,0.6132,0.8174,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4077,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.6746,0.4869,0.7503,0.8991,0.4921,0.7032,0.6016,0.818,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4077,band_matched:CAM++,0.2,True,CAM++,True,0.7626,0.4291,0.8298,0.919,0.4951,0.6819,0.5993,0.8262,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4077,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7544,0.452,0.8279,0.9112,0.4954,0.7115,0.608,0.8148,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4077,pca_span,0.2,True,,True,0.8837,0.2254,0.9059,0.9755,0.6622,0.4578,0.7283,0.9093,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4446,frontend:fbank-linear,0.2,False,,True,0.5283,0.7623,0.6643,0.7953,0.3102,1.2027,0.4853,0.6396,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4446,frontend:wav-linear,0.2,False,,True,0.1059,1.9317,0.2303,0.4599,0.103,2.2499,0.2519,0.4081,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4446,CAM++,0.2,False,,True,0.6494,0.5724,0.7482,0.8679,0.3985,0.8499,0.523,0.762,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4446,"CAM++ (untrained, seed 0)",0.2,False,,True,0.6338,0.6205,0.746,0.8497,0.4143,0.93,0.5658,0.7323,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4446,random,0.2,False,,True,0.7344,0.4859,0.8165,0.8994,0.4823,0.6919,0.5866,0.8223,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4446,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7452,0.4523,0.8179,0.9111,0.4917,0.7171,0.6051,0.8127,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4446,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7512,0.4088,0.8115,0.9257,0.53,0.6226,0.6244,0.8489,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4446,band_matched:CAM++,0.2,True,CAM++,True,0.7478,0.442,0.8176,0.9146,0.4827,0.6933,0.5875,0.8218,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4446,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7438,0.45,0.8156,0.9119,0.4888,0.709,0.5992,0.8158,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4446,pca_span,0.2,True,,True,0.8684,0.247,0.8945,0.9708,0.6524,0.4749,0.7222,0.9033,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4970,frontend:fbank-linear,0.2,False,,True,0.543,0.7173,0.6683,0.8126,0.3222,1.1274,0.4856,0.6636,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4970,frontend:wav-linear,0.2,False,,True,0.1934,1.1421,0.2936,0.6588,0.1584,1.6618,0.3072,0.5159,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4970,CAM++,0.2,False,,True,0.5681,0.6441,0.6758,0.8407,0.3416,1.0372,0.4921,0.6941,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4970,"CAM++ (untrained, seed 0)",0.2,False,,True,0.7768,0.3831,0.8319,0.9338,0.6083,0.5955,0.708,0.8592,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4970,random,0.2,False,,True,0.6002,0.7183,0.739,0.8122,0.3937,0.9103,0.5323,0.7395,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4970,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.5999,0.6901,0.7289,0.8231,0.3864,0.9404,0.5304,0.7285,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4970,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.5631,0.7184,0.6933,0.8122,0.3669,0.9857,0.5152,0.7122,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4970,band_matched:CAM++,0.2,True,CAM++,True,0.587,0.7234,0.7245,0.8102,0.3768,0.9605,0.5225,0.7212,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4970,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.5911,0.6814,0.7153,0.8264,0.3717,0.9501,0.5127,0.725,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4970,pca_span,0.2,True,,True,0.7055,0.5488,0.8048,0.8767,0.5212,0.7213,0.6427,0.8111,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4992,frontend:fbank-linear,0.2,False,,True,0.6184,0.6647,0.7425,0.8328,0.4072,0.9414,0.5593,0.7282,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4992,frontend:wav-linear,0.2,False,,True,0.0805,2.5529,0.2208,0.3647,0.0796,2.8123,0.2373,0.3355,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4992,CAM++,0.2,False,,True,0.554,0.7803,0.7027,0.7884,0.3474,1.136,0.5258,0.6607,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4992,"CAM++ (untrained, seed 0)",0.2,False,,True,0.6672,0.5625,0.7656,0.8716,0.4825,0.7863,0.6138,0.7861,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4992,random,0.2,False,,True,0.7175,0.5738,0.8272,0.8674,0.4718,0.793,0.6022,0.7835,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4992,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7053,0.6083,0.8256,0.8544,0.4653,0.8628,0.6146,0.7572,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4992,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.6601,0.569,0.7595,0.8691,0.4572,0.8501,0.6004,0.762,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4992,band_matched:CAM++,0.2,True,CAM++,True,0.669,0.6451,0.7961,0.8403,0.4394,0.8718,0.5829,0.7538,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4992,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7326,0.553,0.8372,0.8751,0.4798,0.8071,0.6167,0.7782,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+4992,pca_span,0.2,True,,True,0.8524,0.282,0.8856,0.9625,0.6169,0.5061,0.6914,0.8923,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5105,frontend:fbank-linear,0.2,False,,True,0.5876,0.6726,0.7081,0.8298,0.3602,1.0055,0.5108,0.7052,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5105,frontend:wav-linear,0.2,False,,True,0.2494,1.1229,0.375,0.665,0.2078,1.4817,0.3713,0.5595,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5105,CAM++,0.2,False,,True,0.7313,0.4006,0.7878,0.9283,0.4242,0.6365,0.5028,0.8436,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5105,"CAM++ (untrained, seed 0)",0.2,False,,True,0.7723,0.4264,0.8396,0.9199,0.5497,0.6586,0.6583,0.8351,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5105,random,0.2,False,,True,0.7341,0.4811,0.8146,0.9011,0.4632,0.7257,0.5724,0.8093,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5105,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.739,0.4711,0.8169,0.9046,0.4724,0.7343,0.5861,0.8061,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5105,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7534,0.416,0.816,0.9233,0.4999,0.662,0.5995,0.8338,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5105,band_matched:CAM++,0.2,True,CAM++,True,0.7244,0.4741,0.8017,0.9036,0.4403,0.7781,0.558,0.7893,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5105,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7462,0.4634,0.8225,0.9073,0.4735,0.7321,0.5869,0.8069,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5105,pca_span,0.2,True,,True,0.8731,0.2338,0.8967,0.9737,0.6301,0.4819,0.6994,0.9009,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5142,frontend:fbank-linear,0.2,False,,True,0.5031,0.9757,0.7028,0.7158,0.3064,1.5887,0.5751,0.5327,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5142,frontend:wav-linear,0.2,False,,True,0.4006,0.7263,0.4951,0.8091,0.2973,1.1671,0.4569,0.6506,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5142,CAM++,0.2,False,,True,0.6316,0.5832,0.7312,0.8638,0.3953,0.8885,0.5288,0.7476,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5142,"CAM++ (untrained, seed 0)",0.2,False,,True,0.5953,0.8383,0.7768,0.7663,0.4062,1.232,0.6446,0.6303,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5142,random,0.2,False,,True,0.723,0.5359,0.8202,0.8814,0.4744,0.7458,0.5918,0.8016,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5142,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7209,0.5441,0.8207,0.8784,0.4866,0.7696,0.6141,0.7925,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5142,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7399,0.47,0.8175,0.905,0.4735,0.7592,0.5946,0.7965,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5142,band_matched:CAM++,0.2,True,CAM++,True,0.7174,0.5383,0.8147,0.8805,0.4602,0.7791,0.5835,0.7888,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5142,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7222,0.5392,0.8205,0.8802,0.4812,0.7865,0.6122,0.786,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5142,pca_span,0.2,True,,True,0.8506,0.2788,0.8831,0.9633,0.6293,0.5038,0.7047,0.8931,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5683,frontend:fbank-linear,0.2,False,,True,0.5065,0.7662,0.638,0.7938,0.307,1.2254,0.4855,0.6323,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5683,frontend:wav-linear,0.2,False,,True,0.0827,2.3159,0.2086,0.3966,0.0766,2.6994,0.2197,0.3484,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5683,CAM++,0.2,False,,True,0.6712,0.525,0.7581,0.8854,0.4099,0.7945,0.5235,0.783,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5683,"CAM++ (untrained, seed 0)",0.2,False,,True,0.7325,0.5047,0.8206,0.8927,0.5379,0.7357,0.6678,0.8055,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5683,random,0.2,False,,True,0.7472,0.4876,0.8314,0.8988,0.49,0.6991,0.5979,0.8196,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5683,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7304,0.5072,0.819,0.8918,0.5009,0.7702,0.6323,0.7922,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5683,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.6024,0.6339,0.7132,0.8446,0.425,0.9452,0.5848,0.7268,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5683,band_matched:CAM++,0.2,True,CAM++,True,0.7052,0.5262,0.7969,0.885,0.4512,0.7821,0.5727,0.7877,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5683,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7674,0.4523,0.8423,0.9111,0.5033,0.7233,0.6212,0.8103,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+5683,pca_span,0.2,True,,True,0.8781,0.2464,0.9044,0.971,0.6579,0.4585,0.7238,0.909,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6829,frontend:fbank-linear,0.2,False,,True,0.5632,0.6958,0.6861,0.8209,0.3369,1.0943,0.4995,0.6748,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6829,frontend:wav-linear,0.2,False,,True,0.2148,1.287,0.3501,0.6136,0.1684,1.6947,0.3307,0.5087,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6829,CAM++,0.2,False,,True,0.567,0.6616,0.6799,0.834,0.35,0.9953,0.4938,0.7088,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6829,"CAM++ (untrained, seed 0)",0.2,False,,True,0.5717,0.6721,0.6889,0.83,0.3906,0.9601,0.5415,0.7214,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6829,random,0.2,False,,True,0.6994,0.5289,0.7912,0.884,0.4597,0.7226,0.5671,0.8105,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6829,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7062,0.5055,0.7914,0.8924,0.4631,0.7321,0.5739,0.8069,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6829,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7166,0.4474,0.7851,0.9128,0.4822,0.694,0.587,0.8216,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6829,band_matched:CAM++,0.2,True,CAM++,True,0.7023,0.5077,0.7876,0.8917,0.4573,0.7321,0.5668,0.8069,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6829,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7227,0.4712,0.7989,0.9046,0.4698,0.7183,0.5785,0.8122,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6829,pca_span,0.2,True,,True,0.833,0.3187,0.8743,0.9528,0.6212,0.5273,0.7022,0.8846,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6930,frontend:fbank-linear,0.2,False,,True,0.6068,0.6599,0.727,0.8346,0.37,1.0253,0.5298,0.6986,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6930,frontend:wav-linear,0.2,False,,True,0.2842,0.7609,0.3571,0.7958,0.2797,0.7688,0.3526,0.7928,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6930,CAM++,0.2,False,,True,0.5884,0.6583,0.7044,0.8353,0.3561,1.0495,0.5161,0.6899,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6930,"CAM++ (untrained, seed 0)",0.2,False,,True,0.7047,0.5292,0.7972,0.8839,0.4796,0.8079,0.6166,0.7779,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6930,random,0.2,False,,True,0.7519,0.4696,0.8307,0.9051,0.489,0.7105,0.5999,0.8152,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6930,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7522,0.4598,0.8279,0.9086,0.4918,0.707,0.6024,0.8165,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6930,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7895,0.3602,0.8391,0.9408,0.574,0.6003,0.6695,0.8574,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6930,band_matched:CAM++,0.2,True,CAM++,True,0.7419,0.4765,0.8219,0.9027,0.481,0.7253,0.5943,0.8095,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6930,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7488,0.4669,0.8264,0.9061,0.487,0.7202,0.6002,0.8115,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+6930,pca_span,0.2,True,,True,0.8767,0.2329,0.9001,0.9739,0.6461,0.4725,0.7146,0.9042,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7021,frontend:fbank-linear,0.2,False,,True,0.6415,0.6079,0.7507,0.8545,0.4053,0.9267,0.5526,0.7335,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7021,frontend:wav-linear,0.2,False,,True,0.3198,0.8692,0.4237,0.7548,0.2724,1.107,0.4062,0.6704,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7021,CAM++,0.2,False,,True,0.6431,0.5898,0.7467,0.8613,0.3827,0.9191,0.5197,0.7363,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7021,"CAM++ (untrained, seed 0)",0.2,False,,True,0.6065,0.6734,0.7312,0.8295,0.3959,0.98,0.5543,0.7142,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7021,random,0.2,False,,True,0.6932,0.6217,0.8163,0.8492,0.4499,0.867,0.5956,0.7557,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7021,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7304,0.5223,0.824,0.8864,0.4729,0.7752,0.5984,0.7904,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7021,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7124,0.4843,0.7916,0.9,0.502,0.7614,0.6309,0.7956,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7021,band_matched:CAM++,0.2,True,CAM++,True,0.6964,0.5651,0.7999,0.8706,0.4411,0.829,0.5731,0.7699,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7021,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7503,0.4806,0.8324,0.9013,0.4892,0.7443,0.6099,0.8022,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7021,pca_span,0.2,True,,True,0.8319,0.3469,0.8806,0.9448,0.6095,0.5337,0.6909,0.8822,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7127,frontend:fbank-linear,0.2,False,,True,0.5564,0.6684,0.6692,0.8314,0.3388,0.9806,0.4745,0.7141,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7127,frontend:wav-linear,0.2,False,,True,0.1901,1.2956,0.3111,0.611,0.1724,1.5086,0.3115,0.5531,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7127,CAM++,0.2,False,,True,0.6947,0.4849,0.7721,0.8998,0.4288,0.7643,0.5397,0.7945,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7127,"CAM++ (untrained, seed 0)",0.2,False,,True,0.6763,0.5741,0.7799,0.8672,0.4551,0.8797,0.6061,0.7508,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7127,random,0.2,False,,True,0.7324,0.4884,0.815,0.8986,0.4698,0.7392,0.5842,0.8042,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7127,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7197,0.4924,0.8022,0.8971,0.4664,0.7452,0.5816,0.8019,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7127,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.6668,0.5334,0.7557,0.8823,0.449,0.8263,0.5825,0.771,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7127,band_matched:CAM++,0.2,True,CAM++,True,0.7172,0.5168,0.8074,0.8884,0.4588,0.7477,0.5729,0.8009,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7127,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7418,0.4572,0.8157,0.9095,0.4803,0.7101,0.5891,0.8154,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7127,pca_span,0.2,True,,True,0.87,0.2331,0.8933,0.9739,0.6367,0.4776,0.7056,0.9024,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7176,frontend:fbank-linear,0.2,False,,True,0.5745,0.6969,0.7003,0.8204,0.3563,1.0403,0.5142,0.6931,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7176,frontend:wav-linear,0.2,False,,True,0.206,1.2755,0.3339,0.617,0.1716,1.6476,0.3303,0.5192,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7176,CAM++,0.2,False,,True,0.7293,0.4406,0.7969,0.9151,0.4485,0.6595,0.5372,0.8348,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7176,"CAM++ (untrained, seed 0)",0.2,False,,True,0.7304,0.4899,0.8133,0.898,0.5152,0.7336,0.6391,0.8063,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7176,random,0.2,False,,True,0.715,0.5223,0.8067,0.8864,0.4659,0.7496,0.5822,0.8001,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7176,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.706,0.5244,0.7972,0.8856,0.4476,0.7943,0.5716,0.783,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7176,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.6972,0.5051,0.7811,0.8926,0.4566,0.812,0.5881,0.7763,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7176,band_matched:CAM++,0.2,True,CAM++,True,0.7371,0.4587,0.8109,0.9089,0.4675,0.6897,0.5679,0.8232,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7176,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7194,0.4997,0.8042,0.8945,0.458,0.7732,0.5789,0.7911,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+7176,pca_span,0.2,True,,True,0.8601,0.2559,0.8878,0.9688,0.6286,0.5065,0.7046,0.8921,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8224,frontend:fbank-linear,0.2,False,,True,0.5496,0.724,0.6785,0.81,0.3495,1.0885,0.5166,0.6765,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8224,frontend:wav-linear,0.2,False,,True,0.0612,3.522,0.2239,0.2731,0.044,4.9088,0.2143,0.2049,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8224,CAM++,0.2,False,,True,0.6043,0.6293,0.714,0.8464,0.3702,0.9623,0.5138,0.7206,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8224,"CAM++ (untrained, seed 0)",0.2,False,,True,0.674,0.5612,0.7728,0.8721,0.4855,0.8215,0.6284,0.7727,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8224,random,0.2,False,,True,0.7496,0.4805,0.8317,0.9013,0.4934,0.686,0.5984,0.8246,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8224,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7381,0.4629,0.8134,0.9075,0.4809,0.7186,0.5922,0.8121,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8224,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.7114,0.4309,0.7746,0.9184,0.4885,0.7105,0.5993,0.8152,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8224,band_matched:CAM++,0.2,True,CAM++,True,0.7352,0.4748,0.8139,0.9034,0.4757,0.7247,0.5875,0.8097,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8224,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7492,0.4439,0.8197,0.914,0.4855,0.6954,0.5913,0.821,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8224,pca_span,0.2,True,,True,0.8748,0.2335,0.8984,0.9738,0.6376,0.4756,0.706,0.9031,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8463,frontend:fbank-linear,0.2,False,,True,0.5892,0.649,0.7024,0.8388,0.3565,0.977,0.4985,0.7153,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8463,frontend:wav-linear,0.2,False,,True,0.1572,1.5536,0.2904,0.5413,0.1267,1.9909,0.2808,0.4503,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8463,CAM++,0.2,False,,True,0.5851,0.6279,0.6909,0.8469,0.3473,0.9968,0.4904,0.7082,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8463,"CAM++ (untrained, seed 0)",0.2,False,,True,0.7615,0.432,0.8295,0.918,0.5353,0.6681,0.6438,0.8315,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8463,random,0.2,False,,True,0.7133,0.4842,0.7925,0.9001,0.4566,0.7124,0.5607,0.8145,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8463,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.7008,0.5065,0.7856,0.8921,0.4485,0.7565,0.5624,0.7975,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8463,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.712,0.4756,0.7884,0.9031,0.4834,0.7105,0.593,0.8152,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8463,band_matched:CAM++,0.2,True,CAM++,True,0.7092,0.4939,0.791,0.8966,0.4532,0.7391,0.5636,0.8042,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8463,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7136,0.4835,0.7927,0.9003,0.4567,0.7358,0.567,0.8055,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8463,pca_span,0.2,True,,True,0.8456,0.2707,0.876,0.9653,0.605,0.5144,0.6804,0.8892,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8555,frontend:fbank-linear,0.2,False,,True,0.4891,0.8946,0.6563,0.7453,0.3076,1.3069,0.5064,0.6079,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8555,frontend:wav-linear,0.2,False,,True,0.1425,1.6686,0.2771,0.514,0.1376,1.9041,0.296,0.465,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8555,CAM++,0.2,False,,True,0.5213,0.8362,0.6796,0.7671,0.3158,1.2569,0.5072,0.6226,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8555,"CAM++ (untrained, seed 0)",0.2,False,,True,0.6241,0.6461,0.7431,0.8399,0.4364,0.9208,0.5933,0.7357,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8555,random,0.2,False,,True,0.7405,0.497,0.8269,0.8955,0.4932,0.7166,0.6068,0.8128,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8555,band_matched:frontend:fbank-linear,0.2,True,frontend:fbank-linear,True,0.695,0.5659,0.7985,0.8703,0.4635,0.808,0.5959,0.7778,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8555,band_matched:frontend:wav-linear,0.2,True,frontend:wav-linear,True,0.6978,0.5241,0.7878,0.8857,0.4784,0.7732,0.6048,0.7911,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8555,band_matched:CAM++,0.2,True,CAM++,True,0.7065,0.5482,0.8056,0.8769,0.462,0.793,0.5896,0.7835,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8555,"band_matched:CAM++ (untrained, seed 0)",0.2,True,"CAM++ (untrained, seed 0)",True,0.7076,0.5488,0.8071,0.8767,0.4686,0.8094,0.6028,0.7773,a24ca86fc0c6,,experiments/audit_frontend_alpha.py
+8555,pca_span,0.2,True,,True,0.8604,0.2587,0.8887,0.9681,0.6433,0.4797,0.7135,0.9016,a24ca86fc0c6,,experiments/audit_frontend_alpha.py

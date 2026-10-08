@@ -1,0 +1,817 @@
+[sanity] spk61 mel frontend:fbank-linear
+           cosine at eval point : 0.9542883
+           gradient norm        : 1.373e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk61 mel frontend:wav-linear
+           cosine at eval point : 0.8440087
+           gradient norm        : 8.149e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk61 mel CAM++
+           cosine at eval point : 0.8352051
+           gradient norm        : 1.200e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9992
+           VERDICT: usable
+
+[sanity] spk61 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9986247
+           gradient norm        : 4.360e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9996
+           VERDICT: usable
+
+[sanity] spk121 mel frontend:fbank-linear
+           cosine at eval point : 0.9540606
+           gradient norm        : 2.781e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.8858
+           VERDICT: NOT A MEASUREMENT
+             - UNSTABLE (jitter 1e-05): 0.8858 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk121 mel frontend:wav-linear
+           cosine at eval point : 0.8043429
+           gradient norm        : 2.893e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk121 mel CAM++
+           cosine at eval point : 0.7568456
+           gradient norm        : 4.335e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9483
+           VERDICT: NOT A MEASUREMENT
+             - UNSTABLE (jitter 1e-05): 0.9483 < 0.95
+           Do not read a verdict from this path.
+
+[sanity] spk121 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9947993
+           gradient norm        : 3.025e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: -0.2315
+           VERDICT: NOT A MEASUREMENT
+             - UNSTABLE (jitter 1e-05): -0.2315 < 0.95  -- the direction FLIPS SIGN
+           Do not read a verdict from this path.
+
+[sanity] spk237 mel frontend:fbank-linear
+           cosine at eval point : 0.9329827
+           gradient norm        : 1.202e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk237 mel frontend:wav-linear
+           cosine at eval point : 0.8583210
+           gradient norm        : 7.623e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk237 mel CAM++
+           cosine at eval point : 0.7177433
+           gradient norm        : 1.190e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9984
+           VERDICT: usable
+
+[sanity] spk237 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9972917
+           gradient norm        : 5.550e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9993
+           VERDICT: usable
+
+[sanity] spk260 mel frontend:fbank-linear
+           cosine at eval point : 0.8496476
+           gradient norm        : 1.161e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9900
+           VERDICT: usable
+
+[sanity] spk260 mel frontend:wav-linear
+           cosine at eval point : 0.8396069
+           gradient norm        : 3.925e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk260 mel CAM++
+           cosine at eval point : 0.7387314
+           gradient norm        : 4.546e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9755
+           VERDICT: usable
+
+[sanity] spk260 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9609940
+           gradient norm        : 2.757e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9980
+           VERDICT: usable
+
+[sanity] spk908 mel frontend:fbank-linear
+           cosine at eval point : 0.9729898
+           gradient norm        : 6.056e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk908 mel frontend:wav-linear
+           cosine at eval point : 0.8528457
+           gradient norm        : 7.133e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk908 mel CAM++
+           cosine at eval point : 0.7513627
+           gradient norm        : 2.540e-04
+           repeat reproducibility: 0.9998
+           jitter reproducibility: 0.9964
+           VERDICT: usable
+
+[sanity] spk908 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9984566
+           gradient norm        : 2.775e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9991
+           VERDICT: usable
+
+[sanity] spk1089 mel frontend:fbank-linear
+           cosine at eval point : 0.9619918
+           gradient norm        : 5.837e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk1089 mel frontend:wav-linear
+           cosine at eval point : 0.8510664
+           gradient norm        : 8.058e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk1089 mel CAM++
+           cosine at eval point : 0.8004856
+           gradient norm        : 6.092e-05
+           repeat reproducibility: 0.9981
+           jitter reproducibility: 0.9895
+           VERDICT: usable
+
+[sanity] spk1089 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9976252
+           gradient norm        : 2.635e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9987
+           VERDICT: usable
+
+[sanity] spk1221 mel frontend:fbank-linear
+           cosine at eval point : 0.9460297
+           gradient norm        : 1.366e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk1221 mel frontend:wav-linear
+           cosine at eval point : 0.8341030
+           gradient norm        : 1.110e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk1221 mel CAM++
+           cosine at eval point : 0.7682244
+           gradient norm        : 1.226e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9994
+           VERDICT: usable
+
+[sanity] spk1221 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9974106
+           gradient norm        : 5.625e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9996
+           VERDICT: usable
+
+[sanity] spk1284 mel frontend:fbank-linear
+           cosine at eval point : 0.9681659
+           gradient norm        : 5.273e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk1284 mel frontend:wav-linear
+           cosine at eval point : 0.8465534
+           gradient norm        : 8.246e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk1284 mel CAM++
+           cosine at eval point : 0.7639830
+           gradient norm        : 1.039e-04
+           repeat reproducibility: 0.9992
+           jitter reproducibility: 0.9868
+           VERDICT: usable
+
+[sanity] spk1284 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9976267
+           gradient norm        : 2.908e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9990
+           VERDICT: usable
+
+[sanity] spk1320 mel frontend:fbank-linear
+           cosine at eval point : 0.9616928
+           gradient norm        : 8.701e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk1320 mel frontend:wav-linear
+           cosine at eval point : 0.8507262
+           gradient norm        : 9.710e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk1320 mel CAM++
+           cosine at eval point : 0.7822375
+           gradient norm        : 7.366e-05
+           repeat reproducibility: 0.9998
+           jitter reproducibility: 0.9877
+           VERDICT: usable
+
+[sanity] spk1320 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9984026
+           gradient norm        : 3.106e-07
+           repeat reproducibility: 0.9999
+           jitter reproducibility: 0.9981
+           VERDICT: usable
+
+[sanity] spk1580 mel frontend:fbank-linear
+           cosine at eval point : 0.9306383
+           gradient norm        : 1.322e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk1580 mel frontend:wav-linear
+           cosine at eval point : 0.7516844
+           gradient norm        : 1.543e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk1580 mel CAM++
+           cosine at eval point : 0.7965024
+           gradient norm        : 7.475e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9993
+           VERDICT: usable
+
+[sanity] spk1580 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9972525
+           gradient norm        : 4.659e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9993
+           VERDICT: usable
+
+[sanity] spk1995 mel frontend:fbank-linear
+           cosine at eval point : 0.9550325
+           gradient norm        : 8.741e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk1995 mel frontend:wav-linear
+           cosine at eval point : 0.8780327
+           gradient norm        : 9.861e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk1995 mel CAM++
+           cosine at eval point : 0.7957065
+           gradient norm        : 1.428e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9978
+           VERDICT: usable
+
+[sanity] spk1995 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9967386
+           gradient norm        : 5.613e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9990
+           VERDICT: usable
+
+[sanity] spk2830 mel frontend:fbank-linear
+           cosine at eval point : 0.9371312
+           gradient norm        : 1.532e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk2830 mel frontend:wav-linear
+           cosine at eval point : 0.7945099
+           gradient norm        : 1.549e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk2830 mel CAM++
+           cosine at eval point : 0.8767899
+           gradient norm        : 7.308e-05
+           repeat reproducibility: 0.9999
+           jitter reproducibility: 0.9985
+           VERDICT: usable
+
+[sanity] spk2830 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9984214
+           gradient norm        : 4.197e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9993
+           VERDICT: usable
+
+[sanity] spk2961 mel frontend:fbank-linear
+           cosine at eval point : 0.9578125
+           gradient norm        : 9.813e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk2961 mel frontend:wav-linear
+           cosine at eval point : 0.8246631
+           gradient norm        : 1.139e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk2961 mel CAM++
+           cosine at eval point : 0.7796527
+           gradient norm        : 1.373e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9987
+           VERDICT: usable
+
+[sanity] spk2961 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9980978
+           gradient norm        : 3.866e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9995
+           VERDICT: usable
+
+[sanity] spk3570 mel frontend:fbank-linear
+           cosine at eval point : 0.9529793
+           gradient norm        : 6.769e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9998
+           VERDICT: usable
+
+[sanity] spk3570 mel frontend:wav-linear
+           cosine at eval point : 0.9026570
+           gradient norm        : 3.571e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk3570 mel CAM++
+           cosine at eval point : 0.7751133
+           gradient norm        : 7.112e-05
+           repeat reproducibility: 0.9990
+           jitter reproducibility: 0.9840
+           VERDICT: usable
+
+[sanity] spk3570 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9959384
+           gradient norm        : 4.599e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9968
+           VERDICT: usable
+
+[sanity] spk4077 mel frontend:fbank-linear
+           cosine at eval point : 0.9429672
+           gradient norm        : 1.003e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk4077 mel frontend:wav-linear
+           cosine at eval point : 0.7943398
+           gradient norm        : 1.718e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk4077 mel CAM++
+           cosine at eval point : 0.8258592
+           gradient norm        : 1.302e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9988
+           VERDICT: usable
+
+[sanity] spk4077 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9982226
+           gradient norm        : 2.891e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9991
+           VERDICT: usable
+
+[sanity] spk4446 mel frontend:fbank-linear
+           cosine at eval point : 0.9496539
+           gradient norm        : 9.753e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk4446 mel frontend:wav-linear
+           cosine at eval point : 0.7717985
+           gradient norm        : 1.294e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk4446 mel CAM++
+           cosine at eval point : 0.7843953
+           gradient norm        : 1.298e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9993
+           VERDICT: usable
+
+[sanity] spk4446 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9979059
+           gradient norm        : 3.465e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9995
+           VERDICT: usable
+
+[sanity] spk4970 mel frontend:fbank-linear
+           cosine at eval point : 0.9711886
+           gradient norm        : 2.844e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9995
+           VERDICT: usable
+
+[sanity] spk4970 mel frontend:wav-linear
+           cosine at eval point : 0.8139666
+           gradient norm        : 6.000e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk4970 mel CAM++
+           cosine at eval point : 0.7048804
+           gradient norm        : 7.719e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9989
+           VERDICT: usable
+
+[sanity] spk4970 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9960726
+           gradient norm        : 3.558e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9994
+           VERDICT: usable
+
+[sanity] spk4992 mel frontend:fbank-linear
+           cosine at eval point : 0.9727175
+           gradient norm        : 3.040e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9996
+           VERDICT: usable
+
+[sanity] spk4992 mel frontend:wav-linear
+           cosine at eval point : 0.8482015
+           gradient norm        : 8.915e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk4992 mel CAM++
+           cosine at eval point : 0.6412091
+           gradient norm        : 7.211e-05
+           repeat reproducibility: 0.9952
+           jitter reproducibility: 0.9596
+           VERDICT: usable
+
+[sanity] spk4992 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9957248
+           gradient norm        : 2.451e-07
+           repeat reproducibility: 0.9999
+           jitter reproducibility: 0.9981
+           VERDICT: usable
+
+[sanity] spk5105 mel frontend:fbank-linear
+           cosine at eval point : 0.9693735
+           gradient norm        : 6.370e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk5105 mel frontend:wav-linear
+           cosine at eval point : 0.8147174
+           gradient norm        : 9.438e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk5105 mel CAM++
+           cosine at eval point : 0.7388931
+           gradient norm        : 2.738e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9948
+           VERDICT: usable
+
+[sanity] spk5105 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9976447
+           gradient norm        : 3.018e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9981
+           VERDICT: usable
+
+[sanity] spk5142 mel frontend:fbank-linear
+           cosine at eval point : 0.9549443
+           gradient norm        : 6.847e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk5142 mel frontend:wav-linear
+           cosine at eval point : 0.8516132
+           gradient norm        : 3.837e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk5142 mel CAM++
+           cosine at eval point : 0.6963981
+           gradient norm        : 2.151e-04
+           repeat reproducibility: 0.9991
+           jitter reproducibility: 0.9710
+           VERDICT: usable
+
+[sanity] spk5142 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9959185
+           gradient norm        : 3.621e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9984
+           VERDICT: usable
+
+[sanity] spk5683 mel frontend:fbank-linear
+           cosine at eval point : 0.9592457
+           gradient norm        : 8.694e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk5683 mel frontend:wav-linear
+           cosine at eval point : 0.8153138
+           gradient norm        : 1.227e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk5683 mel CAM++
+           cosine at eval point : 0.6921287
+           gradient norm        : 1.262e-04
+           repeat reproducibility: 0.9997
+           jitter reproducibility: 0.9920
+           VERDICT: usable
+
+[sanity] spk5683 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9963273
+           gradient norm        : 3.060e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9992
+           VERDICT: usable
+
+[sanity] spk6829 mel frontend:fbank-linear
+           cosine at eval point : 0.9496985
+           gradient norm        : 7.861e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk6829 mel frontend:wav-linear
+           cosine at eval point : 0.8751726
+           gradient norm        : 5.646e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk6829 mel CAM++
+           cosine at eval point : 0.7097735
+           gradient norm        : 1.085e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9994
+           VERDICT: usable
+
+[sanity] spk6829 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9964259
+           gradient norm        : 4.189e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9994
+           VERDICT: usable
+
+[sanity] spk6930 mel frontend:fbank-linear
+           cosine at eval point : 0.9572425
+           gradient norm        : 8.440e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk6930 mel frontend:wav-linear
+           cosine at eval point : 0.7655122
+           gradient norm        : 1.132e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk6930 mel CAM++
+           cosine at eval point : 0.8364825
+           gradient norm        : 7.313e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9992
+           VERDICT: usable
+
+[sanity] spk6930 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9977788
+           gradient norm        : 3.189e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9993
+           VERDICT: usable
+
+[sanity] spk7021 mel frontend:fbank-linear
+           cosine at eval point : 0.9678698
+           gradient norm        : 3.303e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk7021 mel frontend:wav-linear
+           cosine at eval point : 0.8790922
+           gradient norm        : 3.689e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk7021 mel CAM++
+           cosine at eval point : 0.5525209
+           gradient norm        : 1.550e-04
+           repeat reproducibility: 0.9998
+           jitter reproducibility: 0.9885
+           VERDICT: usable
+
+[sanity] spk7021 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9969894
+           gradient norm        : 1.888e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9980
+           VERDICT: usable
+
+[sanity] spk7127 mel frontend:fbank-linear
+           cosine at eval point : 0.9715987
+           gradient norm        : 6.012e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk7127 mel frontend:wav-linear
+           cosine at eval point : 0.7778420
+           gradient norm        : 9.075e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk7127 mel CAM++
+           cosine at eval point : 0.8557053
+           gradient norm        : 5.825e-05
+           repeat reproducibility: 0.9997
+           jitter reproducibility: 0.9961
+           VERDICT: usable
+
+[sanity] spk7127 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9976086
+           gradient norm        : 3.448e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9993
+           VERDICT: usable
+
+[sanity] spk7176 mel frontend:fbank-linear
+           cosine at eval point : 0.9560626
+           gradient norm        : 8.557e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk7176 mel frontend:wav-linear
+           cosine at eval point : 0.9166051
+           gradient norm        : 4.929e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk7176 mel CAM++
+           cosine at eval point : 0.7436658
+           gradient norm        : 2.860e-04
+           repeat reproducibility: 0.9974
+           jitter reproducibility: 0.9756
+           VERDICT: usable
+
+[sanity] spk7176 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9975858
+           gradient norm        : 4.188e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9989
+           VERDICT: usable
+
+[sanity] spk8224 mel frontend:fbank-linear
+           cosine at eval point : 0.9618748
+           gradient norm        : 6.073e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk8224 mel frontend:wav-linear
+           cosine at eval point : 0.8670751
+           gradient norm        : 6.495e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk8224 mel CAM++
+           cosine at eval point : 0.8603121
+           gradient norm        : 6.131e-05
+           repeat reproducibility: 0.9999
+           jitter reproducibility: 0.9932
+           VERDICT: usable
+
+[sanity] spk8224 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9972234
+           gradient norm        : 3.317e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9989
+           VERDICT: usable
+
+[sanity] spk8463 mel frontend:fbank-linear
+           cosine at eval point : 0.9617400
+           gradient norm        : 9.143e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9998
+           VERDICT: usable
+
+[sanity] spk8463 mel frontend:wav-linear
+           cosine at eval point : 0.8168629
+           gradient norm        : 1.192e-04
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk8463 mel CAM++
+           cosine at eval point : 0.7837443
+           gradient norm        : 1.085e-04
+           repeat reproducibility: 0.9999
+           jitter reproducibility: 0.9893
+           VERDICT: usable
+
+[sanity] spk8463 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9980354
+           gradient norm        : 3.605e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9991
+           VERDICT: usable
+
+[sanity] spk8555 mel frontend:fbank-linear
+           cosine at eval point : 0.9612837
+           gradient norm        : 6.728e-06
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9999
+           VERDICT: usable
+
+[sanity] spk8555 mel frontend:wav-linear
+           cosine at eval point : 0.8777189
+           gradient norm        : 5.293e-05
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 1.0000
+           VERDICT: usable
+
+[sanity] spk8555 mel CAM++
+           cosine at eval point : 0.5592188
+           gradient norm        : 1.121e-04
+           repeat reproducibility: 0.9995
+           jitter reproducibility: 0.9926
+           VERDICT: usable
+
+[sanity] spk8555 mel CAM++ (untrained, seed 0)
+           cosine at eval point : 0.9958607
+           gradient norm        : 4.125e-07
+           repeat reproducibility: 1.0000
+           jitter reproducibility: 0.9989
+           VERDICT: usable
