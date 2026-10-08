@@ -134,9 +134,98 @@ class ERes2NetEnc(_Base):
             q.requires_grad_(False)
 
 
+class UntrainedCAMPPlusEnc(_Base):
+    """CAM++ with its architecture and NONE of its training.
+
+    `PREREG_council5_controls.md` Control B. Every existing C1 control
+    (band-matched, pca_span, white noise) tests a SPECTRAL alternative. None
+    tests the TASK alternative:
+
+        "a speech denoiser removes the directions a differentiable speech
+         network is most sensitive to" is a generic fact about neural
+         Jacobians and smooth-prior denoisers;
+        "...that a SPEAKER encoder reads" is the paper's claim.
+
+    They are currently indistinguishable, and the word "speaker" in the title
+    rests on the difference. This encoder is identical to CAMPPlusEnc in
+    architecture, front end and gradient path, and differs only in never
+    having been trained -- so its top gradient direction is a direction of a
+    deep speech network that reads no identity.
+
+    The init seed is part of the identity of this object and is recorded on
+    every row, because a single random init is a single draw: `--untrained-
+    seeds` measures several and the mean over them is the pre-declared
+    primary (see RESULTS, Control B).
+
+    An untrained network is a weak proxy for "no identity" -- it also has
+    untrained FEATURES. 'B.4' of the pre-registration says so, and says that
+    if B-1 fires the honest statement is the disjunction "identity or
+    architecture", not "architecture".
+    """
+    threshold = 0.0
+
+    def __init__(self, device, seed=0):
+        _ensure_path()
+        from speakerlab.models.campplus.DTDNN import CAMPPlus
+        self.seed = int(seed)
+        self.name = f"CAM++ (untrained, seed {self.seed})"
+        g = torch.Generator().manual_seed(self.seed)
+        # Build under a seeded default generator so the init is reproducible
+        # across runs and machines. No state_dict is loaded -- that is the point.
+        state = torch.random.get_rng_state()
+        try:
+            torch.random.manual_seed(self.seed)
+            self.m = CAMPPlus(feat_dim=80, embedding_size=512)
+        finally:
+            torch.random.set_rng_state(state)
+        del g
+        self.m = self.m.to(device).eval()
+        for q in self.m.parameters():
+            q.requires_grad_(False)
+
+
 def build_extra(device):
     """Both encoders, in a fixed order. NEVER added to build_encoders()."""
     return [CAMPPlusEnc(device), ERes2NetEnc(device)]
+
+
+def build_untrained(device, seeds=(0, 1, 2)):
+    """Control B's directions: untrained CAM++ at several inits."""
+    return [UntrainedCAMPPlusEnc(device, seed=s) for s in seeds]
+
+
+def speaker_separation(enc, device, n_spk=12):
+    """Does this encoder carry identity at all?  mean(same) - mean(different).
+
+    Control B's premise is that the untrained network carries essentially no
+    identity. That premise is VERIFIED here in the same run rather than
+    asserted, because a network that happens to carry identity would make the
+    whole control meaningless and nothing else would reveal it.
+    """
+    import numpy as np
+
+    from experiments.librispeech import (cross_session_split, list_librispeech,
+                                         load_flac, reference_items)
+    items = list_librispeech(os.path.join(PROJ, "data", "librispeech"),
+                             "test-clean", min_sec=4.0)
+    ref = reference_items(items, min_sec=4.0, utt_index=0)
+    enr = reference_items(items, min_sec=4.0, utt_index=1)
+    ok = [s for s in cross_session_split(items, min_sec=4.0)
+          if s in ref and s in enr]
+    spks = sorted(ok)[:n_spk]
+    embs = {}
+    with torch.no_grad():
+        for s in spks:
+            a = load_flac(ref[s]["path"], 4.0).to(device)
+            b = load_flac(enr[s]["path"], 4.0).to(device)
+            embs[s] = (enc.embed(a), enc.embed(b))
+    same, diff = [], []
+    for i, s in enumerate(spks):
+        same.append(float((embs[s][0] * embs[s][1]).sum()))
+        for t in spks[i + 1:]:
+            diff.append(float((embs[s][0] * embs[t][1]).sum()))
+    return float(np.mean(same) - np.mean(diff)), float(np.mean(same)), \
+        float(np.mean(diff))
 
 
 def _self_test():

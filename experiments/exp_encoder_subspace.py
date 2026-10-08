@@ -171,6 +171,21 @@ def main():
                          "its real evaluation front end made differentiable. "
                          "PLAN_V3 W2's C1 robustness row: is alpha(g_dvec) an "
                          "artefact of scoring it without preprocess_wav?")
+    ap.add_argument("--with-untrained", action="store_true",
+                    dest="with_untrained",
+                    help="CONTROL B (PREREG_council5_controls.md section B): "
+                         "ALSO measure alpha for an UNTRAINED CAM++ -- same "
+                         "architecture, same front end, no learned weights, so "
+                         "its top gradient direction reads no identity. Tests "
+                         "whether the word 'speaker' in C1 is doing any work, "
+                         "as opposed to 'a denoiser removes directions any deep "
+                         "speech network is sensitive to'. Eval-only: appended "
+                         "to the measurement list, never to build_encoders.")
+    ap.add_argument("--untrained-seeds", default="0,1,2",
+                    dest="untrained_seeds",
+                    help="init seeds for --with-untrained. A single random "
+                         "init is a single draw; the mean over these is the "
+                         "pre-declared primary and each is also reported.")
     ap.add_argument("--no-controls", action="store_true", dest="no_controls",
                     help="omit the council #3 matched controls, reproducing the "
                          "2026-10-01 run exactly")
@@ -281,6 +296,28 @@ def main():
                 print(f"[A2] #13b eval-only encoders: "
                       f"{[e.name for e in main._extra]}")
             enc_list = enc_list + list(main._extra)
+        if a.with_untrained:
+            # CONTROL B. Built once and cached, exactly like the #13b pair.
+            if not hasattr(main, "_untrained"):
+                from experiments.extra_encoders import (build_untrained,
+                                                        speaker_separation)
+                sds = [int(v) for v in a.untrained_seeds.split(",")]
+                main._untrained = build_untrained(device, seeds=sds)
+                print(f"[A2] CONTROL B directions: "
+                      f"{[e.name for e in main._untrained]}")
+                # Verify the premise rather than asserting it: an untrained
+                # net that DID carry identity would void the whole control,
+                # and nothing else in this run would reveal it.
+                for e in main._untrained:
+                    sep, s_same, s_diff = speaker_separation(e, device)
+                    print(f"[A2]   {e.name}: speaker separation "
+                          f"{sep:+.4f}  (same {s_same:+.4f}, "
+                          f"diff {s_diff:+.4f})")
+                    if sep > 0.20:
+                        print("[A2]   WARNING: this untrained network carries "
+                              "non-trivial identity; Control B's premise is "
+                              "violated and B.4's disjunction applies.")
+            enc_list = enc_list + list(main._untrained)
         if a.dvec_frozen_vad:
             from experiments.diag_dvec_proxy import vad_keep_mask
             from resemblyzer.audio import normalize_volume
