@@ -1,0 +1,7 @@
+encoder,arm,n_target,n_nontarget,n_speakers,eer,eer_lo,eer_hi,eer_threshold,mindcf_p001,mindcf_p005,code_sha,prereg_sha,argv
+WavLM-SV,protected,29,812,29,0.5172,0.42,0.5893,0.3372,1.0,1.0,3c8aef869834-dirty,,experiments/eval_protected_asv.py --tag fullnsT_tc_m30_seg
+WavLM-SV,original,29,812,29,0.0419,0.008,0.0721,0.8947,0.3793,0.2894,3c8aef869834-dirty,,experiments/eval_protected_asv.py --tag fullnsT_tc_m30_seg
+ECAPA-TDNN,protected,29,812,29,0.7931,0.7512,0.9039,-0.0657,1.0,1.0,3c8aef869834-dirty,,experiments/eval_protected_asv.py --tag fullnsT_tc_m30_seg
+ECAPA-TDNN,original,29,812,29,0.0,0.0,0.0,0.3498,0.0,0.0,3c8aef869834-dirty,,experiments/eval_protected_asv.py --tag fullnsT_tc_m30_seg
+Resemblyzer d-vector,protected,29,812,29,0.4483,0.3448,0.5517,0.4913,0.9655,0.9655,3c8aef869834-dirty,,experiments/eval_protected_asv.py --tag fullnsT_tc_m30_seg
+Resemblyzer d-vector,original,29,812,29,0.0074,0.0,0.028,0.7342,0.0345,0.0345,3c8aef869834-dirty,,experiments/eval_protected_asv.py --tag fullnsT_tc_m30_seg

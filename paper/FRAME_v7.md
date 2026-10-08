@@ -30,7 +30,7 @@ Three things forced it, in order of weight.
 
 ---
 
-## 2. Title — PROVISIONAL, and one experiment can still break it
+## 2. Title — **BROKEN BY CONTROL B (§54). The fallback is now the title.**
 
 Council §D proposes:
 
@@ -38,7 +38,13 @@ Council §D proposes:
 > Geometry and the Measurement Limits of Purification-Robust Voice
 > Protection**
 
-**This title is not yet earned.** `PREREG_council5_controls.md` Control B tests
+**THIS TITLE IS DEAD.** Control B ran on 2026-10-08 and **B-1 fired**: α_untrained = 0.597, inside the trained band of 0.388–0.631 (§54). An untrained network of the same architecture, carrying no speaker identity (separation +0.006…+0.023 against trained +0.614), is just as purifier-hostile. Per §B.3, without discretion, the title is:
+
+> **What a Speech Purifier Erases, and What That Does to the Instruments: Measurement Limits of Purification-Robust Voice Protection**
+
+and **C1 is demoted; the paper leads with C2**. The text below is kept as the record of what was decided in advance.
+
+**Original wording:** `PREREG_council5_controls.md` Control B tests
 whether the word **speaker** is doing any work, by measuring α for an
 **untrained** CAM++ — same architecture, no learned identity. Its branches were
 fixed before the control was run:
@@ -78,7 +84,32 @@ you about.
 
 ## 4. Contributions
 
-### C1 — the geometry (§32, §37, §43, §44, §46b; Fig. 1)
+### C1 — the geometry (§32, §37, §43, §44, §46b; Fig. 1) — **DEMOTED (§54, §55)**
+
+**Two pre-registered falsifiers fired on 2026-10-08 and both consequences are
+applied without discretion.**
+
+* **§54 (Control B, B-1):** the effect does **not require learned speaker
+  identity** — an untrained CAM++ scores α 0.597, inside the trained band.
+  "Speaker" leaves the title. §B.4's disjunction is mandatory: the honest
+  statement is **"identity or architecture"**, never "architecture".
+* **§55 (#13c):** on DiffWave the sign **reverses** — 20 of 20 cells have the
+  encoder direction surviving *better* than its band-matched control. The
+  control is phase-randomised and therefore noise-like in the waveform domain,
+  so this is a **disjunction** (real reversal, or a control too weak to tell).
+  Either way C1 **does not transfer to the other purifier**, and that belongs
+  in the abstract, not the limitations.
+
+**What C1 may still claim, and it is all it may claim:**
+
+> On one mel-domain purifier, the gradient directions of deep speech networks
+> — trained or untrained, across five architecture families — survive worse
+> than a random direction matched to them in norm and per-mel-band envelope.
+> Matching the spectrum buys the control nothing, so it is not spectral.
+
+The per-encoder ordering survives as a **description** and loses its
+interpretation. C1 is no longer "the geometry, and what it explains".
+
 
 **Lead with the LEVEL, not the ordering** (council §A.2, non-negotiable).
 

@@ -117,7 +117,12 @@ def main():
     emb_enr, emb_prot, emb_orig = {}, {}, {}
     missing = []
     for s in spks:
-        name = f"spk{s}_{ref[s]['chapter']}_{a.utt_index:04d}"
+        # The crafted filename carries the utterance index the SHARED
+        # REFERENCE SELECTOR actually chose, which is not always --utt-index.
+        # Six of 29 speakers use a different one (e.g. spk2830 -> _0005), and
+        # hardcoding 0000 silently dropped them, taking an already-thin
+        # measurement from 29 target trials to 23 without saying so.
+        name = f"spk{s}_{ref[s]['chapter']}_{int(ref[s]['utt']):04d}"
         wp = os.path.join(WAV_DIR, f"{name}_{a.tag}.wav")
         if not os.path.isfile(wp):
             missing.append(os.path.basename(wp))

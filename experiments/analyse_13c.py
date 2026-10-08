@@ -86,6 +86,12 @@ def main():
             for r, pa in zip(tmp, holm(praw)):
                 r["p_holm"] = pa
                 r["sig_below"] = bool(pa < 0.05 and r["hi"] < 0)
+                # A cell can fail "below" in two completely different ways:
+                # no effect, or a significant effect THE OTHER WAY. The first
+                # version of this script reported both as "FAIL", which
+                # described a 20-of-20 significant REVERSAL as a null. That is
+                # the same defect RESULTS 48 caught in 46, committed again.
+                r["sig_above"] = bool(pa < 0.05 and r["lo"] > 0)
             print(f"\n  {pur}, t = {t}     random {rnd:.4f}")
             print(f"  {'encoder':22s} {'alpha':>8s} {'own ctl':>9s} "
                   f"{'delta':>9s} {'95% CI':>20s} {'k/n':>7s} "
@@ -104,11 +110,32 @@ def main():
     out.to_csv(a.out, index=False)
 
     k, tot = int(out.sig_below.sum()), len(out)
+    k_up = int(out.sig_above.sum())
     print("\n" + "=" * 100)
     print("VERDICT -- read off run_13c.sh, fixed before the run")
     print("=" * 100)
-    print(f"  {k} of {tot} cells have the encoder significantly below its own "
-          f"band-matched control.")
+    print(f"  {k} of {tot} cells significantly BELOW their own band-matched "
+          f"control.")
+    print(f"  {k_up} of {tot} cells significantly ABOVE it.")
+    if k_up > tot / 2:
+        print("\n  *** THIS IS A REVERSAL, NOT A NULL. ***")
+        print("  On DiffWave the encoder directions survive BETTER than")
+        print("  spectrally-matched noise -- the opposite sign to the mel")
+        print("  purifier. Reporting it as 'no effect' would repeat exactly")
+        print("  the defect 48 caught in 46.")
+        print("\n  READ THE CONTROL'S LIMITATION BEFORE READING THE RESULT:")
+        print("  band_matched_wav randomises PHASE, which in the waveform")
+        print("  domain makes the control noise-like by construction -- and")
+        print("  DiffWave is a speech denoiser, so it removes noise-like")
+        print("  signals preferentially. The mel controls have no phase to")
+        print("  randomise and so carry no such disadvantage. Diagnostic:")
+        print("  the band-matched controls here behave almost IDENTICALLY to")
+        print("  plain white noise (psr 0.52 vs 0.53, nsr 1.02 vs 0.93), i.e.")
+        print("  matching the spectrum bought the control nothing at all.")
+        print("\n  So the honest statement is the DISJUNCTION: either encoder")
+        print("  directions genuinely survive DiffWave better than matched")
+        print("  noise, OR this control is too weak in the waveform domain to")
+        print("  tell. Both readings kill the same claim:")
     if k == tot:
         print("\n  *** PASS. C1's level claim is PURIFIER-GENERAL. ***")
         print("  It holds on a waveform diffusion model we did not train, in a")

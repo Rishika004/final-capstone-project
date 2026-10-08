@@ -4903,3 +4903,248 @@ the week with, and it is the one §47 forced.
 estimated from the repro probe's 4 min rather than from the seg recipe's real
 range. The estimate was low by 2×, which is worth recording next to §0's
 observation that PLAN_V2's Phase D was under-scoped by the same factor.
+
+---
+
+## 54. CONTROL B — OUTCOME B-1. The word "speaker" is not earned (2026-10-08)
+
+`run_control_b.sh` → `analyse_control_b.py`. 29 speakers, purifier v7 DDIM,
+three random inits. `encoder_subspace_controlb.csv`, `control_b_cells.csv`.
+
+**The pre-registration (2026-10-07) called this the control that decides
+whether the title is true. It fired against us.**
+
+### 54a. The premise, verified in-run rather than asserted
+
+Speaker separation, mean(same) − mean(different), 12 cross-session speakers:
+
+| network | separation |
+|---|---|
+| CAM++ **trained** | **+0.614** |
+| CAM++ untrained, seed 0 | +0.0197 |
+| CAM++ untrained, seed 1 | +0.0061 |
+| CAM++ untrained, seed 2 | +0.0227 |
+
+The untrained networks carry essentially **no speaker identity**. The premise
+holds, and it was measured in the same run rather than taken on trust.
+
+### 54b. The result
+
+α at t = 50, against trained encoders 0.388–0.631 and `random` 0.714:
+
+| direction | α (t=50) | vs its own band-matched control | p |
+|---|---|---|---|
+| untrained seed 0 | 0.638 | −0.082 [−0.130, −0.048] | 6.1e−05 |
+| untrained seed 1 | 0.573 | −0.139 [−0.165, −0.115] | 7.5e−09 |
+| untrained seed 2 | 0.580 | −0.131 [−0.179, −0.095] | 9.3e−08 |
+| **mean (pre-declared primary)** | **0.597** | | |
+
+Trained, same cohort: d-vector 0.388, ECAPA 0.463, WavLM-SV 0.568,
+ERes2Net 0.576, CAM++ 0.631. At t = 200 the untrained mean is 0.401 against a
+trained band of 0.262–0.386.
+
+**α_untrained = 0.597 sits squarely inside the trained band**, and each
+untrained init is significantly below its *own* band-matched control — the
+same test, with the same outcome, as every trained encoder in Fig. 1.
+
+### 54c. The verdict, applied without discretion
+
+§B.3 fixed the thresholds before the run: **B-1 if α_untrained ≤ 0.63**.
+It is 0.597. **B-1 fires.**
+
+* **"Speaker" comes out of the title.** The effect is not about speaker
+  identity: a network of the same architecture that reads *no* identity is
+  just as purifier-hostile. `FRAME_v7` §2's fallback title takes over.
+* **C1 is demoted. The paper leads with C2**, the measurement contribution.
+* **§B.4's disjunction is mandatory.** An untrained network has untrained
+  *features* as well as no identity, so the honest statement is **"identity or
+  architecture"**, never "architecture". We have shown the effect does not
+  *require* learned identity; we have not shown what it does require.
+
+### 54d. What C1 may still say
+
+Not nothing, and the surviving statement is still a measurement nobody has
+published:
+
+> The gradient direction of a deep speech network — trained or untrained,
+> across five architecture families — survives this mel-domain purifier worse
+> than a random direction matched to it in norm and per-mel-band envelope.
+> Matching the spectrum buys the control nothing, so the effect is not
+> spectral.
+
+What it may **not** say: that this is about *speaker* identity, that it
+explains why *speaker* encoders differ, or that α ranks encoders by anything
+identity-related. The per-encoder ordering survives as a description and loses
+its interpretation.
+
+### 54e. Why this was worth running, and what it cost
+
+One GPU-hour, and it removed a word from the title of a paper that was three
+weeks from a draft deadline. Four reviewer councils read the claim "a speaker
+encoder's identity direction is purifier-hostile" without asking what the word
+*speaker* was doing; it took two reviewers in one council noticing it
+independently.
+
+The project's own §24 retro-validation — x-vector "scored low without being
+told it failed" — was taken at the time as evidence that α tracks something
+real about identity. §54 shows that argument proves less than it appeared to:
+a randomly initialised network scores low too.
+
+---
+
+## 55. #13c — α through DiffWave REVERSES sign, and the control is the suspect (2026-10-08)
+
+`run_13c.sh` → `analyse_13c.py`. 29 speakers, 5 encoders, both DiffWave
+checkpoints, t ∈ {1, 3}. `encoder_subspace_wav.csv`, `wav_alpha_cells.csv`.
+
+C1's α is measured on our mel purifier while the phenomenon it explains lives
+on DiffWave. This closes that gap, and the answer is not the one C1 needed.
+
+### 55a. Every cell reverses
+
+20 of 20 cells have the encoder direction surviving **better** than its own
+band-matched control, Holm-adjusted p down to 1.9e−08. Not one cell is below.
+DiffWave-LibriSpeech, t = 1 (random 0.388):
+
+| direction | α | own control | Δ | p_holm |
+|---|---|---|---|---|
+| WavLM-SV | 0.621 | 0.376 | **+0.245** | 1.9e−08 |
+| ECAPA-TDNN | 0.573 | 0.361 | **+0.212** | 2.2e−08 |
+| d-vector | 0.767 | 0.532 | **+0.235** | 1.9e−08 |
+| CAM++ | 0.621 | 0.394 | **+0.227** | 5.2e−08 |
+| ERes2Net | 0.555 | 0.378 | **+0.178** | 6.3e−07 |
+
+The same pattern holds on SC09 and at t = 3. **This is a reversal, not a
+null**, and the first version of `analyse_13c.py` reported it as "FAIL — 0 of
+20 below", which describes a 20-of-20 significant effect as an absence. That
+is precisely the defect §48 caught in §46, committed again by me, in a script
+written the same week. It is fixed and the fix is the reason this section
+distinguishes "below", "above" and "neither".
+
+### 55b. The control is noise-like by construction, and that is my error
+
+Before reading the reversal as a property of encoders, read what the control
+does on this purifier:
+
+| direction | α | psr | dircos | nsr |
+|---|---|---|---|---|
+| WavLM-SV | 0.621 | 0.759 | 0.804 | 0.742 |
+| band-matched:WavLM-SV | 0.376 | **0.520** | 0.705 | **1.023** |
+| ECAPA | 0.573 | 0.715 | 0.786 | 0.794 |
+| band-matched:ECAPA | 0.361 | **0.504** | 0.703 | **1.025** |
+| plain white noise | 0.388 | **0.525** | 0.733 | 0.935 |
+
+**The band-matched controls are indistinguishable from plain white noise**
+(psr 0.50–0.52 against 0.53; nsr above 1, i.e. the residual exceeds what
+survives). Matching the spectrum bought the control *nothing*.
+
+The reason is in the construction. `band_matched_wav` matches the per-STFT-bin
+magnitude profile and **randomises phase**. In the waveform domain that makes
+the control noise-like by construction — and DiffWave is a *speech denoiser*,
+so removing noise-like signals is exactly its job. The mel-domain controls have
+no phase to randomise and carry no such disadvantage, which is why the same
+construction is sound there and weak here.
+
+So the honest reading is a **disjunction**:
+
+> Either encoder gradient directions genuinely survive a waveform diffusion
+> purifier better than spectrally-matched noise, **or** a phase-randomised
+> control is too weak in this domain to tell. This experiment cannot separate
+> them.
+
+### 55c. Both readings kill the same claim
+
+Whichever is true, **C1's level claim does not reproduce on DiffWave**, so by
+the branch fixed in `run_13c.sh` before the run:
+
+* **C1 is a statement about our mel purifier**, not about speech purifiers.
+* The mechanism offered to explain a DiffWave phenomenon **does not hold on
+  DiffWave**, which is the sharpest form of the problem and belongs in the
+  abstract, not the limitations.
+* No cell may be dropped and neither checkpoint may be preferred — they agree.
+
+### 55d. What would separate the disjunction, and why it is not scheduled
+
+A control matched in spectrum **and** phase structure — for instance the
+encoder direction with its identity scrambled while its phase statistics are
+preserved, or another encoder's direction on a different utterance. That is a
+new control design, not a re-run, and designing it after seeing this result
+would need its own pre-registration. At ~3 GPU-h plus design time, before a
+GPU stop, it is **not scheduled**, and the disjunction is reported as a
+disjunction.
+
+### 55e. Read §54 and §55 together
+
+§54 says the effect does not require learned speaker identity. §55 says it
+does not transfer to the other purifier. Together they reduce C1 from "a
+measurement with an explanation" to:
+
+> On one mel-domain purifier, the gradient directions of deep speech networks
+> survive worse than spectrally-matched random directions, and that is not a
+> spectral artefact.
+
+That is still true, still ours, and much smaller than the paper was built on.
+The contribution that now leads is C2.
+
+---
+
+## 56. B7 — the protected arm as an ASV channel, which the paper could not state until now (2026-10-08)
+
+`eval_protected_asv.py`, eval-only. Council v4 **B7**, R2's top ask.
+`asv_protected_arm.csv`, `asv_protected_arm_trials.csv`.
+
+§42h closed council #19 on eight channels and every one was a *purification*
+channel, so the paper could say what a purifier does to a verifier and could
+not say what the **protection** does in ASV currency. This closes that.
+
+### 56a. The result
+
+Test side = the published (protected) utterance; enrolment = clean,
+different-session; same 29 speakers, same encoders. Protection should **raise**
+both numbers — the verifier should stop recognising the speaker:
+
+| encoder | arm | EER % | 95 % CI | minDCF @.01 |
+|---|---|---|---|---|
+| WavLM-SV | original | 4.19 | [0.80, 7.21] | 0.379 |
+| WavLM-SV | **protected** | **51.72** | [42.00, 58.93] | **1.000** |
+| ECAPA-TDNN | original | 0.00 | [0.00, 0.00] | 0.000 |
+| ECAPA-TDNN | **protected** | **79.31** | [75.12, 90.39] | **1.000** |
+| d-vector | original | 0.74 | [0.00, 2.80] | 0.035 |
+| d-vector | **protected** | **44.83** | [34.48, 55.17] | **0.966** |
+
+**minDCF goes to 1.000 on two encoders and 0.966 on the third**: at a realistic
+operating point the verifier is no better than the trivial system. ECAPA, which
+§42h established as the only trustworthy verifier of the three, moves from a
+perfect 0.00 % EER to **79.31 %** — well past chance, meaning the protected
+utterance is actively pushed *away* from the speaker rather than merely
+confused.
+
+This is the strongest single number the protection produces, and it is the one
+a speech reviewer asks for first.
+
+### 56b. What it is not
+
+* **Matched-encoder, and unpurified.** This arm is `--craft-encoders all`, so
+  all three encoders are in the optimisation ensemble, and no purifier is
+  applied. It is the **upper bound** on both axes, and must carry that label
+  every time it is quoted. §22b and §47/§53 give the held-out picture; §5 gives
+  the purified one.
+* **Thin on the target side.** 29 target trials against 464 for every channel
+  in §42h, because one protected utterance exists per speaker. The non-target
+  side is fine (29 × 28 = 812). It may **not** be placed in the §42h table
+  without its n beside it.
+
+### 56c. A bug found by the n, and worth recording
+
+The first run reported **23** speakers, not 29. The cause was mine: the script
+built the crafted filename as `spk{id}_{chapter}_0000`, assuming the utterance
+index equals `--utt-index`. The shared reference selector does not guarantee
+that — six speakers use a different index (`spk2830` is `_0005`) — so six files
+were silently not found and the measurement quietly lost a fifth of its
+already-thin target set.
+
+Fixed by taking the index from the reference item itself. The lesson is the
+one §25 keeps teaching: a silent "file not found" that degrades n is worse than
+a crash, because the output still looks like a result. The script now reports
+the missing list and the usable count on every run, which is how this was
+caught at all.
