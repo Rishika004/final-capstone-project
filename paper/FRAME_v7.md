@@ -116,9 +116,11 @@ measured, all zero GPU.
    **NARROWED 2026-10-08 by the novelty check (`related_work.md` §13), which
    §42h had never had — it was a setup table until the council asked it to
    lead.** That purification costs clean verification accuracy is **already
-   published**: MDD (arXiv 2508.19180) reports clean ASV EER rising 1.4 % →
-   4.0 % and names the mechanism; DAP (arXiv 2310.14270) scores with minDCF.
-   **We did not discover this and must not say we did.**
+   published, and far more dramatically than we report it**: MDD (arXiv
+   2508.19180, APSIPA ASC 2025) Table 3 puts **DAP at 31.2 % bona-fide EER
+   against 1.4 % unpurified**, verified against the full text. Ours moves
+   5.2 % → 9.5 %. **We did not discover this, we are not the ones who measured
+   it most dramatically, and we must say neither.**
 
    What is ours, and still worth the slot:
    * **The operating point, not the EER.** On our channels WavLM-SV's EER

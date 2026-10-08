@@ -246,11 +246,13 @@ are measured on the same base; none requires our protection to be good.
 
 ### 4.1 The purifier degrades the verifier, and EER hides how much
 
-That purification costs clean verification accuracy is known: [MDD] reports
-clean ASV EER rising from 1.4 % to 4.0 % and attributes it to information lost
-in reconstruction, and [DAP] scores purified systems with minDCF. **We do not
-claim that observation.** What we add is where it is measured and what follows
-from it.
+That purification costs clean verification accuracy is known, and heavily:
+[MDD]'s ablation puts a diffusion purifier at **31.2 %** bona-fide EER against
+1.4 % unpurified, and [DAP] already scores purified systems with minDCF. **We
+do not claim that observation, and our own degradation is far smaller than
+theirs** — our purifiers are the gentle settings an *attacker* would choose to
+keep the voice usable, not the aggressive ones a defender would choose. What we
+add is where the cost is measured and what follows from it.
 
 minDCF at p_target = 0.01 (1.0 = no better than the trivial system), 464 target
 and 12 992 non-target trials per channel:

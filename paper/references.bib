@@ -469,3 +469,19 @@
   howpublished = {Hugging Face dataset \url{https://huggingface.co/datasets/gilkeyio/librispeech-alignments}},
   note         = {CC-BY-4.0. Montreal Forced Aligner alignments (english\_us\_arpa, 69 stress-marked ARPAbet labels + spn) shared by Loren Lugosch and packaged by Kim Gilkey. Used 2026-09-22 to supply PhonePuRe stage 2 with phoneme timings for our 29 test-clean reference utterances, replacing MFA at inference; the original CorentinJ Google Drive archive was blocked by Google's large-file gate. Year is the dataset's upload year as shown on the card; verify before typesetting.}
 }
+
+% Verified 2026-10-08 against the arXiv abstract page AND the full HTML text
+% (title, six authors, venue, and Table 3's bona-fide EER column all read from
+% the paper itself). Cited in C2 for the fact that purification costs clean
+% verification accuracy -- its Table 3 has DAP at 31.2 % bona-fide EER against
+% 1.4 % unpurified, which is far larger than our own degradation and must be
+% cited whenever we state ours. See related_work.md 13.2.
+@inproceedings{bai2025mdd,
+  title     = {{MDD}: a Mask Diffusion Detector to Protect Speaker
+               Verification Systems from Adversarial Perturbations},
+  author    = {Bai, Yibo and Chen, Sizhou and Panariello, Michele and
+               Zhang, Xiao-Lei and Todisco, Massimiliano and Evans, Nicholas},
+  booktitle = {Proc. APSIPA ASC},
+  year      = {2025},
+  note      = {arXiv:2508.19180}
+}

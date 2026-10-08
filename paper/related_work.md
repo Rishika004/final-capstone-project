@@ -762,27 +762,60 @@ across encoders. The near misses, and why each misses:
 
 **C1 remains open.** Re-check before submission.
 
-## 13.2 C2.1 — the part that is NOT new, and must stop being written as if it were
+## 13.2 C2.1 — the part that is NOT new, VERIFIED against the paper
 
 **`FRAME_v7` §4 C2.1 overclaims, and this is the correction.** "The purifier
-degrades the verifier, not just the perturbation" is **already known in the
-literature, in EER**:
+degrades the verifier, not just the perturbation" is **already measured in the
+literature**.
 
-* **MDD (arXiv 2508.19180)** reports clean-trial ASV EER rising **1.4 % → 4.0 %**
-  at its best-balanced masking ratio, and states plainly that heavier masking
-  "degrades bona fide performance … due to excessive information loss during
-  reconstruction". It explicitly measures "the impact of different purification
-  methods on ASV performance using the Equal Error Rate".
-* **DAP (arXiv 2310.14270)** scores with minDCF (p = 0.01, C_miss = C_fa = 1)
-  and reports a clean ECAPA baseline at EER 1.069 %, minDCF 0.107.
+**MDD — verified 2026-10-08 against the full text, not a summary.**
+*Bai, Chen, Panariello, Zhang, Todisco, Evans, "MDD: a Mask Diffusion Detector
+to Protect Speaker Verification Systems from Adversarial Perturbations",
+arXiv 2508.19180, accepted at **APSIPA ASC 2025**.* Its Table 3, bona-fide
+(clean) EER %:
+
+| purification | bona-fide EER |
+|---|---|
+| **none** | **1.4** |
+| 10 % MDD | 4.0 |
+| 25 % MDD | 6.2 |
+| 50 % MDD | 18.8 |
+| **DAP** | **31.2** |
+| DAC | 33.0 |
+| SpeechTokenizer / 75 % MDD | 40.6 |
+| AcademiCodec | 51.4 |
+
+Verbatim: *"Without purification, the ASV system achieves an EER of 1.4% for
+bona fide trials"*, and *"the 10% MDD model also maintains a low EER (4.0%)
+for clean data"*.
+
+**Two things follow, and the second is the one that matters.**
+
+1. **The effect is published, and it is far larger than ours.** DAP — a
+   diffusion purifier of exactly the kind we study — costs **1.4 % → 31.2 %**
+   bona-fide EER in that table. Our WavLM-SV moves 5.2 % → 9.5 %. We are not
+   reporting a bigger effect than the literature; we are reporting a
+   **different quantity in a different place**. Any sentence implying we found
+   something larger or newer than this is false, and this table is one search
+   away from any reviewer.
+2. **Nobody draws the conclusion.** MDD's *text* never says purification
+   degrades clean performance in general — it says only that masking ratios of
+   50 % and above do. The numbers sit in a detection paper's ablation table,
+   every purified row above the unpurified baseline, and the implication for
+   anyone *scoring a protection claim through a purified channel* is not
+   stated by anyone.
+
+Also in this space, and not threats:
+* **DAP (arXiv 2310.14270)** already scores with minDCF (p = 0.01,
+  C_miss = C_fa = 1); clean ECAPA baseline EER 1.069 %, minDCF 0.107.
 * An older x-vector purification study reports clean minDCF 0.513 and claims
-  its purifier "maintains the performance of genuine samples".
+  its purifier "maintains the performance of genuine samples" — a claim MDD's
+  Table 3 does not support for DAP.
 * **SVeritas (EMNLP Findings 2025)** lays out minDCF under codec and noise
-  degradation — the table format we are using, for a different degradation.
+  degradation — our table format, a different degradation.
 
-So **we did not discover that purification costs clean verification accuracy.**
-Any sentence implying that is wrong and a reviewer who knows this literature
-will say so.
+So **we did not discover that purification costs clean verification accuracy,
+and we are not even the ones who measured it most dramatically.**
 
 ## 13.3 What is left, and it is still worth a contribution slot
 
@@ -810,27 +843,45 @@ Four things, none of which the above does:
 ## 13.4 Required narrowing — do this before the draft is submitted
 
 Do **not** write: "we show that purification degrades the verifier"; "a
-correction other people's papers inherit" without a citation to the papers that
-already said the EER half.
+correction other people's papers inherit" without citing the papers that
+already measured it; anything implying our degradation is large. **It is not:
+MDD's Table 3 has DAP at 1.4 % → 31.2 % bona-fide EER, against our 5.2 % →
+9.5 %.**
 
-**Write instead:** "Purification is known to cost clean verification accuracy
-(MDD; DAP). We show that at a realistic operating point the cost is far larger
-than EER suggests — WavLM-SV moves from minDCF 0.77 to 0.91, effectively the
-trivial system — and that this reorders which per-encoder protection claims are
-trustworthy."
+**Write instead:**
 
-Cite MDD and DAP at that sentence. Add SVeritas as the precedent for the table
-format.
+> Purification is known to cost clean verification accuracy, and heavily:
+> MDD's ablation puts a diffusion purifier at 31.2 % bona-fide EER against
+> 1.4 % unpurified [MDD]. What has not been reported is the cost **at a
+> realistic operating point, in the cells where a protection claim is made**.
+> On our channels WavLM-SV moves from EER 5.2 % to 9.5 % — mild by the above
+> standard — while minDCF at p_target = 0.01 moves from **0.77 to 0.91**,
+> i.e. from poor to indistinguishable from the trivial system. The EER
+> understates it, and the protection literature reports EER.
 
-## 13.5 Citations to add
+Cite MDD and DAP on that sentence. Cite SVeritas for the table format.
 
-* MDD, arXiv 2508.19180 — purification's clean-EER cost, stated by its authors.
-* SVeritas, EMNLP Findings 2025 — minDCF-under-degradation table format.
-* TDAP, Interspeech 2024 — purification that explicitly targets retaining the
-  speaker; the closest intent to our C2 framing.
-* SEED, arXiv 2505.16798 — diffusion on embeddings; the "not us" boundary for
-  C1, since a reader may think it is the same thing.
+**And state the comparison honestly in the limitations**: our purifiers are
+gentler than the ones that produce the 31 % figure, because ours are the ones
+an *attacker* would choose to keep the voice usable, not the ones a defender
+would choose to maximise robustness. That is a reason the effect is smaller
+here, and it is also the reason it is the relevant one.
 
-All four were retrieved from search excerpts, not full texts. **Verify the
-numbers against the papers before quoting any of them** — the same rule §12.6
-applied to the AudioPure entry.
+## 13.5 Citations to add, with verification status
+
+| work | status |
+|---|---|
+| **MDD**, Bai/Chen/Panariello/Zhang/Todisco/Evans, arXiv 2508.19180, **APSIPA ASC 2025** | **VERIFIED 2026-10-08** against the full text: title, six authors, venue, and Table 3's bona-fide EER column all read from the paper itself. Safe to quote. |
+| DAP, arXiv 2310.14270 | already in the reference list; its minDCF convention re-confirmed from search excerpts only |
+| SVeritas, EMNLP Findings 2025 | **UNVERIFIED** — cited only as a precedent for the minDCF-under-degradation table format. Verify before quoting any number. |
+| TDAP, Interspeech 2024 | **UNVERIFIED** — purification that explicitly targets retaining the speaker; closest intent to our C2 framing. |
+| SEED, arXiv 2505.16798 | **UNVERIFIED** — diffusion on *embeddings*, three encoders. Cite as the "not us" boundary for C1, since a reader may think it is the same thing. |
+
+**The process note that earned its place.** The first version of §13.2 quoted
+MDD's 1.4 % → 4.0 % from a third-party summary page, attributed the conclusion
+to MDD's authors, and did not mention DAP's 31.2 % because the summary did not.
+Fetching the actual paper changed the shape of the argument: the effect is
+published, it is **much larger** than ours, and what is genuinely missing is
+the operating point and the setting, not the observation. §12.6's rule —
+verify before quoting — is not bureaucratic; it changed a contribution claim
+on the same afternoon it was written.
