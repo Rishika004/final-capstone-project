@@ -66,7 +66,7 @@ well, or score oddly against that threshold. The page says so, and shows the
 paper's 29-speaker figures beside the live ones. A weak live run is a weak
 live run, not a refutation and not a result.
 """
-import os, sys, io, json, time, base64, threading, subprocess, traceback
+import os, sys, io, json, time, base64, threading, subprocess, traceback, tempfile
 import http.server, socketserver
 from urllib.parse import urlparse
 
@@ -76,7 +76,14 @@ if PROJ not in sys.path:
 os.environ.setdefault("TRANSFORMERS_NO_TF", "1")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-RUNS = os.path.join(HERE, "runs")
+# Run output goes OUTSIDE the project, because the project lives in OneDrive.
+# Each run writes seven wavs; 21 runs put 27 MB into a synced folder and
+# OneDrive then churns CPU and disk indexing them. That contention -- not GPU
+# heat, which was ruled out at 54 C -- is what made identical runs drift from
+# 82 s to 355 s over one session. Override with DEMO_RUNS if you want them
+# somewhere specific.
+RUNS = os.environ.get("DEMO_RUNS") or os.path.join(
+    tempfile.gettempdir(), "voice_demo_runs")
 F5PY = os.path.join(PROJ, "external", "f5tts_venv", "Scripts", "python.exe")
 CKPT = os.path.join(PROJ, "checkpoints", "purifier_v7.pt")
 THR_FILE = os.path.join(PROJ, "experiments", "results",
@@ -320,6 +327,20 @@ class H(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         p = urlparse(self.path).path
+        if p.startswith("/runs/"):
+            # RUNS lives outside the served directory now; map it by hand and
+            # refuse anything that escapes it.
+            rel = p[len("/runs/"):]
+            full = os.path.normpath(os.path.join(RUNS, rel))
+            if not full.startswith(os.path.normpath(RUNS)) or not os.path.isfile(full):
+                return self._json({"error": "not found"}, 404)
+            self.send_response(200)
+            self.send_header("Content-Type", "audio/wav")
+            self.send_header("Content-Length", str(os.path.getsize(full)))
+            self.end_headers()
+            with open(full, "rb") as fh:
+                self.wfile.write(fh.read())
+            return
         if p == "/":
             self.path = "/index.html"
         elif p == "/api/state":
