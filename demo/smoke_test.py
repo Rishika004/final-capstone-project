@@ -7,6 +7,7 @@ AP.add_argument("--enr-sec",type=float,default=6.0,dest="enr_sec")
 AP.add_argument("--steps",type=int,default=60)
 AP.add_argument("--solo",action="store_true",help="one recording only")
 AP.add_argument("--gen-text",default="same",dest="gen_text")
+AP.add_argument("--stride",type=int,default=5)
 A=AP.parse_args()
 rows=list(csv.DictReader(io.open("experiments/results/f5_prompts.csv",encoding="utf-8")))
 r=[x for x in rows if x["speaker"]=="61"][0]
@@ -20,7 +21,7 @@ def b64(path, sec):
 pub=b64(r["ref_path"],A.pub_sec)
 enr="" if A.solo else b64(r["enrol_path"],A.enr_sec)
 body=json.dumps({"publish":pub,"enrol":enr,"steps":A.steps,
-  "pub_sec":A.pub_sec,"enr_sec":A.enr_sec,"gen_text":A.gen_text}).encode()
+  "pub_sec":A.pub_sec,"enr_sec":A.enr_sec,"gen_text":A.gen_text,"stride":A.stride}).encode()
 t0=time.time()
 req=urllib.request.Request(f"http://127.0.0.1:{A.port}/api/run",data=body,
                            headers={"Content-Type":"application/json"})

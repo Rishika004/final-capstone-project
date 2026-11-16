@@ -171,13 +171,12 @@ function ready(){ const ok=!!clips.publish_b64;
  $("go").disabled=!ok; $("hint").textContent=ok?"":"Record your voice first.";}
 wire("b1","a1","n1","publish"); wire("b2","a2","n2","enrol");
 
-// Fitted to two measured runs on this machine, not guessed: crafting took
-// 128 s at 4 s of audio and 175 s at 8 s, so it scales as (d/4)^0.45 -- clearly
-// sub-linear. The remainder measured 50 s (two cloner launches, each mostly
-// model load, plus purify and scoring). Predicts 2:58 at 4 s and 3:45 at 8 s,
-// against measured 3:18 and 3:45.
+// Refitted after the t=50 and stride-5 fixes: crafting measured 30 s at 8 s
+// of audio, and the remainder 54 s (dominated by the cloner's 42 s Python
+// startup, which is flat). Predicts about 1:24 at 8 s, which is what a full
+// run measures.
 function est(){ const d=+$("dur").value;
- const craft=128*Math.pow(d/4,0.45), tot=Math.round(craft+50);
+ const craft=22*Math.pow(d/4,0.45), tot=Math.round(craft+54);
  $("est").textContent="about "+Math.floor(tot/60)+" min "+(tot%60)+" s per run";
  for(const [b,k] of [["b1","publish"],["b2","enrol"]])
   if(!clips[k+"_b64"]) $(b).textContent="● Record "+d+"s";}

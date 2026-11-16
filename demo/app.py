@@ -24,6 +24,30 @@ Design choices that keep it honest:
 * The attacker's clone of the UNPROTECTED clip is produced too, every run.
   Without it there is no control, and "the clone failed" means nothing.
 
+SPEED, and what was wrong with the first version
+------------------------------------------------
+Two real faults, both found by measuring rather than reading:
+
+  * It crafted at t_diffuse=200. exp_purifier_aware's own default -- and what
+    every run script in the paper uses -- is 50. The crafting loop makes t
+    denoiser passes PER optimisation step, so this was 4x the method's actual
+    work. Crafting 175-241 s -> 58 s. The ATTACKER still purifies at t=200,
+    which is the strong setting the paper evaluates under: craft cheap,
+    evaluate hard, exactly as the paper arranges it.
+  * It launched the cloner twice, once per clone. Measured: 42 s of startup
+    and 1.6 s of generation. Both clones now go in one call.
+
+--craft-stride 5 subsamples the DDIM trajectory during CRAFTING only (the
+attacker's purifier is always full resolution): 58 s -> 30 s with protection
+unchanged. Stride 10 was tried and rejected -- it leaves the d-vector at 0.700
+against a 0.703 threshold, a margin thin enough to flip on an unlucky run.
+This is a DEMO setting; paper numbers use stride 1 (see
+experiments/validate_stride.py).
+
+End to end: 225-337 s originally, 84 s now, of which 42 s is the cloner's
+Python startup. That startup cannot be overlapped with crafting on this card:
+crafting already holds 5028 of 6144 MiB and the two together peak at 5888.
+
 TIMING, measured on this machine (RTX 3050 6 GB)
 ------------------------------------------------
 A run is about 3.5 minutes: ~128 s crafting at 60 steps, ~60 s for the two
@@ -95,10 +119,24 @@ def models():
     from utils.csvio import read_csv
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     _say("load", 2, f"device={dev}")
-    dp = load_real_diffpure(checkpoint_path=CKPT, t_diffuse=200,
+    # TWO purifiers, and the difference is the whole cost of this demo.
+    #
+    # CRAFTING runs at t=50, which is exp_purifier_aware's own --t-diffuse
+    # default and what every run script in the paper uses. The crafting loop
+    # makes t denoiser passes PER optimisation step, so it is linear in t:
+    # crafting at 200, as this demo first did, was doing 4x the paper's work
+    # for no benefit and was most of the wait.
+    #
+    # The ATTACKER still purifies at t=200, the strong setting the paper
+    # evaluates under (`ours` in build_purifiers). Crafting cheap and
+    # evaluating hard is the paper's arrangement, not a shortcut.
+    dp = load_real_diffpure(checkpoint_path=CKPT, t_diffuse=50,
                             device=dev, sampler="ddim")
-    for p in dp.parameters():
-        p.requires_grad_(False)
+    dp_attack = load_real_diffpure(checkpoint_path=CKPT, t_diffuse=200,
+                                   device=dev, sampler="ddim")
+    for mod in (dp, dp_attack):
+        for p in mod.parameters():
+            p.requires_grad_(False)
     encs = build_encoders(dev)
     _t = read_csv(THR_FILE)          # utils.csvio returns a DataFrame
     thr = {str(r.encoder): float(r.threshold) for r in _t.itertuples()}
@@ -109,7 +147,7 @@ def models():
     # just comes out weaker, which understates the attacker.
     from experiments.eval_quality_nr import load_asr
     asr = load_asr(dev, "openai/whisper-small")
-    _M.update(dev=dev, dp=dp, encs=encs, thr=thr, craft_encs=craft_encs, asr=asr,
+    _M.update(dev=dev, dp=dp, dp_attack=dp_attack, encs=encs, thr=thr, craft_encs=craft_encs, asr=asr,
               masker=PsychoacousticMasker(margin_db=30.0, device=dev,
                                           local_snr_floor_db=15.0))
     _say("load", 8, "models ready")
@@ -138,6 +176,24 @@ def _wav_write(path, wav):
     sf.write(path, wav.detach().cpu().reshape(-1).numpy(), SR)
 
 
+def _clone_batch(jobs, run_dir):
+    """Every clone for this run in ONE subprocess, so F5-TTS loads once.
+
+    It was loading twice, ~30 s each, to make 3 s of audio -- the second
+    largest cost in the demo after crafting.
+    """
+    if not os.path.isfile(F5PY):
+        raise RuntimeError("F5-TTS venv missing; run external/install_f5tts.sh")
+    spec = os.path.join(run_dir, "_jobs.json")
+    with open(spec, "w", encoding="utf-8") as fh:
+        json.dump(jobs, fh)
+    r = subprocess.run([F5PY, os.path.join(HERE, "f5_once.py"), "--jobs", spec],
+                       capture_output=True, text=True, cwd=PROJ)
+    missing = [j["out"] for j in jobs if not os.path.isfile(j["out"])]
+    if r.returncode != 0 or missing:
+        raise RuntimeError("cloner failed: " + (r.stderr or "")[-600:])
+
+
 def _clone(ref_wav_path, ref_text, out_path, gen_text=None):
     """Attacker's step: F5-TTS, in its own venv."""
     if not os.path.isfile(F5PY):
@@ -151,7 +207,7 @@ def _clone(ref_wav_path, ref_text, out_path, gen_text=None):
 
 
 def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec,
-                 gen_text=None):
+                 gen_text=None, stride=5):
     """enr_path may be None: then the clones are scored against the recorded
     clip itself. That is the flattering comparison (the clone was built from
     it), so the result says so and the page labels those numbers indicative.
@@ -200,33 +256,28 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec,
                   "full", steps, 2e-3, 6000.0, 0.3, 1, vocoder="phase",
                   thr=[thr[e.name] for e in m["craft_encs"]],
                   seg_partials=True, grad_estimator="bpda", seed=42,
-                  legacy_selection=True, log_every=10 ** 9)
+                  legacy_selection=True, craft_stride=stride,
+                  log_every=10 ** 9)
     wav_p = (wav_o + delta).clamp(-1, 1)
     craft_s = time.time() - t0
     p_prot = os.path.join(run_dir, "protected.wav"); _wav_write(p_prot, wav_p)
     snr, pesq_v, stoi_v = quality(wav_o, wav_p)
 
-    # ---- the attacker, on the UNPROTECTED clip: the control -------------
-    # Runs AFTER crafting, deliberately. Crafting is the long pole, so doing it
-    # first puts the protected audio and its quality numbers on screen about
-    # 30 s sooner -- which is the part an audience is waiting for. The control
-    # is no less essential for coming second.
-    _say("attack_control", 70, "attacker clones your unprotected voice")
-    p_c0 = os.path.join(run_dir, "clone_unprotected.wav")
-    _clone(p_orig, said, p_c0, attack)
-    e_c0 = real_embed_all(encs, _wav_read(p_c0).to(dev))
-
-    # ---- the attacker, on the PROTECTED clip -----------------------------
-    _say("purify", 78, "attacker purifies it (DiffPure v7)")
+    # ---- the attacker: purify, then BOTH clones in one model load -------
+    _say("purify", 62, "attacker purifies the protected clip (DiffPure v7)")
     from evaluation.evaluate import wav_to_logmel
     from utils.vocoder import invert_mel
     with torch.no_grad():
-        pur = invert_mel(m["dp"](wav_to_logmel(wav_p, dev), seed=1).cpu()).to(dev)
+        pur = invert_mel(m["dp_attack"](wav_to_logmel(wav_p, dev), seed=1).cpu()).to(dev)
     p_pur = os.path.join(run_dir, "purified.wav"); _wav_write(p_pur, pur)
 
-    _say("attack_protected", 85, "attacker clones the protected voice")
+    _say("attack", 70, "attacker clones both clips")
+    p_c0 = os.path.join(run_dir, "clone_unprotected.wav")
     p_c1 = os.path.join(run_dir, "clone_protected.wav")
-    _clone(p_pur, said, p_c1, attack)
+    _clone_batch([dict(ref=p_orig, ref_text=said, gen_text=attack, out=p_c0),
+                  dict(ref=p_pur,  ref_text=said, gen_text=attack, out=p_c1)],
+                 run_dir)
+    e_c0 = real_embed_all(encs, _wav_read(p_c0).to(dev))
     e_c1 = real_embed_all(encs, _wav_read(p_c1).to(dev))
 
     _say("score", 95, "scoring both clones against your second recording")
@@ -244,7 +295,7 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec,
                      stoi=round(float(stoi_v), 4)),
         craft_s=round(craft_s, 1), steps=steps, rows=rows, paper=PAPER,
         pub_sec=pub_sec, enr_sec=enr_sec, scored_against_source=bool(solo),
-        said=said, attack_text=attack,
+        said=said, attack_text=attack, stride=stride,
         sentences=dict(publish=SENTENCE_PUBLISH, enrol=SENTENCE_ENROL,
                        attack=attack),
         audio={k: f"/runs/{os.path.basename(run_dir)}/{k}.wav" for k in
@@ -305,7 +356,8 @@ class H(http.server.SimpleHTTPRequestHandler):
                                enr_p if os.path.isfile(enr_p) else None,
                                run_dir, int(body.get("steps", 60)),
                                pub_sec, enr_sec,
-                               (body.get("gen_text") or "").strip()[:300])
+                               (body.get("gen_text") or "").strip()[:300],
+                               max(1, min(10, int(body.get("stride", 5)))))
             out["run_id"] = rid
             self._json(out)
         except Exception as e:                                   # noqa: BLE001
