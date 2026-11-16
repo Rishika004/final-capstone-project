@@ -1,227 +1,104 @@
-# Null-Space Voice Protection
+# Voice protection that survives diffusion purification
 
-A proof-of-concept implementation of **null-space perturbation** for voice privacy protection.
-The system adds imperceptible noise to voice recordings that:
+Protecting a published voice recording against **diffusion-based voice
+cloning**, when the attacker uses **diffusion purification** to try to wash the
+protection off. Research code for an Interspeech 2027 submission.
 
-1. **Survives DiffPure-style audio purification** — the purifier's Jacobian maps the perturbation to approximately zero.
-2. **Causes AI voice cloning to fail** — speaker embeddings are pushed far from the original.
-3. **Sounds normal to humans** — the perturbation respects an L∞ budget (ε ≈ 0.01).
-
----
-
-## The Core Idea
-
-DiffPure (and similar denoising purifiers) can be locally approximated as a linear operator
-with Jacobian **J** at input **x**:
-
-```
-purifier(x + δ) ≈ purifier(x) + J · δ
-```
-
-If we restrict **δ** to the **null space of J**, then `J · δ ≈ 0`, meaning:
-
-```
-purifier(x + δ) ≈ purifier(x)
-```
-
-The purifier **cannot remove δ** because it literally cannot "see" it — the perturbation
-is invisible to the linear approximation of the purifier.
-
-### Algorithm
-
-```
-1. Estimate J via K randomized JVPs (Johnson-Lindenstrauss sketch)
-2. Decompose J = U Σ Vᵀ  via SVD
-3. Null space basis = rows of V where σᵢ < threshold
-4. Generate random δ in mel space (|δ| ≤ ε)
-5. Project δ onto null(J): δ_proj = Vₙᵤₗₗᵀ (Vₙᵤₗₗ δ)
-6. Clamp to ε budget
-7. Return x + δ_proj
-```
+> **About the repository name.** The directory and the early commits say
+> *null-space*. That was the project's founding hypothesis and **it was
+> falsified by our own audits** (RESULTS §54–§58): the geometric quantity the
+> claim rested on turned out to be reproduced by a random projection of the
+> front end with no network in it. The name is kept so the history stays
+> readable. No null-space or α claim survives, and none appears in the paper.
+> The original README is preserved at `docs/README_v1_nullspace.md`.
 
 ---
 
-## Project Structure
+## What we claim, and what we do not
 
-```
-nullspace_voice_protection/
-├── data/
-│   └── samples/            ← put your .wav files here
-├── models/
-│   ├── purifier.py         ← UNet surrogate purifier (differentiable)
-│   ├── cloning_proxy.py    ← surrogate voice cloning model
-│   └── speaker_encoder.py  ← WavLM-Base-Plus speaker embeddings
-├── core/
-│   ├── jacobian.py         ← randomized Jacobian estimation (K JVPs)
-│   ├── nullspace.py        ← SVD null space extraction + projection
-│   ├── perturbation.py     ← single-shot null-space protection pipeline
-│   └── optimizer.py        ← iterative PGD in the null space
-├── evaluation/
-│   ├── metrics.py          ← PRR, PESQ, cosine similarity, SNR, mel dist
-│   └── evaluate.py         ← batch evaluation pipeline → results.csv
-├── tests/
-│   └── test_nullspace.py   ← unit tests (9 test classes)
-├── notebooks/
-│   └── demo.ipynb          ← end-to-end interactive demo
-├── main.py                 ← CLI entry point
-└── requirements.txt
-```
+**The defence works.** A perturbation crafted with the purifier *inside* the
+optimisation loop survives two diffusion purifiers and defeats two
+diffusion-based cloners:
+
+| cloner | clone success, unprotected | protected |
+|---|---|---|
+| DiffVC | 48.3 % | **0.0 %** |
+| F5-TTS (2024, no speaker encoder) | 86.2 % | **10.3 %** |
+
+Nine of nine cells each, Holm-corrected, 29 cross-session LibriSpeech
+test-clean speakers. It also holds against a purifier never crafted against
+(89–128 % retention) and a best-of-5 stochastic attacker (90–97 %).
+
+**What the purifier-in-the-loop step actually buys is coverage, not strength.**
+At equal perturbation energy it helps against an attacker that was *not*
+targeted, and does not help against the one that was.
+
+**And the limit, measured with the same protocol.** Protection does **not**
+transfer to a speaker encoder held out of the crafting ensemble. Against a
+held-out encoder behind a purifier we never trained on, it is
+**72.4 % → 72.4 %** — none at all.
+
+**The cost is real.** 4.15 → 3.07 on a 1–5 naturalness scale, intelligibility
+unchanged. This is not an imperceptible perturbation and we do not claim one.
 
 ---
 
-## Setup
+## Layout
+
+```
+experiments/   the runs and their analyses; RESULTS_ICASSP.md is the lab record
+paper/         DEFENSE_BRIEF.md (start here), plans, pre-registrations, figures
+demo/          a localhost demo: record a voice, watch a clone fail (~2 min)
+core/ models/ utils/ evaluation/ training/   the method
+listening_test/  blinded same-speaker + naturalness test
+```
+
+**Read `paper/DEFENSE_BRIEF.md` §I.1 first.** It carries the claims, the
+conditions each number depends on, and the wordings forbidden because earlier
+work falsified them.
+
+---
+
+## Running it
 
 ```bash
-# 1. Create a virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-
-# 2. Install dependencies
 pip install -r requirements.txt
 ```
 
-**Requirements:** Python 3.10+, PyTorch 2.x, torchaudio 2.x
+You also need LibriSpeech (`openslr.org/12`, test-clean and dev-clean) in
+`data/librispeech/`. Speaker-encoder weights download on first run.
+`external/` holds third-party code (De-AntiFake, NISQA, Coqui TTS) and is not
+redistributed here — clone it from the upstream projects.
 
----
-
-## Quick Start
-
-### Test the math first
-```bash
-python main.py --mode test
-```
-This runs 4 math sanity checks + the full pytest suite. All should pass.
-
-### Protect a single file
-```bash
-# Put a .wav file in data/samples/ or point --input to any .wav
-python main.py --mode protect \
-    --input data/samples/test.wav \
-    --output protected.wav \
-    --epsilon 0.01
-```
-
-### Full evaluation on a directory
-```bash
-python main.py --mode evaluate \
-    --input data/samples/ \
-    --output results/ \
-    --epsilon 0.01
-```
-Results are written to `results/results.csv`.
-
----
-
-## CLI Options
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--mode` | *required* | `protect`, `evaluate`, or `test` |
-| `--input` / `-i` | `data/samples/` | Input .wav file or directory |
-| `--output` / `-o` | `results/` | Output file or directory |
-| `--epsilon` | `0.01` | L∞ perturbation budget |
-| `--K` | `50` | Jacobian probe count (higher = better approximation) |
-| `--svd-threshold` | `1e-3` | Singular value cutoff for null-space extraction |
-| `--n-steps` | `0` | Optimiser steps (0 = single-shot, faster) |
-| `--device` | `auto` | `auto`, `cpu`, or `cuda` |
-| `--log-level` | `INFO` | `DEBUG`, `INFO`, `WARNING`, or `ERROR` |
-
----
-
-## Evaluation Metrics
-
-| Metric | Symbol | Interpretation |
-|--------|--------|----------------|
-| **Purification Resistance Rate** | PRR | `||f(x+δ) - (x+δ)|| / ||f(x) - x||` — values > 1.0 mean purification has LESS effect on protected audio |
-| **Speaker Cosine Similarity** | cos-sim | Cosine similarity between speaker embeddings — lower is better for defence |
-| **Mel Distance** | mel-dist | L2 distance in log-mel space — lower = more imperceptible |
-| **PESQ** | PESQ | Perceptual speech quality (target: > 3.0) |
-| **SNR** | dB | Signal-to-noise ratio — higher = quieter perturbation |
-
----
-
-## Modules in Detail
-
-### `core/nullspace.py`
-- `compute_null_space(J, threshold)` — full SVD, returns orthonormal null basis
-- `project_onto_null_space(delta, null_basis)` — orthogonal projection formula
-- `verify_null_space(J, null_basis)` — sanity check: prints `max|J·null_basis.T|`
-
-### `core/jacobian.py`
-- `estimate_jacobian_randomized(model, x, K=50)` — rank-K approximation via JVPs
-- `compute_jacobian(model, x, method='randomized')` — unified entry point
-
-### `core/perturbation.py`
-- `apply_null_space_protection(x_mel, purifier, epsilon)` — the main pipeline
-
-### `core/optimizer.py`
-- `optimize_perturbation(...)` — iterative PGD that jointly maximises speaker distance
-  and minimises perceptual distortion, re-projecting onto null(J) after each step
-
-### `models/purifier.py`
-- `MelUNetPurifier` — lightweight UNet operating on log-mel spectrograms
-- `load_pretrained()` — returns a randomly initialised model (no checkpoint needed)
-
-### `models/speaker_encoder.py`
-- `WavLMSpeakerEncoder` — WavLM-Base-Plus + linear projection to 256-d
-- Falls back to a dummy encoder if HuggingFace is unavailable
-
----
-
-## Running Tests
+The demo:
 
 ```bash
-pytest tests/test_nullspace.py -v
+python demo/app.py --preload      # http://127.0.0.1:8200
 ```
-
-Test classes:
-1. `TestNullSpaceDefinition` — `J @ null_basis.T ≈ 0`
-2. `TestProjectionIdempotency` — `P(P(x)) == P(x)`
-3. `TestProjectionOrthogonality` — projected delta lies in null(J)
-4. `TestEpsilonConstraint` — `||δ||_∞ ≤ ε` after projection + clamp
-5. `TestPRRNullVsRandom` — null-space PRR ≥ random PRR
-6. `TestJacobianShape` — output shape is `[output_dim, input_dim]`
-7. `TestEmptyNullSpaceHandled` — graceful fallback when J is full-rank
-8. `TestVerifyNullSpace` — residual < tolerance
-9. `TestPerturbationPipeline` — output shape and ε constraint end-to-end
 
 ---
 
-## Sample Data
+## How this project works
 
-Place any 16 kHz mono `.wav` files in `data/samples/`.
+Rules adopted after things went wrong, kept because they keep going right:
 
-For a free dataset, download a few utterances from
-[LJSpeech](https://keithito.com/LJ-Speech-Dataset/) or any freely-licensed speech corpus.
-
-The demo notebook (`notebooks/demo.ipynb`) will automatically generate a synthetic
-test signal if no `.wav` files are found.
-
----
-
-## Limitations and Future Work
-
-- **Surrogate purifier**: the UNet is randomly initialised. For a tighter approximation
-  of DiffPure, train it on noisy/clean mel pairs from the LibriSpeech dataset.
-- **Waveform inversion**: the current pipeline approximates the waveform-domain
-  perturbation. A neural vocoder (HiFi-GAN, BigVGAN) would give a more accurate result.
-- **Adaptive attacks**: this is a white-box defence against the *surrogate* purifier.
-  An adaptive attacker who knows the exact null space can potentially break it —
-  see the iterative optimizer in `core/optimizer.py` for a stronger variant.
-- **PESQ evaluation**: install `pip install pesq` for real PESQ scores; otherwise
-  the metric returns `NaN`.
+* **Pre-register** endpoint, decision rule and outcome branches before running
+  — see `paper/PREREG_*.md`.
+* **A result that contradicts the hypothesis is a finding.** This repository
+  contains more refuted claims than confirmed ones, including the one it is
+  named after. Predictions are written down before runs and scored afterwards;
+  two of the three scored so far were wrong.
+* **Current evaluation base only** — test-clean, 29 cross-session speakers,
+  purifier v7. Earlier numbers are not quotable.
+* **Every cloning comparison comes from a single run.** The cloner is
+  stochastic; the same contrast measured twice moved by two speakers.
+* **Report clone-success rates beside any margin contrast.** A cell where both
+  arms sit near zero is *not identifiable*, not null.
 
 ---
 
-## Citation
+## Status
 
-If you use this code in academic work, please cite:
-
-```
-@misc{nullspace_voice_protection_2026,
-  title  = {Null-Space Voice Protection: Perturbations That Survive DiffPure},
-  author = {[Your Name]},
-  year   = {2026},
-  note   = {Proof-of-concept implementation}
-}
-```
+The experimental programme is closed. Open: the listening test needs
+participants, the paper is not drafted, and the method has no name. Scope is
+29 speakers, one corpus, English.
