@@ -6497,3 +6497,165 @@ than as a second positive.
 **Ledger:** never cite §59c's or §63c's held-out effect sizes without the
 2.878 dB caveat; §64's −0.0354 is the energy-matched estimate. Never call
 §64 a null.
+
+## 65. P2 / N8 — quality of the F5-TTS clones: protection costs naturalness, not intelligibility (2026-11-16)
+
+`experiments/eval_clone_quality.py --clone-dir results/f5_clones --clone-suffix
+__f5.wav --clone-label f5clone`, ASR whisper-large-v3, loudness-matched to
+−23 LUFS. Output `results/f5_clone_quality.csv`, log `results/p2_f5_quality.log`.
+348 files: 29 originals, both published arms, and all 261 F5-TTS clones.
+
+**Why.** §40c established for DiffVC that part of what we call protection is
+**damage to the clone** rather than a change of identity. F5-TTS now carries
+C1 (§60) and that question was unmeasured for it. Deliberately run through the
+*same* script as §40c, with three new flags, so the two cloners' numbers are
+comparable rather than merely adjacent.
+
+### 65a. The answer: yes, a little — and intelligibility is untouched
+
+Protected clone **minus** unprotected clone, paired per speaker, n = 29, Holm
+within each channel:
+
+| channel | UTMOS | NISQA | WER |
+|---|---|---|---|
+| none | **−0.264** [−0.365, −0.161] *** | **−0.619** [−0.834, −0.391] *** | −0.003 [−0.025, +0.023] |
+| ours | **−0.319** [−0.415, −0.211] *** | **−0.753** [−1.058, −0.389] *** | −0.001 [−0.019, +0.017] |
+| diffwave | **−0.169** [−0.265, −0.060] * | **−0.350** [−0.588, −0.144] * | −0.008 [−0.026, +0.008] |
+
+Naturalness: six of six cells significant, 22–25 of 29 speakers. **WER: zero
+effect in all three channels**, every interval spanning zero, 3–6 of 29.
+
+### 65b. Three things bound it, and they are what the paper says
+
+**1. It is small beside the identity effect.** Through `ours`, the same files
+move F5-TTS clone success from **86.2 % to 10.3 %** on ECAPA (§60b) for
+0.32 of 5 UTMOS points. Protection is not working by making the clone
+unusable.
+
+**2. The protected clone is still natural-sounding speech.** Absolute means:
+
+| condition | UTMOS | NISQA | WER |
+|---|---|---|---|
+| original | 4.152 | 4.054 | 0.079 |
+| F5 clone of unprotected, `none` | 3.984 | 4.223 | 0.146 |
+| F5 clone of protected, `none` | **3.720** | 3.604 | 0.143 |
+| F5 clone of unprotected, `ours` | 3.193 | 3.629 | 0.149 |
+| F5 clone of protected, `ours` | 2.874 | 2.877 | 0.148 |
+
+A 3.72-UTMOS clone is good speech. **It simply is not the victim.** That is
+the sentence C1 needs and it is now measured rather than assumed.
+
+**3. It matches DiffVC closely.** §40c, same instrument, `none` channel:
+−0.323 UTMOS / −0.442 NISQA. Here: −0.264 / −0.619. The effect is a property
+of the perturbation, not of either cloner.
+
+### 65c. Secondary, for C2: the advantage is not bought with clone damage
+
+Shipping clone **minus** plain clone — does the purifier-aware arm damage the
+attacker's output more than plain does, which would be an unflattering reading
+of C2?
+
+| channel | UTMOS | NISQA | WER |
+|---|---|---|---|
+| none | **+0.172** [+0.058, +0.300] * | **−0.262** [−0.475, −0.079] * | −0.021 * |
+| ours | +0.132 [−0.005, +0.261] | −0.107 [−0.308, +0.157] | −0.017 |
+| diffwave | +0.046 [−0.070, +0.174] | −0.107 [−0.291, +0.043] | −0.008 |
+
+**The two predictors disagree in sign** at `none` — UTMOS says the shipping
+arm's clone is *more* natural, NISQA says less — and nothing is significant in
+the other two channels. §40d already recorded that UTMOS and NISQA agree well
+across conditions (r = 0.87) but only moderately per file (r = 0.53) and
+disagree on which condition is best. This is that, again.
+
+**What may be claimed:** there is no evidence that C2's advantage is bought by
+extra damage to the attacker's output. **What may not:** any directional claim
+about which arm damages the clone more. Report both predictors and the
+disagreement.
+
+### 65d. Limits of this measurement
+
+* UTMOS and NISQA are **predictors, not listeners**. They bound the question;
+  they do not settle it. The listening test (N3) is still the only instrument
+  that answers "same person?", and it remains uncollected.
+* The WER reference is the source speaker's MFA ground truth, while F5-TTS was
+  given Whisper's transcript of that same 4-s segment as `gen_text`. Any
+  Whisper error there is identical across arms of a speaker and cancels in the
+  paired contrast — which is the only thing read from the column. The
+  **absolute** clone WER (~0.145 against the original's 0.079) therefore
+  carries F5-TTS's synthesis error *and* that transcription error, and must
+  not be quoted as a clone-intelligibility figure in its own right.
+* Loudness matched to −23 LUFS (§40a), since neither predictor is
+  level-invariant.
+
+## 66. P4 / N6 — quality of the published arms, and why N4 is not being run (2026-11-16)
+
+Same run as §65 (`f5_clone_quality.csv`); the two published arms and the clean
+original were scored alongside the clones, so N6 cost nothing extra.
+
+### 66a. The purifier-aware arm is BETTER quality than plain, at the same energy
+
+Absolute, 29 speakers, loudness-matched:
+
+| condition | UTMOS | NISQA | WER |
+|---|---|---|---|
+| original | 4.152 | 4.054 | 0.079 |
+| published, `plain_tc_m30_seg` | 2.779 | 3.082 | 0.092 |
+| published, `fullnsT_tc_m30_seg` | **3.073** | **3.266** | 0.088 |
+
+Paired contrasts:
+
+| contrast | UTMOS | NISQA | WER |
+|---|---|---|---|
+| plain − original | −1.372 [−1.528, −1.231] *** | −0.972 *** | +0.013 (n.s.) |
+| ours − original | −1.079 [−1.229, −0.950] *** | −0.787 *** | +0.009 (n.s.) |
+| **ours − plain** | **+0.293** [+0.232, +0.353], 28/29, p 1.2e-09 *** | +0.184 [−0.003, +0.389], p 0.155 | −0.004 (n.s.) |
+
+**This strengthens C2 and is the cleanest supporting number it has.** §60d
+already showed the two arms sit at the same perturbation energy (16.206 vs
+16.113 dB, p = 0.408) with the purifier-aware arm at better PESQ (+0.192).
+UTMOS now confirms that independently and far more strongly: **+0.293,
+28 of 29 speakers, p = 1.2e-09**. NISQA agrees in sign and does not reach
+significance.
+
+So whatever advantage C2 reports is **not bought with perceptual cost** — it
+comes with a perceptual *benefit* at equal energy. The one-line form: *equal
+perturbation energy, better perceived quality, and the advantage is on the
+untargeted attacker.*
+
+### 66b. The honest cost of publishing protected audio
+
+Both arms cost roughly **1.1–1.4 UTMOS** against the clean original
+(4.152 → 3.073 for the shipping arm), **29 of 29 speakers**, while **WER is
+untouched** in both (intervals spanning or barely clearing zero, neither
+significant). Protected audio is fully intelligible and noticeably less
+natural. That is the number the paper states, and it is exactly where the
+listening test (N3) would matter: a 3.07 UTMOS predictor score does not say
+whether a listener still hears the same person.
+
+### 66c. N4 (PhonePuRe-channel calibration) is NOT being run — reasoning
+
+`DEFENSE_BRIEF` listed it as "§29's ASV acceptance figures are provisional".
+On inspection that does not justify the run:
+
+1. **The figures C3 actually quotes are not provisional.** §29e's clone-success
+   numbers are scored at the clean cross-session calibration *by design*, and
+   the docstring of `exp_cloning_protection.py` gives the reason: the purifier
+   acts on the **reference**, upstream of the cloner, so the verifier sees
+   DiffVC output and a clean enrolment in every condition. Varying τ with the
+   attacker's purifier would mean the verifier knows which purifier was used,
+   which is not the threat model. Those numbers are correct as they stand.
+2. **Only §29b's ASV acceptance (55 / 76 / 100 %) is provisional**, because
+   there the purified audio is itself what the verifier scores.
+3. **And it cannot be calibrated well.** PhonePuRe outputs exist on disk for
+   **29 reference files only** — one per speaker, for two arms. A channel EER
+   needs multiple utterances per speaker; the clean calibration used 464
+   target and 12 992 non-target trials. The best obtainable here is ~29 target
+   trials, which is a worse instrument than the clean threshold it would
+   replace. Producing more means re-running PhonePuRe's stage 1 + 2 over a
+   calibration cohort in the external venv, well beyond N4's 1–2 GPU-h.
+
+**Decision.** N4 is dropped. §29b is either not quoted, or quoted with the
+caveat it already carries — clean-channel thresholds, the attacker's best
+case, and §29e records that it *overstates* what the cloner achieves
+(55 / 76 / 100 % accepted against clones failing 62 / 73 / 29 %). The GPU hours
+go nowhere else; there is nothing left to spend them on.

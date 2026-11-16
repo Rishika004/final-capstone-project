@@ -60,6 +60,11 @@ with **no speaker-encoder module at all**, and it clones unprotected speech
 better than DiffVC does (93.1 % vs 44.8–48.3 % on ECAPA). The defence was
 never built against it and still holds.
 
+**And it is not clone damage (§65).** Protection costs the F5-TTS clone
+0.17–0.32 UTMOS and leaves WER untouched, while moving clone success from
+86.2 % to 10.3 %. The protected clone scores 3.72 UTMOS — good speech that is
+not the victim. Measured on the same instrument as §40c's DiffVC figures.
+
 **The precise scope of that, because a reviewer will ask.** What is untargeted
 here is the **cloner**, not the **verifier**: `fullnsT_tc_m30_seg` was crafted
 with `--craft-encoders all`, so all three encoders that score the F5-TTS
@@ -87,6 +92,12 @@ Two independent budget-matched routes, which is why it is stated at all:
 The cloner-varying route is the stronger and leads. §64 corroborates with its
 interval and its power limitation shown; it is an **underpowered
 not-significant, never a null** (§48's distinction, §52's n = speakers limit).
+
+**And it is not bought with perceptual cost (§66a).** At the same perturbation
+energy the purifier-aware arm has **better** perceived quality than plain:
+UTMOS +0.293 [+0.232, +0.353], 28 of 29 speakers, p = 1.2e-09, with PESQ
+(+0.192, §60d) and NISQA agreeing in sign. The one-line form: *equal energy,
+better quality, and the advantage is on the untargeted attacker.*
 
 Two things travel with C2 wherever it appears:
 * **Name the attacker.** On DiffVC's own conditioner the effect reverses, and
@@ -157,11 +168,12 @@ Every number above must be re-read from its CSV before it enters the draft
 | ~~N1~~ | **DONE 2026-11-12, zero GPU — RESULTS §59.** The contrast was already on disk in `cloning_tc_m30_deploy.csv` and `cloning_tc_m30_nodvec.csv`, never analysed. It changed the claim (§I.1) and killed the regulariser (§59d). | 0 | — |
 | ~~N2~~ | **DONE 2026-11-12 — RESULTS §60. OUTCOME N2-A: it transfers.** F5-TTS (encoder-free, flow matching), 9 of 9 cells Holm-significant; ECAPA clone success 86.2 % → 10.3 % through the purifier. The pre-registered prediction (60 % no transfer) was wrong and is recorded as such. | 0.5 | — |
 | N3 | **Listening data**, even 10–15 listeners, on the shipping arm | 0 | "still sounds like the same person, acceptable quality" |
-| N4 | PhonePuRe-channel threshold calibration | 1–2 | §29's ASV acceptance figures are provisional |
+| ~~N4~~ | **DROPPED 2026-11-16 — RESULTS §66c.** The figures C3 quotes (§29e clone success) are scored at the clean calibration *by design* and are not provisional. Only §29b's ASV acceptance is, and it cannot be calibrated well: PhonePuRe outputs exist for 29 reference files (one per speaker) against the clean calibration's 464 target trials. | 0 | — |
+| ~~N8~~ | **DONE 2026-11-16 — RESULTS §65.** Protection costs the F5-TTS clone 0.17–0.32 UTMOS and 0.35–0.75 NISQA (6/6 cells significant) and **zero WER** (all intervals span 0). Small beside 86.2 %→10.3 % clone success, and the protected clone at 3.72 UTMOS is still good speech — it just is not the victim. Matches §40c's DiffVC figures on the same instrument. | 0.5 | — |
 | ~~N5~~ | **DONE 2026-11-12 — RESULTS §61. Outcome 5-C on the pre-registered primary** (which was saturated, my error). At matched budget through DiffVC, purifier-awareness does not help and on the d-vector it hurts; through F5-TTS it does help. Claim 2 above is the result. | 1 | — |
 | ~~N7~~ | **DONE 2026-11-12 — RESULTS §63. OUTCOME 7-D: the budget match FAILED** (plain landed at 19.001 dB, 2.878 dB adrift, p = 2.6e-11), so no verdict. It did falsify §60d: plain's spend is set by the crafting **ensemble**, not by segment crafting, and a matched held-out arm **cannot be crafted at the same nominal budget**. | 2.7 | — |
 | ~~N7a~~ | **DONE 2026-11-12 — RESULTS §64. OUTCOME 5-B.** Energy matched exactly (0.000 dB). 8 of 9 cells favour purifier-awareness, 1 Holm-significant; ECAPA −0.0354 [−0.0711, +0.0063]. Partly budget, partly method — underpowered, not null. Feeds C2's second route. | 2.3 | — |
-| N6 | UTMOS + NISQA + WER on all four N1 arms, loudness-matched | 1–2 | §40 measured the shipping arm only; a plain-vs-ours lead claim needs quality on both arms |
+| ~~N6~~ | **DONE 2026-11-16 — RESULTS §66a**, free as part of the §65 run. **The purifier-aware arm is BETTER quality than plain at the same energy: UTMOS +0.293, 28/29 speakers, p = 1.2e-09.** Both arms cost ~1.1–1.4 UTMOS against the original with WER untouched. | 0 | — |
 
 **N2 design.** Cloner: F5-TTS (flow-matching zero-shot TTS, no separate
 speaker encoder — it reads the voice from the audio prompt). Arms: clean

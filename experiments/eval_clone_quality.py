@@ -275,6 +275,15 @@ def main():
                     help="council #6 asks for whisper-large-v3; pass a smaller "
                          "checkpoint to trade accuracy for VRAM")
     ap.add_argument("--no-nisqa", action="store_true", dest="no_nisqa")
+    # P2 / RESULTS 65: the same instrument, pointed at a different cloner's
+    # output. F5-TTS writes to results/f5_clones/ with a __f5.wav suffix.
+    # Reusing this script rather than writing a second one is deliberate --
+    # a different instrument would make the numbers incomparable to 40c.
+    ap.add_argument("--clone-dir", default=CLONE_DIR, dest="clone_dir")
+    ap.add_argument("--clone-suffix", default="__clone.wav", dest="clone_suffix")
+    ap.add_argument("--clone-label", default="clone", dest="clone_label",
+                    help="condition prefix, so two cloners cannot be pooled "
+                         "by accident if their CSVs are ever concatenated")
     ap.add_argument("--match-lufs", type=float, default=-23.0, dest="match_lufs",
                     help="integrated loudness every file is matched to before "
                          "scoring, so level is not confounded with condition "
@@ -339,19 +348,27 @@ def main():
             p = os.path.join(WAV_DIR, f"{nm}_{tag}.wav")
             if os.path.isfile(p):
                 work[(f"protected:{tag}", spk)] = (p, spk)
-        if os.path.isdir(CLONE_DIR):
-            for f in os.listdir(CLONE_DIR):
-                if not f.startswith(nm + "__") or not f.endswith("__clone.wav"):
+        if os.path.isdir(a.clone_dir):
+            sfx = a.clone_suffix
+            for f in os.listdir(a.clone_dir):
+                if not f.startswith(nm + "__") or not f.endswith(sfx):
                     continue
-                parts = f[len(nm) + 2:-len("__clone.wav")].split("__")
+                parts = f[len(nm) + 2:-len(sfx)].split("__")
                 if len(parts) != 2:
                     continue
                 arm, pur = parts
                 # The clone speaks the ATTACKER's words, so its reference is
                 # the SOURCE speaker's transcript. This is the trap in the
                 # module docstring.
-                work[(f"clone:{arm}:{pur}", spk)] = (
-                    os.path.join(CLONE_DIR, f), src)
+                #
+                # For F5-TTS the content is gen_text, which prep_f5_prompts.py
+                # set to Whisper's transcript of the SOURCE speaker's clean
+                # 4-s crop -- the same segment this ground truth covers. Any
+                # Whisper error there is identical across every arm of a given
+                # speaker, so it cancels exactly in the paired contrast, which
+                # is the only thing read from the WER column.
+                work[(f"{a.clone_label}:{arm}:{pur}", spk)] = (
+                    os.path.join(a.clone_dir, f), src)
 
     if not work:
         raise SystemExit("[Q] nothing to score")
