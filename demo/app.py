@@ -110,7 +110,7 @@ def models():
     return _M
 
 
-def _wav_read(path):
+def _wav_read(path, max_sec=None):
     import torch, soundfile as sf
     y, sr = sf.read(path, dtype="float32", always_2d=False)
     if y.ndim > 1:
@@ -119,7 +119,7 @@ def _wav_read(path):
     if sr != SR:
         import torchaudio.functional as AF
         y = AF.resample(torch.from_numpy(y), sr, SR).numpy()
-    n = int(MAX_SEC * SR)
+    n = int((MAX_SEC if max_sec is None else max_sec) * SR)
     y = y[:n] if len(y) >= n else np.pad(y, (0, n - len(y)))
     peak = float(abs(y).max()) or 1.0
     if peak > 0.99:
@@ -144,26 +144,24 @@ def _clone(ref_wav_path, ref_text, out_path):
         raise RuntimeError("cloner failed: " + (r.stderr or "")[-600:])
 
 
-def run_pipeline(pub_path, enr_path, run_dir, steps):
+def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
     import torch
     from experiments.exp_purifier_aware import craft, quality, real_embed_all, cs
     m = models()
     dev, encs, thr = m["dev"], m["encs"], m["thr"]
 
     _say("prepare", 12, "reading your recordings")
-    wav_o = _wav_read(pub_path).to(dev)
-    wav_e = _wav_read(enr_path).to(dev)
+    # The PUBLISHED clip drives the cost: crafting runs n_steps passes over
+    # the whole waveform, so time scales with its length. The ENROLMENT clip
+    # is only embedded once, so extra seconds there are free and give the
+    # verifier a better reference.
+    wav_o = _wav_read(pub_path, pub_sec).to(dev)
+    wav_e = _wav_read(enr_path, enr_sec).to(dev)
     p_orig = os.path.join(run_dir, "original.wav"); _wav_write(p_orig, wav_o)
     e_enr = real_embed_all(encs, wav_e)
 
-    # ---- the attacker, on the UNPROTECTED clip: the control -------------
-    _say("attack_control", 20, "attacker clones your unprotected voice")
-    p_c0 = os.path.join(run_dir, "clone_unprotected.wav")
-    _clone(p_orig, SENTENCE_PUBLISH, p_c0)
-    e_c0 = real_embed_all(encs, _wav_read(p_c0).to(dev))
-
     # ---- our protection --------------------------------------------------
-    _say("protect", 30, f"crafting the protection ({steps} steps)")
+    _say("protect", 15, f"crafting the protection ({steps} steps)")
     t0 = time.time()
     cap = m["masker"].magnitude_cap(wav_o)
     # Positional order is (.., variant, n_steps, lr, bandlimit_hz, lam_before,
@@ -182,6 +180,16 @@ def run_pipeline(pub_path, enr_path, run_dir, steps):
     craft_s = time.time() - t0
     p_prot = os.path.join(run_dir, "protected.wav"); _wav_write(p_prot, wav_p)
     snr, pesq_v, stoi_v = quality(wav_o, wav_p)
+
+    # ---- the attacker, on the UNPROTECTED clip: the control -------------
+    # Runs AFTER crafting, deliberately. Crafting is the long pole, so doing it
+    # first puts the protected audio and its quality numbers on screen about
+    # 30 s sooner -- which is the part an audience is waiting for. The control
+    # is no less essential for coming second.
+    _say("attack_control", 70, "attacker clones your unprotected voice")
+    p_c0 = os.path.join(run_dir, "clone_unprotected.wav")
+    _clone(p_orig, SENTENCE_PUBLISH, p_c0)
+    e_c0 = real_embed_all(encs, _wav_read(p_c0).to(dev))
 
     # ---- the attacker, on the PROTECTED clip -----------------------------
     _say("purify", 78, "attacker purifies it (DiffPure v7)")
@@ -210,6 +218,7 @@ def run_pipeline(pub_path, enr_path, run_dir, steps):
         quality=dict(snr_db=round(snr, 2), pesq=round(float(pesq_v), 3),
                      stoi=round(float(stoi_v), 4)),
         craft_s=round(craft_s, 1), steps=steps, rows=rows, paper=PAPER,
+        pub_sec=pub_sec, enr_sec=enr_sec,
         sentences=dict(publish=SENTENCE_PUBLISH, enrol=SENTENCE_ENROL,
                        attack=SENTENCE_ATTACK),
         audio={k: f"/runs/{os.path.basename(run_dir)}/{k}.wav" for k in
@@ -241,7 +250,9 @@ class H(http.server.SimpleHTTPRequestHandler):
         elif p == "/api/config":
             return self._json(dict(sentences=dict(
                 publish=SENTENCE_PUBLISH, enrol=SENTENCE_ENROL,
-                attack=SENTENCE_ATTACK), paper=PAPER))
+                attack=SENTENCE_ATTACK), paper=PAPER,
+                default_pub_sec=MAX_SEC, default_enr_sec=6.0,
+                max_pub_sec=12.0, max_enr_sec=20.0))
         return super().do_GET()
 
     def do_POST(self):
@@ -258,9 +269,12 @@ class H(http.server.SimpleHTTPRequestHandler):
             for key, fn in (("publish", "in_publish.wav"), ("enrol", "in_enrol.wav")):
                 with open(os.path.join(run_dir, fn), "wb") as fh:
                     fh.write(base64.b64decode(body[key].split(",")[-1]))
+            pub_sec = max(2.0, min(12.0, float(body.get("pub_sec", MAX_SEC))))
+            enr_sec = max(2.0, min(20.0, float(body.get("enr_sec", 6.0))))
             out = run_pipeline(os.path.join(run_dir, "in_publish.wav"),
                                os.path.join(run_dir, "in_enrol.wav"),
-                               run_dir, int(body.get("steps", 60)))
+                               run_dir, int(body.get("steps", 60)),
+                               pub_sec, enr_sec)
             out["run_id"] = rid
             self._json(out)
         except Exception as e:                                   # noqa: BLE001

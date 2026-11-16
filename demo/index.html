@@ -50,6 +50,17 @@ th{color:var(--mut);font-weight:600}
 purify it and clone you with a current text-to-speech model. You hear every step.</p>
 
 <div class="card" id="rec">
+ <div class="row" style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+  <label>Clip length
+   <select id="dur" style="font:inherit;padding:6px 9px;border-radius:7px;
+    border:1px solid var(--line);background:var(--card);color:var(--ink);margin-left:6px">
+    <option value="4">4 s — the paper's condition (fastest)</option>
+    <option value="6">6 s</option>
+    <option value="8" selected>8 s — recommended for a demo</option>
+    <option value="10">10 s</option>
+    <option value="12">12 s (slowest)</option>
+   </select></label>
+  <span class="muted" id="est"></span></div>
  <div class="step"><div class="num" id="n1">1</div><div style="flex:1">
   <h2>Record the clip you would publish</h2>
   <p class="muted">Read this aloud, normally:</p>
@@ -120,20 +131,35 @@ async function record(sec){
  return {blob:wavBlob(all,sr)};}
 
 function wire(btn,aud,num,key){ $(btn).onclick=async()=>{
- const b=$(btn); b.disabled=true; let t=4;
+ const b=$(btn); b.disabled=true; const SEC=+$('dur').value; let t=SEC;
  const tick=setInterval(()=>{b.textContent="● "+(--t>0?t+"s":"…")},1000);
- b.textContent="● 4s";
- try{ const {blob}=await record(4);
+ b.textContent="● "+SEC+"s";
+ try{ const {blob}=await record(SEC);
   clips[key]=blob; const fr=new FileReader();
   fr.onload=()=>{clips[key+"_b64"]=fr.result;}; fr.readAsDataURL(blob);
   $(aud).src=URL.createObjectURL(blob); $(aud).classList.remove("hide");
   $(num).classList.add("done"); $(num).textContent="✓";
  }catch(e){ alert("Could not use the microphone: "+e.message); }
- clearInterval(tick); b.disabled=false; b.textContent="● Re-record 4s"; ready();};}
+ clearInterval(tick); b.disabled=false; b.textContent="● Re-record "+SEC+"s"; ready();};}
 
 function ready(){ const ok=clips.publish_b64&&clips.enrol_b64;
  $("go").disabled=!ok; $("hint").textContent=ok?"":"Record both clips first.";}
 wire("b1","a1","n1","publish"); wire("b2","a2","n2","enrol");
+
+// Fitted to two measured runs on this machine, not guessed: crafting took
+// 128 s at 4 s of audio and 175 s at 8 s, so it scales as (d/4)^0.45 -- clearly
+// sub-linear. The remainder measured 50 s (two cloner launches, each mostly
+// model load, plus purify and scoring). Predicts 2:58 at 4 s and 3:45 at 8 s,
+// against measured 3:18 and 3:45.
+function est(){ const d=+$("dur").value;
+ const craft=128*Math.pow(d/4,0.45), tot=Math.round(craft+50);
+ $("est").textContent="about "+Math.floor(tot/60)+" min "+(tot%60)+" s per run";
+ for(const [b,k] of [["b1","publish"],["b2","enrol"]])
+  if(!clips[k+"_b64"]) $(b).textContent="● Record "+d+"s";}
+$("dur").onchange=()=>{clips={};["a1","a2"].forEach(a=>$(a).classList.add("hide"));
+ ["n1","n2"].forEach((n,i)=>{$(n).classList.remove("done");$(n).textContent=i+1;});
+ est(); ready();};
+est();
 
 const LBL={load:"Loading the models",prepare:"Reading your recordings",
  attack_control:"Attacker clones your UNPROTECTED voice",
@@ -149,7 +175,8 @@ $("go").onclick=async()=>{
  let r;
  try{ r=await (await fetch("/api/run",{method:"POST",
    headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({publish:clips.publish_b64,enrol:clips.enrol_b64,steps:120})
+   body:JSON.stringify({publish:clips.publish_b64,enrol:clips.enrol_b64,
+    steps:60,pub_sec:+$("dur").value,enr_sec:+$("dur").value})
   })).json(); }
  catch(e){ r={error:String(e)}; }
  clearInterval(poll); $("running").classList.add("hide");
