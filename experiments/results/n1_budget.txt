@@ -1,0 +1,55 @@
+N1 confound check -- realised perceptual spend, and whether it
+explains the generalisation effect of RESULTS 59c.
+
+Realised spend per arm (LOWER snr_db = spends MORE of the budget):
+                        snr_db          pesq         rms_db       
+                          mean    std   mean    std    mean    std
+variant                                                           
+full_m30_f15_nodvec     15.661  0.791  2.296  0.277 -19.494  2.643
+fullnsT_m30_f15_all     16.039  0.975  2.263  0.257 -19.385  2.616
+fullnsT_m30_f15_nodvec  16.128  1.035  2.254  0.217 -19.423  2.642
+plain_m30_f15_all       16.900  1.554  2.248  0.235 -19.413  2.614
+plain_m30_f15_nodvec    19.022  2.279  2.486  0.237 -19.388  2.612
+
+========================================================================
+(1) Are the arms at equal spend?  purifier-aware MINUS plain
+========================================================================
+  MATCHED  snr_db    -0.860  (sd 0.849)  p=7.97e-06  n=29  <- NOT equal
+  MATCHED  pesq      +0.015  (sd 0.145)  p=0.586  n=29
+  MATCHED  rms_db    +0.028  (sd 0.071)  p=0.0423  n=29  <- NOT equal
+  HELD-OUT snr_db    -2.894  (sd 1.432)  p=1.44e-11  n=29  <- NOT equal
+  HELD-OUT pesq      -0.232  (sd 0.122)  p=5.69e-11  n=29  <- NOT equal
+  HELD-OUT rms_db    -0.035  (sd 0.055)  p=0.0019  n=29  <- NOT equal
+
+========================================================================
+(2a) ACROSS arms: does the arm that spends MOST gain MOST?
+     held-out, ECAPA-TDNN, channel `ours`
+========================================================================
+  full_m30_f15_nodvec        SNR  15.66 dB   delta margin -0.0368
+  fullnsT_m30_f15_nodvec     SNR  16.13 dB   delta margin -0.0576
+
+  If magnitude drove the effect the lower-SNR (louder) arm would
+  gain more. Read the two lines above and say which way it goes.
+
+========================================================================
+(2b) WITHIN speakers: extra dB spent vs protection gained
+========================================================================
+  MATCHED   mean extra spend +0.86 dB, mean gain -0.0091, n=29
+            pearson r=+0.032 (p=0.871)   spearman=-0.038 (p=0.845)
+            -> magnitude does NOT explain the gain
+  HELD-OUT  mean extra spend +2.89 dB, mean gain -0.0576, n=29
+            pearson r=-0.024 (p=0.903)   spearman=-0.024 (p=0.903)
+            -> magnitude does NOT explain the gain
+
+========================================================================
+CAVEATS, which belong in the paper beside the numbers
+========================================================================
+  * n = 29 for test (2b): it detects a strong correlation, not a
+    weak one. A null here is evidence, not proof.
+  * the clean settlement is a plain arm RE-CRAFTED to land at the
+    purifier-aware arm's realised SNR. That is unmeasured.
+  * SNR and PESQ are proxies; the budget this project crafts under
+    is psychoacoustic (margin below the masking threshold plus a
+    per-frame SNR floor), so neither is the constraint itself.
+  * RMS is reported separately because UTMOS and NISQA are not
+    level-invariant (the confound 40a caught).

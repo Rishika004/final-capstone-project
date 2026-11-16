@@ -1,0 +1,89 @@
+N1 -- purifier-in-the-loop vs PLAIN crafting, same budget (m30_f15),
+     current base, 29 cross-session test-clean speakers, DiffVC.
+     margin = clone similarity - threshold; NEGATIVE = clone fails.
+     noise floor for a crafting-loop edit: median 0.0247 (RESULTS 34), worst non-determinism 0.0328 (RESULTS 50).
+
+==============================================================================
+MATCHED (every encoder crafted against)
+  cloning_tc_m30_deploy.csv  |  29 speakers  |  arms: fullnsT_m30_f15_all, plain_m30_f15_all, unprotected
+==============================================================================
+
+  (a) the defence itself: shipping arm vs UNPROTECTED
+    none     ECAPA-TDNN             -0.1918  [-0.2352,-0.1489]  success  44.8% ->   0.0%  28/29  p_holm=2.946e-08 ***
+    none     WavLM-SV               -0.1259  [-0.1673,-0.0937]  success  62.1% ->   3.4%  26/29  p_holm=2.24e-06 ***
+    none     Resemblyzer d-vector   -0.0911  [-0.1170,-0.0718]  success  89.7% ->  31.0%  27/29  p_holm=1.791e-07 ***
+    ours     ECAPA-TDNN             -0.1370  [-0.1663,-0.1069]  success  48.3% ->   3.4%  27/29  p_holm=1.378e-08 ***
+    ours     WavLM-SV               -0.0763  [-0.1150,-0.0520]  success  48.3% ->  13.8%  27/29  p_holm=0.0001333 ***
+    ours     Resemblyzer d-vector   -0.0685  [-0.0866,-0.0517]  success  86.2% ->  37.9%  28/29  p_holm=2.073e-07 ***
+    diffwave ECAPA-TDNN             -0.0933  [-0.1255,-0.0605]  success  27.6% ->   3.4%  25/29  p_holm=2.157e-05 ***
+    diffwave WavLM-SV               -0.0635  [-0.0883,-0.0405]  success  51.7% ->  13.8%  24/29  p_holm=0.0001333 ***
+    diffwave Resemblyzer d-vector   -0.0401  [-0.0577,-0.0243]  success  75.9% ->  41.4%  24/29  p_holm=0.0001333 ***
+
+  (b) THE ATTRIBUTION: fullnsT_m30_f15_all MINUS plain_m30_f15_all
+      (negative = purifier-in-the-loop earns its place)
+    none     ECAPA-TDNN             -0.0010  [-0.0344,+0.0260]  success   3.4% ->   0.0%  13/29  p_holm=1   <- AT THE FLOOR, not identifiable
+    none     WavLM-SV               +0.0073  [-0.0289,+0.0438]  success   6.9% ->   3.4%  14/29  p_holm=1   <- AT THE FLOOR, not identifiable
+    none     Resemblyzer d-vector   +0.0232  [+0.0002,+0.0463]  success  31.0% ->  31.0%   9/29  p_holm=0.5577 
+    ours     ECAPA-TDNN             -0.0091  [-0.0296,+0.0129]  success   6.9% ->   3.4%  16/29  p_holm=1   <- AT THE FLOOR, not identifiable
+    ours     WavLM-SV               -0.0068  [-0.0258,+0.0086]  success   6.9% ->  13.8%  15/29  p_holm=1 
+    ours     Resemblyzer d-vector   -0.0055  [-0.0199,+0.0105]  success  41.4% ->  37.9%  18/29  p_holm=1 
+    diffwave ECAPA-TDNN             -0.0079  [-0.0474,+0.0273]  success   3.4% ->   3.4%  13/29  p_holm=1   <- AT THE FLOOR, not identifiable
+    diffwave WavLM-SV               -0.0164  [-0.0419,+0.0195]  success  17.2% ->  13.8%  20/29  p_holm=1 
+    diffwave Resemblyzer d-vector   -0.0021  [-0.0201,+0.0146]  success  48.3% ->  41.4%  16/29  p_holm=1 
+
+    0 of 9 cells significant and above the floor; 4 not identifiable (both arms < 10%).
+    largest |delta| = 0.0232 (BELOW the 0.0247 noise floor)
+
+==============================================================================
+HELD-OUT (d-vector not in the ensemble)
+  cloning_tc_m30_nodvec.csv  |  29 speakers  |  arms: full_m30_f15_nodvec, fullnsT_m30_f15_nodvec, plain_m30_f15_nodvec, unprotected
+==============================================================================
+
+  (a) the defence itself: shipping arm vs UNPROTECTED
+    none     ECAPA-TDNN             -0.1224  [-0.1666,-0.0737]  success  55.2% ->  10.3%  23/29  p_holm=0.0002144 ***
+    none     WavLM-SV               -0.0485  [-0.0817,-0.0224]  success  48.3% ->  20.7%  21/29  p_holm=0.01249 *
+    none     Resemblyzer d-vector   -0.0389  [-0.0618,-0.0187]  success  82.8% ->  65.5%  22/29  p_holm=0.00403 **
+    ours     ECAPA-TDNN             -0.1036  [-0.1263,-0.0798]  success  48.3% ->  10.3%  26/29  p_holm=4.278e-08 ***
+    ours     WavLM-SV               -0.0449  [-0.0637,-0.0302]  success  48.3% ->  20.7%  26/29  p_holm=0.0001483 ***
+    ours     Resemblyzer d-vector   -0.0378  [-0.0492,-0.0255]  success  86.2% ->  75.9%  26/29  p_holm=1.547e-05 ***
+    diffwave ECAPA-TDNN             -0.0601  [-0.0900,-0.0327]  success  27.6% ->   6.9%  23/29  p_holm=0.001527 **
+    diffwave WavLM-SV               -0.0294  [-0.0580,-0.0090]  success  51.7% ->  31.0%  21/29  p_holm=0.02987 *
+    diffwave Resemblyzer d-vector   -0.0184  [-0.0324,-0.0053]  success  75.9% ->  65.5%  19/29  p_holm=0.02987 *
+
+  (b) THE ATTRIBUTION: fullnsT_m30_f15_nodvec MINUS plain_m30_f15_nodvec
+      (negative = purifier-in-the-loop earns its place)
+    none     ECAPA-TDNN             -0.0537  [-0.0811,-0.0266]  success  24.1% ->  10.3%  21/29  p_holm=0.005034 **
+    none     WavLM-SV               -0.0271  [-0.0446,-0.0088]  success  34.5% ->  20.7%  23/29  p_holm=0.0473 *
+    none     Resemblyzer d-vector   -0.0190  [-0.0344,-0.0020]  success  79.3% ->  65.5%  21/29  p_holm=0.05961 
+    ours     ECAPA-TDNN             -0.0576  [-0.0758,-0.0365]  success  27.6% ->  10.3%  25/29  p_holm=3.644e-05 ***
+    ours     WavLM-SV               -0.0261  [-0.0369,-0.0150]  success  34.5% ->  20.7%  26/29  p_holm=0.0006919 ***
+    ours     Resemblyzer d-vector   -0.0145  [-0.0251,-0.0041]  success  82.8% ->  75.9%  22/29  p_holm=0.0473 *
+    diffwave ECAPA-TDNN             -0.0336  [-0.0552,-0.0107]  success  13.8% ->   6.9%  20/29  p_holm=0.0473 *
+    diffwave WavLM-SV               -0.0323  [-0.0567,-0.0121]  success  41.4% ->  31.0%  19/29  p_holm=0.0473 *
+    diffwave Resemblyzer d-vector   -0.0158  [-0.0284,-0.0023]  success  79.3% ->  65.5%  20/29  p_holm=0.05961 
+
+    7 of 9 cells significant and above the floor; 0 not identifiable (both arms < 10%).
+    largest |delta| = 0.0576 (ABOVE the 0.0247 noise floor)
+
+  (c) splitting it: full_m30_f15_nodvec (EOT, no reg) MINUS plain_m30_f15_nodvec
+    none     ECAPA-TDNN             -0.0435  [-0.0761,-0.0144]  23/29  p_holm=0.07215 
+    none     WavLM-SV               -0.0229  [-0.0405,-0.0054]  19/29  p_holm=0.1087 
+    none     Resemblyzer d-vector   -0.0138  [-0.0245,-0.0006]  19/29  p_holm=0.1137 
+    ours     ECAPA-TDNN             -0.0368  [-0.0574,-0.0183]  20/29  p_holm=0.01618 *
+    ours     WavLM-SV               -0.0170  [-0.0285,-0.0037]  20/29  p_holm=0.09891 
+    ours     Resemblyzer d-vector   -0.0088  [-0.0188,+0.0024]  19/29  p_holm=0.1874 
+    diffwave ECAPA-TDNN             -0.0330  [-0.0582,-0.0018]  21/29  p_holm=0.1137 
+    diffwave WavLM-SV               -0.0305  [-0.0525,-0.0067]  21/29  p_holm=0.09891 
+    diffwave Resemblyzer d-vector   -0.0128  [-0.0276,+0.0015]  20/29  p_holm=0.1874 
+
+      and the regulariser alone: fullnsT_m30_f15_nodvec MINUS full_m30_f15_nodvec
+    none     ECAPA-TDNN             -0.0102  [-0.0344,+0.0145]  17/29  p_holm=1 
+    none     WavLM-SV               -0.0042  [-0.0247,+0.0138]  14/29  p_holm=1 
+    none     Resemblyzer d-vector   -0.0052  [-0.0223,+0.0094]  15/29  p_holm=1 
+    ours     ECAPA-TDNN             -0.0209  [-0.0393,-0.0060]  20/29  p_holm=0.1754 
+    ours     WavLM-SV               -0.0092  [-0.0202,-0.0014]  16/29  p_holm=0.5977 
+    ours     Resemblyzer d-vector   -0.0058  [-0.0126,+0.0039]  21/29  p_holm=1 
+    diffwave ECAPA-TDNN             -0.0006  [-0.0266,+0.0242]  15/29  p_holm=1 
+    diffwave WavLM-SV               -0.0018  [-0.0246,+0.0158]  17/29  p_holm=1 
+    diffwave Resemblyzer d-vector   -0.0030  [-0.0123,+0.0080]  17/29  p_holm=1 
+

@@ -1,0 +1,117 @@
+cloner: F5-TTS   |   file: cloning_f5tts.csv
+channels: none, ours, diffwave   |   encoders: ECAPA-TDNN, WavLM-SV, Resemblyzer d-vector
+arms: fullnsT_tc_m30_seg, plain_tc_m30_seg, unprotected
+(margin = clone similarity - threshold; NEGATIVE = clone fails = victim protected)
+
+========================================================================
+GATE (prereg 4): is this a WORKING cloner on unprotected audio?
+========================================================================
+  ECAPA-TDNN             27/29  succeed  mean margin +0.1858   PASS
+  WavLM-SV               23/29  succeed  mean margin +0.0252   PASS
+  Resemblyzer d-vector   28/29  succeed  mean margin +0.1024   PASS
+
+  GATE: PASSED (need >= 15 successes AND positive mean margin on at least one encoder)
+
+========================================================================
+PRIMARY (prereg 3): fullnsT_tc_m30_seg MINUS unprotected, paired per speaker
+========================================================================
+channel   encoder                   delta             95% BCa   lower    p_holm
+none      ECAPA-TDNN              -0.3183  [-0.3608, -0.2621]    28/29    0.0000 ***
+none      WavLM-SV                -0.0927  [-0.1292, -0.0670]    28/29    0.0000 ***
+none      Resemblyzer d-vector    -0.1033  [-0.1312, -0.0813]    29/29    0.0000 ***
+ours      ECAPA-TDNN              -0.2873  [-0.3325, -0.2347]    28/29    0.0000 ***
+ours      WavLM-SV                -0.0824  [-0.1123, -0.0598]    26/29    0.0000 ***
+ours      Resemblyzer d-vector    -0.0658  [-0.0885, -0.0421]    24/29    0.0000 ***
+diffwave  ECAPA-TDNN              -0.1494  [-0.1844, -0.1170]    28/29    0.0000 ***
+diffwave  WavLM-SV                -0.0445  [-0.0602, -0.0297]    24/29    0.0000 ***
+diffwave  Resemblyzer d-vector    -0.0424  [-0.0643, -0.0246]    25/29    0.0003 ***
+
+========================================================================
+SECONDARY: plain_tc_m30_seg MINUS unprotected (the naive arm)
+========================================================================
+none      ECAPA-TDNN              -0.2741  [-0.3194, -0.2238]    28/29    0.0000 *
+none      WavLM-SV                -0.0422  [-0.0708, -0.0244]    22/29    0.0041 *
+none      Resemblyzer d-vector    -0.0959  [-0.1153, -0.0764]    29/29    0.0000 *
+ours      ECAPA-TDNN              -0.2399  [-0.2850, -0.1893]    28/29    0.0000 *
+ours      WavLM-SV                -0.0344  [-0.0648, -0.0165]    21/29    0.0205 *
+ours      Resemblyzer d-vector    -0.0710  [-0.0937, -0.0480]    25/29    0.0000 *
+diffwave  ECAPA-TDNN              -0.0924  [-0.1168, -0.0661]    23/29    0.0000 *
+diffwave  WavLM-SV                -0.0171  [-0.0285, -0.0050]    21/29    0.0205 *
+diffwave  Resemblyzer d-vector    -0.0410  [-0.0616, -0.0227]    23/29    0.0011 *
+
+========================================================================
+SECONDARY (the §59 attribution, through this cloner):
+  fullnsT_tc_m30_seg MINUS plain_tc_m30_seg
+  negative = purifier-in-the-loop earns its place
+========================================================================
+none      ECAPA-TDNN              -0.0443  [-0.0695, -0.0208]    23/29    0.0073 **
+none      WavLM-SV                -0.0505  [-0.0792, -0.0277]    22/29    0.0065 **
+none      Resemblyzer d-vector    -0.0074  [-0.0260, +0.0089]    17/29    1.0000 
+ours      ECAPA-TDNN              -0.0474  [-0.0822, -0.0121]    20/29    0.0581 
+ours      WavLM-SV                -0.0480  [-0.0765, -0.0243]    26/29    0.0073 **
+ours      Resemblyzer d-vector    +0.0052  [-0.0102, +0.0235]    14/29    1.0000 
+diffwave  ECAPA-TDNN              -0.0570  [-0.0854, -0.0260]    23/29    0.0073 **
+diffwave  WavLM-SV                -0.0274  [-0.0439, -0.0126]    21/29    0.0104 *
+diffwave  Resemblyzer d-vector    -0.0014  [-0.0168, +0.0141]    15/29    1.0000 
+
+  NOTE: carries the §59f budget confound -- these two arms
+  share a budget constraint, not a budget spend.
+
+========================================================================
+SECONDARY: clone success rates, with n (RESULTS 31's rule: a rate
+in a thin cell is a range, never a point estimate)
+========================================================================
+                                                   k   n  rate_%
+purifier variant            encoder                             
+diffwave fullnsT_tc_m30_seg ECAPA-TDNN             9  29    31.0
+                            Resemblyzer d-vector  22  29    75.9
+                            WavLM-SV               9  29    31.0
+         plain_tc_m30_seg   ECAPA-TDNN            14  29    48.3
+                            Resemblyzer d-vector  21  29    72.4
+                            WavLM-SV              18  29    62.1
+         unprotected        ECAPA-TDNN            23  29    79.3
+                            Resemblyzer d-vector  27  29    93.1
+                            WavLM-SV              23  29    79.3
+none     fullnsT_tc_m30_seg ECAPA-TDNN             3  29    10.3
+                            Resemblyzer d-vector  17  29    58.6
+                            WavLM-SV               7  29    24.1
+         plain_tc_m30_seg   ECAPA-TDNN             4  29    13.8
+                            Resemblyzer d-vector  16  29    55.2
+                            WavLM-SV              14  29    48.3
+         unprotected        ECAPA-TDNN            27  29    93.1
+                            Resemblyzer d-vector  28  29    96.6
+                            WavLM-SV              23  29    79.3
+ours     fullnsT_tc_m30_seg ECAPA-TDNN             3  29    10.3
+                            Resemblyzer d-vector  19  29    65.5
+                            WavLM-SV               8  29    27.6
+         plain_tc_m30_seg   ECAPA-TDNN             7  29    24.1
+                            Resemblyzer d-vector  18  29    62.1
+                            WavLM-SV              18  29    62.1
+         unprotected        ECAPA-TDNN            25  29    86.2
+                            Resemblyzer d-vector  27  29    93.1
+                            WavLM-SV              23  29    79.3
+
+ECAPA at the 0.25 field convention:
+                              k   n  rate_%
+purifier variant                           
+diffwave fullnsT_tc_m30_seg  16  29    55.2
+         plain_tc_m30_seg    23  29    79.3
+         unprotected         28  29    96.6
+none     fullnsT_tc_m30_seg   6  29    20.7
+         plain_tc_m30_seg    13  29    44.8
+         unprotected         29  29   100.0
+ours     fullnsT_tc_m30_seg   8  29    27.6
+         plain_tc_m30_seg    14  29    48.3
+         unprotected         29  29   100.0
+
+========================================================================
+BRANCH (prereg 5)
+========================================================================
+  significant protective cells: 9 of 9
+  ECAPA protective in every purifier channel: True
+  other encoders likewise: ['WavLM-SV', 'Resemblyzer d-vector']
+
+  => N2-A: protection TRANSFERS to a modern zero-shot cloner
+
+  Reminder: the three encoders are correlated; this is not 9
+  independent experiments. Holm is used because it is conservative.

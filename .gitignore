@@ -59,3 +59,7 @@ experiments/sb_models/
 /results/
 /results_*/
 __pycache__/
+
+# ── Downloaded papers and stray pages (third-party; not ours to redistribute) ──
+*.pdf
+safe.html

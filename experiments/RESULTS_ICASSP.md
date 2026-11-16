@@ -5852,3 +5852,648 @@ Pre-registered items that now look wrong, said rather than edited:
 What it cost: about 4.5 GPU-hours and one evening, against a lead claim that
 four councils, two audits and a pre-registration had read as a statement
 about speaker encoders.
+
+## 59. N1 — what purifier-in-the-loop crafting actually buys, and where it buys nothing (2026-11-12)
+
+`experiments/analyse_n1_plain_vs_eot.py` → `results/n1_analysis.txt`.
+Inputs `cloning_tc_m30_deploy.csv` (matched) and `cloning_tc_m30_nodvec.csv`
+(held-out). Both have been on disk since the loud-budget runs and **neither is
+cited anywhere in this file**. That is the defect class the 2026-10-04 council
+named — rebased CSVs present and unanalysed — and it had survived two audits
+because nothing indexed the cloning CSVs against the sections that quote them.
+
+This is the central table of a defence paper. It had never been run.
+
+29 cross-session test-clean speakers, budget m30_f15, three channels
+(`none` / `ours` = mel DiffPure v7 DDIM / `diffwave` t=3), DiffVC end-to-end,
+scored against a different-chapter clean enrolment at the cross-session EER
+thresholds. The contrast changes **one** variable: whether the purifier was in
+the crafting loop.
+
+### 59a. The defence works, and that part is not in doubt
+
+Shipping arm vs unprotected, 9 of 9 cells in **both** conditions, every Holm
+p ≤ 0.03, every BCa interval excluding zero. Under the matched condition and
+the `ours` channel, clone success falls
+
+| encoder | unprotected | protected |
+|---|---|---|
+| ECAPA-TDNN | 48.3 % | **3.4 %** |
+| WavLM-SV | 48.3 % | 13.8 % |
+| Resemblyzer d-vector | 86.2 % | 37.9 % |
+
+Held out, the same channel: 48.3 → 10.3, 48.3 → 20.7, 86.2 → 75.9 %.
+
+### 59b. THE ATTRIBUTION FAILS WHERE THE ENCODER IS KNOWN
+
+`fullnsT_m30_f15_all` **minus** `plain_m30_f15_all`, matched condition:
+**0 of 9 cells significant.** Largest |Δ| = **0.0232**, which is *below* the
+0.0247 median noise floor for a crafting-loop edit (§34) and well below the
+0.0328 worst case of the loop's own non-determinism (§50). Four cells have both
+arms under 10 % clone success and are **not identifiable** — saturation, not
+evidence, and they are flagged as such rather than counted as nulls.
+
+The cell that is *not* floored is the most informative: the d-vector at `none`
+has 31.0 % success in both arms and reads **+0.0232 [+0.0002, +0.0463]**, i.e.
+pointing the wrong way, toward plain crafting. It does not survive Holm
+(p = 0.56) and no mechanism is asserted from it.
+
+**So: when every encoder is in the ensemble, plain crafting at the same
+perceptual budget is within the noise floor of the purifier-aware arm.** The
+September main table's large plain-vs-EOT gap (45/20/35 → 75/60/20) is an
+old-base, old-purifier number and does not reproduce here.
+
+### 59c. IT BUYS GENERALISATION INSTEAD, and that is well powered
+
+Same contrast, d-vector held out of the ensemble: **7 of 9 cells significant,
+none at the floor**, largest |Δ| = **0.0576**, above the floor by 2.3×.
+
+| channel | encoder | Δ margin | 95 % BCa | clone success | p_holm |
+|---|---|---|---|---|---|
+| ours | ECAPA-TDNN | **−0.0576** | [−0.0758, −0.0365] | 27.6 → **10.3 %** | 3.6e-05 |
+| ours | WavLM-SV | −0.0261 | [−0.0369, −0.0150] | 34.5 → 20.7 % | 6.9e-04 |
+| ours | d-vector | −0.0145 | [−0.0251, −0.0041] | 82.8 → 75.9 % | 0.047 |
+| none | ECAPA-TDNN | −0.0537 | [−0.0811, −0.0266] | 24.1 → 10.3 % | 0.0050 |
+| diffwave | ECAPA-TDNN | −0.0336 | [−0.0552, −0.0107] | 13.8 → 6.9 % | 0.047 |
+
+### 59d. And it is EOT, not the regulariser
+
+Splitting the arm (held-out file carries `full_` as well as `fullnsT_`):
+
+* **EOT alone** vs plain carries the effect — ECAPA −0.0368 [−0.0574, −0.0183]
+  at `ours`, p_holm 0.016; same sign in 9/9 cells.
+* **the noise-matched regulariser alone** (`fullnsT` minus `full`) is **0 of 9
+  significant**, every |Δ| ≤ 0.021, best p_holm 0.18.
+
+The regulariser has been carried in the shipping recipe since 2026-09-11 on the
+strength of old-base numbers. On the current base it is **not measurably doing
+anything**, and §51's rule forbids the word "equivalent": state the bound
+(≤ 0.021, CIs mostly spanning zero) and the direction (uniformly negative,
+i.e. harmless) and stop there.
+
+### 59e. What this does to the claim
+
+The defence claim survives intact: protection holds end-to-end through two
+diffusion purifiers against a diffusion cloner. What does **not** survive is
+the attribution the method section wanted — "purifier-in-the-loop crafting
+protects better". It does not, where the encoder is known; there, a plain
+perturbation at the same budget does the same work.
+
+The honest claim is sharper and, as a contribution, better:
+
+> Putting the purifier in the crafting loop does not make protection stronger
+> against an encoder it already targets. It makes protection **generalise** to
+> an encoder it does not: held out, it halves clone success (27.6 → 10.3 % on
+> ECAPA through the purifier) where plain crafting leaves it at chance-of-noise
+> distance from unprotected.
+
+That is a claim about *coverage*, which is the exact failure the measurement
+sections (§22b) described without explaining. §59 is the first evidence in this
+project that any component of the recipe addresses it.
+
+**Forbidden wordings added to the ledger:** never "purifier-aware crafting
+protects better" unqualified (false in the matched condition, §59b); never
+"the regulariser contributes" (§59d); never quote the September plain-vs-EOT
+gap on this base (§59b).
+
+**Not measured, and must not be asserted:** this is the m30_f15 arm, not the
+segment-crafted shipping recipe. §49 put crafting mode at 0.0072, so the seg
+contrast is unlikely to differ materially, but it is unmeasured. The matched
+file has no `full_m30_f15_all`, so EOT and the regulariser cannot be separated
+in the matched condition.
+
+### 59f. The budget confound — found, measured, and it does not explain §59c
+
+`experiments/analyse_n1_budget.py` → `results/n1_budget.txt`.
+
+§59 called the two arms "the same perceptual budget" because both were crafted
+with `--margin-db 30 --snr-floor 15`. That is a **constraint, not a target**.
+§40 measured quality on the shipping arm only, so nothing in the record had
+checked whether the arms actually spend the same. They do not.
+
+| condition | arm | SNR vs original | PESQ (wb) |
+|---|---|---|---|
+| matched | `plain_m30_f15_all` | 16.90 dB | 2.248 |
+| matched | `fullnsT_m30_f15_all` | 16.04 dB | 2.263 |
+| held-out | `plain_m30_f15_nodvec` | **19.02 dB** | **2.486** |
+| held-out | `full_m30_f15_nodvec` | 15.66 dB | 2.296 |
+| held-out | `fullnsT_m30_f15_nodvec` | **16.13 dB** | **2.254** |
+
+Paired, purifier-aware minus plain: matched **−0.86 dB** SNR (p = 8.0e-06),
+PESQ +0.015 (p = 0.59); held-out **−2.89 dB** (p = 1.4e-11), PESQ **−0.232**
+(p = 5.7e-11). RMS level is matched to within 0.035 dB in both, so this is
+perturbation energy, not the level confound §40a caught.
+
+So the purifier-aware arm **spends more of the allowance**, and most in exactly
+the condition where §59c found its effect. "Our arm protects better" and "our
+arm perturbs more" predict the same margin, and a reviewer will say so.
+
+**Two tests say magnitude does not explain it.**
+
+*(a) Across arms.* If magnitude drove the gain, the louder arm would gain more.
+It is the other way round: `full_` spends **more** (15.66 dB) and gains
+**less** (Δ −0.0368) than `fullnsT_` (16.13 dB, Δ −0.0576), ECAPA at `ours`.
+The ordering is inverted with respect to spend.
+
+*(b) Within speakers.* Correlating each speaker's extra dB spent against that
+speaker's protection gain (ECAPA, `ours`): held-out **r = −0.024, p = 0.90**
+(Spearman −0.024); matched r = +0.032, p = 0.87. Speakers who got a louder
+perturbation out of the EOT arm did **not** get more protection from it.
+
+**What is therefore claimable.** The generalisation effect of §59c survives the
+confound check, and the confound must be **disclosed with both tests beside
+it** — not omitted, and not described as controlled. The honest sentence is:
+the purifier-aware arm spends 2.9 dB more of the same allowance, and neither
+the across-arm ordering nor the within-speaker correlation attributes its
+advantage to that extra spend.
+
+**Still unmeasured, and must not be asserted:** a plain arm **re-crafted to
+land at 16.1 dB**, which is the clean settlement and costs roughly 1 GPU-h of
+plain crafting (~30 s/utt, §memory) plus the cloning evaluation. Until it is
+run, §59c carries the confound in its wording. Test (b) at n = 29 detects a
+strong correlation, not a weak one; a null there is evidence, not proof. SNR
+and PESQ are proxies for a psychoacoustic budget and are not the constraint
+itself.
+
+**Added to the ledger:** never write "at equal perceptual budget" for the
+plain-vs-purifier-aware contrast — write "under the same budget constraint,
+with the purifier-aware arm spending 2.9 dB more of it".
+
+## 60. N2 — the protection transfers to a modern zero-shot cloner, and the prediction was wrong (2026-11-12)
+
+PREREG: `paper/PREREG_N2_modern_cloner.md`.
+Pipeline `prep_f5_prompts.py` → `f5_clone.py` → `score_f5_clones.py` →
+`analyse_f5.py`; `results/cloning_f5tts.csv`, `results/f5_analysis.txt`.
+
+**Why it was run.** Every cloning number in this project comes from DiffVC
+(2021), which clones by conditioning on a **separate speaker encoder** — the
+Resemblyzer d-vector. Our perturbation is optimised against speaker encoders,
+so a cloner built on one is the favourable case by construction, and a
+DiffVC-only defence paper invites exactly one question first.
+
+**F5-TTS** (flow matching, 2024) has **no speaker-encoder module**: the
+reference clip is an in-context audio prompt and the voice is inferred from it
+directly. There is no embedding for our perturbation to have targeted, even
+indirectly. 29 cross-session test-clean speakers, 3 arms × 3 channels = 261
+generations, in `external/f5tts_venv` (isolated, as PhonePuRe is).
+
+### 60a. The gate passed: this is a working cloner
+
+Prereg §4 required ≥ 15 of 29 successes and a positive mean margin on at least
+one encoder, on unprotected audio through `none`. All three encoders pass:
+ECAPA **27/29** (mean margin +0.1858), d-vector 28/29 (+0.1024), WavLM 23/29
+(+0.0252). At the ECAPA 0.25 field convention, unprotected is **29/29**.
+
+F5-TTS is a markedly better cloner than DiffVC on this cohort: 93.1 % ECAPA
+clone success against DiffVC's 44.8–48.3 %. The harder attacker is the more
+informative one.
+
+### 60b. OUTCOME N2-A — it transfers. 9 of 9 cells
+
+Shipping arm (`fullnsT_tc_m30_seg`) minus unprotected, paired, Holm over nine:
+
+| channel | ECAPA | WavLM-SV | d-vector |
+|---|---|---|---|
+| none | **−0.3183** | −0.0927 | −0.1033 |
+| ours | **−0.2873** | −0.0824 | −0.0658 |
+| diffwave | **−0.1494** | −0.0445 | −0.0424 |
+
+Every cell p_holm ≤ 3e-4, every BCa interval excluding zero, 24–29 of 29
+speakers improved. Clone success through `ours`: ECAPA **86.2 % → 10.3 %**,
+WavLM 79.3 % → 27.6 %, d-vector 93.1 % → 65.5 %. At the 0.25 convention,
+100 % → 27.6 %.
+
+**The abstract may therefore say the protection transfers to a modern
+zero-shot cloner**, naming F5-TTS and its encoder-free architecture.
+
+### 60c. THE PREDICTION WAS WRONG, and by a lot
+
+PREREG_N2 §5 recorded, before the run: *"I expect N2-C or N2-B, around
+60 / 25, with N2-A at ~15 %."* The reasoning was that a perturbation optimised
+through three speaker encoders' gradients has no counterpart in a model with
+no encoder. **N2-A fired**, so the 15 % branch is what happened.
+
+What the reasoning missed: the perturbation does not only move an embedding,
+it damages the **acoustic prompt** itself, and a model that reads identity
+from the prompt in context inherits that damage. Whatever our crafting
+disrupts is evidently not private to the encoders it was optimised through.
+This is a mechanism claim and **nothing here establishes it** — it is the
+hypothesis §60's result generates, not a finding. The honest statement is that
+transfer was observed and not predicted.
+
+Scoring the record: §7.5's reverb prediction failed, §49e's held, this one
+failed. Predictions are being written and scored; two of three have been
+wrong, which is itself worth stating in the paper's limitations.
+
+### 60d. A free result: the SHIPPING recipe's attribution, budget-matched
+
+§59 could not test plain-vs-purifier-aware on the segment-crafted shipping
+arms, because no DiffVC cloning run of `plain_tc_m30_seg` exists. F5-TTS
+supplies that contrast, and — crucially — **the seg arms are budget-matched**:
+
+| seg arm | realised SNR | PESQ |
+|---|---|---|
+| `plain_tc_m30_seg` | 16.206 dB | 2.091 |
+| `fullnsT_tc_m30_seg` | 16.113 dB | **2.283** |
+
+Paired: SNR **−0.093 dB, p = 0.408** (not significant), PESQ **+0.192,
+p = 1.6e-06**. The purifier-aware arm sits at the same perturbation energy and
+*better* perceptual quality.
+
+> **CORRECTED by §63b.** This section originally continued: "§59f's 2.89 dB
+> confound is specific to the `m30_f15` arms: segment crafting makes the plain
+> arm spend its budget (19.02 dB non-seg → 16.21 dB seg)." **That is wrong.**
+> Those two arms differ in crafting mode *and* in crafting ensemble, and N7
+> supplied the missing cell: `plain_m30_seg_nodvec` lands at 19.001 dB, so
+> segment crafting moves plain by 0.02 dB when the d-vector is held out. The
+> determinant is the **ensemble**, not the mode. What survives: the matched-
+> ensemble seg arms compared here are budget-matched, which is what §61 needs.
+
+With that matching in hand, the attribution through F5-TTS:
+
+| channel | ECAPA | WavLM-SV | d-vector |
+|---|---|---|---|
+| none | −0.0443 ** | −0.0505 ** | −0.0074 |
+| ours | −0.0474 (p .058) | −0.0480 ** | +0.0052 |
+| diffwave | −0.0570 ** | −0.0274 * | −0.0014 |
+
+Six of nine Holm-significant; **the d-vector is null in all three channels**
+(and marginally positive at `ours`). So on the shipping recipe, at matched
+budget, purifier-in-the-loop crafting earns its place on the two encoders that
+are not DiffVC's conditioner, and buys nothing on the one that is. That is
+consistent with §59c's coverage reading and sharpens it.
+
+### 60e. What this run does NOT establish
+
+* Not that F5-TTS is *the* modern attacker — it is one, chosen for being
+  encoder-free and openly available. One cloner does not make a class.
+* Not anything about the clones' naturalness or intelligibility: no quality
+  metric was computed on F5-TTS output. §40c's "part of protection is clone
+  damage" is **unmeasured here**, and that matters, because a protection that
+  merely degrades the clone is a weaker claim. It is the obvious next run.
+* Not a PhonePuRe result: the refiner is not in this run (prereg §2.2).
+* Not comparable to published F5-TTS cloning rates — our thresholds, 4-s crop
+  and enrolment protocol are ours.
+* The content pathway differs from DiffVC by construction (text vs waveform);
+  prereg §2.4 fixes `ref_text` to Whisper's transcript of the victim's **clean**
+  crop, held identical across arms, so no part of this is ASR confusion.
+
+### 60f. Harness note
+
+`torchaudio.load` dispatches to torchcodec in 2.9, whose DLLs need FFmpeg,
+which this machine does not have — every generation died at
+`utils_infer.py:403`. Shimmed to soundfile in `f5_clone.py`; the project now
+carries this workaround in three places (`utils/tacompat.py`,
+`eval_quality_nr.load_asr`, here). Generation cost 2.6–6 s per clone, 13 min
+for 261. `tests/test_n2_prompts.py` (8 tests) pins the protocol invariants:
+one transcript per victim across arms, the source-speaker rotation, and
+enrolment from a different chapter. Suite 93 passed.
+
+## 61. N5′ — the budget-matched attribution, and it depends entirely on which cloner you ask (2026-11-12)
+
+PREREG: `paper/PREREG_N5_budget_matched_plain.md` + its same-day amendment
+(written before the result). `experiments/analyse_n5.py`,
+`results/cloning_tc_m30_seg_n5.csv`, `results/n5_analysis.txt`.
+
+The arms are the **segment-crafted shipping pair**, which §60d measured as
+budget-matched: `plain_tc_m30_seg` 16.206 dB / PESQ 2.091 against
+`fullnsT_tc_m30_seg` 16.113 dB / PESQ **2.283** — paired SNR −0.093 dB,
+p = 0.408, with the purifier-aware arm at *better* perceptual quality. So
+nothing below is confounded with perturbation size, which is what §59f could
+not say.
+
+### 61a. The defence itself, again, and strongly
+
+Shipping arm minus unprotected through DiffVC: **9 of 9** cells, every
+p_holm ≤ 2.9e-05, 23–29 of 29 speakers. Clone success through `ours`:
+ECAPA **48.3 % → 0.0 %**, WavLM 48.3 % → 6.9 %, d-vector 86.2 % → 31.0 %. At
+`none`, ECAPA and WavLM both reach **0.0 %**.
+
+### 61b. OUTCOME 5-C on the pre-registered primary — and the primary cell was a bad choice
+
+`fullnsT_tc_m30_seg` **minus** `plain_tc_m30_seg`, DiffVC, matched budget:
+
+| channel | ECAPA | WavLM-SV | d-vector |
+|---|---|---|---|
+| none | +0.0308 | +0.0152 | **+0.0729*** |
+| ours | **+0.0203 (primary)** | −0.0091 | **+0.0217*** |
+| diffwave | +0.0241 | −0.0140 | +0.0171 |
+
+Seven of nine deltas are **positive**, i.e. favouring plain. The only two
+Holm-significant cells are both positive and both on the **d-vector**: at
+`none`, plain holds clone success to **0.0 %** where the purifier-aware arm
+lets **20.7 %** through; at `ours`, 10.3 % against 31.0 %.
+
+The pre-registered primary cell (ECAPA, `ours`) reads +0.0203, p_holm 0.429 →
+**branch 5-C**.
+
+**But that cell is saturated**: both arms clone at 0.0 %, and five of the nine
+cells are at the floor. I chose ECAPA/`ours` as primary because it carried
+§59c's headline, without checking that in the *matched* condition it is
+exactly where §59b had already shown both arms bottom out. That is an error in
+my pre-registration, not a property of the data, and it is recorded as such.
+The branch is reported as it was pre-specified; the informative cells are the
+d-vector ones, and they go against purifier-awareness.
+
+### 61c. THE RESULT: same arms, same budget, opposite verdicts by cloner
+
+Putting §60d beside §61b — identical arms, identical 29 speakers, identical
+budget, only the cloner differs:
+
+| channel | encoder | DiffVC | F5-TTS |
+|---|---|---|---|
+| none | ECAPA | +0.0308 | **−0.0443 ** |
+| none | WavLM-SV | +0.0152 | **−0.0505 ** |
+| none | d-vector | **+0.0729 *** | −0.0074 |
+| ours | ECAPA | +0.0203 | −0.0474 (p .058) |
+| ours | WavLM-SV | −0.0091 | **−0.0480 ** |
+| ours | d-vector | **+0.0217 *** | +0.0052 |
+| diffwave | ECAPA | +0.0241 | **−0.0570 ** |
+| diffwave | WavLM-SV | −0.0140 | **−0.0274 *** |
+| diffwave | d-vector | +0.0171 | −0.0014 |
+
+**DiffVC 2 of 9 negative; F5-TTS 8 of 9 negative, 5 significant.**
+
+DiffVC conditions on the Resemblyzer d-vector, which **both** arms crafted
+against. F5-TTS has no speaker encoder and was targeted by neither. So:
+
+> At matched budget, purifier-in-the-loop crafting earns its place **against
+> an attacker that was not targeted**. Against the cloner whose conditioner
+> sits in the crafting ensemble, plain crafting at the same perceptual cost is
+> as good — ECAPA and WavLM reach 0 % clone success either way — or better, on
+> the d-vector itself.
+
+This is §59c's coverage reading, now demonstrated by varying the **cloner**
+instead of the encoder ensemble, and with the budget matched by measurement so
+§59f's confound cannot apply. It is a sharper claim than §59 could support and
+it rests on two cloners rather than one.
+
+### 61d. What this costs the paper, stated plainly
+
+The sentence "purifier-in-the-loop crafting generalises better" can no longer
+be written without naming the attacker it generalises *to*. Three conditions
+now exist and they do not agree:
+
+| condition | budget | verdict |
+|---|---|---|
+| §59b matched, m30_f15, DiffVC | 0.86 dB apart | 0 of 9, 4 saturated |
+| §61b matched, seg, DiffVC | **matched** | 0 of 9 favourable; 2 of 9 *against*, on the d-vector |
+| §59c held out, m30_f15, DiffVC | 2.89 dB apart | 7 of 9 favourable, confounded |
+| §60d matched, seg, F5-TTS | **matched** | 8 of 9 favourable, 5 significant |
+
+The one cell that is both budget-matched and unsaturated in the DiffVC rows is
+the d-vector, and it favours plain. The cleanest remaining gap is a
+**budget-matched, held-out, segment-crafted plain arm**: `plain_m30_seg_nodvec`
+does not exist on disk, so §59c's held-out claim has never been tested at
+matched budget. That is one plain crafting run plus a cloning evaluation and
+it is now the highest-value experiment in the project.
+
+**Ledger:** never write that purifier-in-the-loop crafting helps without the
+attacker named; §61b's two significant cells go the other way on DiffVC's own
+conditioner. Never cite the pre-registered N5 primary cell as a null — it was
+saturated and could not have resolved anything.
+
+> **SUPERSEDED IN PART by §62b.** The §61b point estimates come from a run that
+> did not include `full_tc_m30_seg`. §62 re-measured the same contrast
+> within a single four-arm run and got +0.0592 where §61b got +0.0729, with
+> plain's d-vector rate at `none` reading 6.9 % rather than 0.0 % — DiffVC's
+> clones are unseeded and the arm list shifts RNG consumption. **Quote §62's
+> numbers for this contrast.** §61b's conclusion is unchanged; its point
+> estimates must not be mixed with §62's.
+
+## 62. Decomposing the shipping arm within one run — both components hurt the d-vector, and a second look at DiffVC's run-to-run noise (2026-11-12)
+
+`results/cloning_tc_m30_seg_n5b.csv`: `plain_tc_m30_seg`,
+`full_tc_m30_seg` (EOT, no regulariser), `fullnsT_tc_m30_seg` (EOT +
+noise-matched regulariser), plus unprotected, **all four in one run** so no
+comparison crosses an RNG boundary (§31b).
+
+§61b showed the shipping arm losing to plain on the d-vector at matched
+budget. The shipping arm is two things at once, and this separates them.
+
+### 62a. Both components hurt, and roughly additively
+
+Resemblyzer d-vector — the only encoder with headroom here; every ECAPA and
+most WavLM cell is at the floor (0.0 % both arms) and carries no information.
+
+| contrast | channel `none` | clone success | p_holm |
+|---|---|---|---|
+| EOT alone − plain | **+0.0346** [+0.0180, +0.0521] | 6.9 → 10.3 % | **0.0059** |
+| regulariser − EOT | +0.0246 [+0.0095, +0.0412] | 10.3 → 24.1 % | 0.054 |
+| both − plain | **+0.0592** [+0.0377, +0.0798] | 6.9 → **24.1 %** | **9.7e-05** |
+
+0.0346 + 0.0246 = 0.0592: the two components add. At `ours` the same pattern
+runs weaker and in the same direction (+0.0097, +0.0120, +0.0217*).
+
+So §61b's result is **not** the regulariser alone. Purifier-in-the-loop
+crafting itself costs d-vector protection against DiffVC, and the regulariser
+costs about as much again. §59d found the regulariser did nothing on the
+`m30_f15` held-out arms; here, segment-crafted and matched-ensemble, it is
+actively unhelpful. Neither component helps in any cell, on any encoder,
+through this cloner.
+
+**This does not contradict §60d.** The same `fullnsT`-vs-`plain` contrast
+through F5-TTS is negative in 8 of 9 cells. The components cost d-vector
+protection against the cloner that conditions on the d-vector, and buy
+protection against the cloner that conditions on nothing. §61c's reading
+stands and this sharpens its mechanism.
+
+### 62b. DiffVC's run-to-run noise, now measured on PROTECTED arms
+
+The `fullnsT` − `plain` d-vector contrast at `none` was measured twice today,
+by the same script with the same flags, differing only in which arms the run
+included (which shifts RNG consumption — the clones are unseeded, §31b):
+
+| | §61b run | §62 run |
+|---|---|---|
+| delta | +0.0729 | +0.0592 |
+| plain clone success | 0.0 % | 6.9 % |
+| fullnsT clone success | 20.7 % | 24.1 % |
+
+§31b measured 32 % of **unprotected** cells flipping between identical runs.
+This is the same effect on **protected** arms: the continuous delta moves
+0.0137 — about half the 0.0247 noise floor (§34), so tolerable — while the
+binary rate moves by two speakers out of 29 and in one case away from an exact
+zero.
+
+**Consequences.** (1) §62's within-run numbers supersede §61b's for this
+contrast; §61b's conclusion is unchanged but its point estimates should not be
+quoted alongside §62's. (2) Any cloning comparison in this paper must come
+from a single run — the project already knew this for binary rates and now has
+it for continuous margins too. (3) `--clone-seed` exists and is still off by
+default to preserve v1's numbers; every new cloning run from here should pass
+it.
+
+### 62c. What is still missing
+
+The decomposition is in the **matched-ensemble** condition. The coverage claim
+lives in the **held-out** condition, where no budget-matched plain arm exists
+(`plain_m30_seg_nodvec` has never been crafted). That is N7
+(`paper/PREREG_N7_heldout_matched.md`, `experiments/run_n7_heldout_matched.sh`,
+both written and not run). Until it is, the paper's claim 2 rests on §60d —
+varying the cloner — and not on varying the ensemble at matched budget.
+
+## 63. N7 — the held-out budget match FAILED, and it falsifies §60d's attribution (2026-11-12)
+
+PREREG: `paper/PREREG_N7_heldout_matched.md` (+ its `--clone-seed` amendment).
+`experiments/run_n7_heldout_matched.sh`, `results/cloning_heldout_seg_n7.csv`,
+`results/n7_budget.txt`, `results/n7_analysis.txt`.
+
+N7 crafted `plain_m30_seg_nodvec` — the one arm this project had never made —
+to test the coverage claim at matched budget in the **held-out** condition,
+the condition the claim actually lives in.
+
+### 63a. OUTCOME 7-D. The arms did not match, so there is no verdict
+
+| arm | realised SNR | PESQ |
+|---|---|---|
+| `plain_m30_seg_nodvec` | **19.001 dB** | 2.483 |
+| `fullnsT_m30_seg_nodvec` | 16.123 dB | 2.253 |
+
+Paired: **−2.878 dB, p = 2.6e-11**. The gate in prereg §4 required 0.5 dB and
+non-significance. It failed by nearly 6× the tolerance, and the gap is the
+same 2.88 dB §59f measured on the non-seg arms.
+
+Per the prereg, **no attribution verdict is read from this run.** The nine
+cells are a confounded contrast and are reported below only as such.
+
+### 63b. Why it failed — and §60d was wrong
+
+§60d concluded that *segment crafting* is what makes the plain arm spend its
+budget. N7 supplies the missing cell of the 2×2 and the conclusion does not
+survive it:
+
+| plain arm | crafting ensemble | mode | realised SNR |
+|---|---|---|---|
+| `plain_m30_f15_all` | all three encoders | pooled | 16.900 dB |
+| `plain_tc_m30_seg` | all three encoders | **seg** | 16.206 dB |
+| `plain_m30_f15_nodvec` | **d-vector held out** | pooled | 19.022 dB |
+| `plain_m30_seg_nodvec` | **d-vector held out** | **seg** | **19.001 dB** |
+
+Segment crafting moves plain by 0.69 dB with the full ensemble and by
+**0.02 dB** with the d-vector held out. The **ensemble** moves it by 2.1–2.8 dB.
+It is the ensemble, not the crafting mode.
+
+§60d reached the opposite conclusion by comparing `plain_m30_f15_nodvec`
+(19.02) with `plain_tc_m30_seg` (16.21) — two arms that differ in **both**
+variables. That is precisely the error §25 records as a process rule ("a
+rebase run must change ONLY the intended variables"), committed here by me, in
+this file, two sections ago. **§60d's sentence "segment crafting is what makes
+the plain arm spend its budget" is withdrawn.**
+
+The mechanism is unsurprising once stated: with three encoders to fool the
+objective is hard enough that PGD runs to the constraint; with the d-vector
+out, two encoders are easy and it converges early with budget unspent. The
+purifier-aware arms are unaffected — all four sit at 16.04–16.13 dB — because
+the purifier in the loop keeps the objective hard either way.
+
+**Consequence.** A budget-matched held-out comparison **cannot be obtained by
+crafting plain at the same nominal budget, in any crafting mode.** Plain will
+not spend it. The remaining routes are rescaling (N5a) or a relaxed floor.
+
+### 63c. The confounded contrast, reported as confounded
+
+All nine deltas negative, 4 of 9 Holm-significant, none saturated; ECAPA at
+`ours` −0.0483 [−0.0779, −0.0165], clone success 13.8 % → 6.9 %. This
+reproduces §59c's held-out pattern under segment crafting. **It is confounded
+with 2.878 dB of extra perturbation and must not be quoted as an attribution.**
+
+The defence itself is unaffected and strong: shipping arm vs unprotected, 8 of
+9 cells p_holm ≤ 0.0011 (d-vector/diffwave null), ECAPA 37.9 % → 6.9 % at
+`ours`, 34.5 % → 0.0 % at diffwave.
+
+### 63d. A tooling bug this caught, now fixed
+
+`analyse_n5.py` printed **"5-A: the effect SURVIVES at matched budget"** on
+this run — a branch label, on a contrast whose arms were 2.878 dB apart,
+directly contradicting the gate printed twelve lines above it. The gate was
+computed and displayed but never enforced.
+
+A verdict string travels further than the table above it, so this is the
+dangerous kind of bug. The branch is now hard-gated: on a failed match the
+script prints 5-D/7-D and returns before any verdict. Re-run confirms, and
+§61's N5′ (whose gate passed at 0.093 dB) is unaffected.
+
+### 63e. Next, and it is cheap
+
+N5a, which prereg N5 defined and kept in reserve: rescale the plain delta per
+speaker to the purifier-aware arm's exact energy and re-run the cloning. Done
+and verified — `plain_m30_seg_nodvec_rescaled` matches at **16.123 dB, worst
+per-speaker error 0.0000 dB**.
+
+It is deliberately generous to plain: the rescale breaks the masking
+constraint the crafting respected, pushing **73.8 %** of frames past the local
+SNR floor against the target's 20.0 %, and PESQ to 2.046 against 2.253. So the
+rescaled arm is *more* perturbed-sounding than the purifier-aware arm at the
+same energy. If purifier-awareness still wins, it wins against an upper bound
+on plain; if it loses, §59c and §63c were budget effects. One speaker clips
+(peak 1.000) and is not normalised, because normalising would change the
+matched SNR.
+
+## 64. N7a — the held-out contrast at exactly matched energy: OUTCOME 5-B (2026-11-12)
+
+PREREG: `paper/PREREG_N5_budget_matched_plain.md` §5 (N5a), triggered by §63's
+7-D. `results/cloning_heldout_seg_n7a.csv`, `results/n7a_analysis.txt`,
+`results/n7a_spend.csv`. One run, `--clone-seed 2026`, three arms + unprotected.
+
+**The match is exact.** `plain_m30_seg_nodvec_rescaled` vs
+`fullnsT_m30_seg_nodvec`: paired SNR difference **+0.000 dB (sd 0.000)**,
+worst per-speaker error 0.0000 dB. Energy is equalised by construction.
+
+**And it is generous to plain.** The rescale breaks the masking constraint the
+crafting respected: **73.8 %** of frames past the local SNR floor against the
+purifier-aware arm's 20.0 %, PESQ **2.046 vs 2.253** (paired +0.207,
+p = 2.6e-07). The comparison arm is therefore *more* perturbed-sounding at the
+same energy — an upper bound on plain, not a legitimate protection.
+
+### 64a. The result
+
+`fullnsT_m30_seg_nodvec` minus the rescaled plain arm, Holm over nine:
+
+| channel | ECAPA | WavLM-SV | d-vector |
+|---|---|---|---|
+| none | −0.0408 (p .106) | **−0.0297 *** | −0.0142 |
+| ours | **−0.0354 (primary, p .333)** | −0.0294 (p .093) | +0.0031 |
+| diffwave | −0.0132 | −0.0213 (p .087) | −0.0160 |
+
+**8 of 9 deltas negative, none saturated, 1 Holm-significant.** Primary cell
+(ECAPA, `ours`): **−0.0354 [−0.0711, +0.0063], p_holm 0.333**, clone success
+10.3 % → 6.9 %. → **branch 5-B: direction holds, significance does not.**
+
+### 64b. What it means, against §59c and §63c
+
+The same contrast at 2.878 dB of unmatched budget read −0.0483 (§63c,
+p_holm 0.030) and −0.0576 (§59c, p_holm 3.6e-05). At **zero** dB of budget
+difference it reads **−0.0354** and no longer clears Holm.
+
+So the held-out advantage is **partly budget and partly method**. Roughly a
+quarter to a third of the §63c effect was the extra 2.878 dB; the remainder
+survives in direction across all three channels and two encoders, but this run
+cannot establish it at the 0.05 level. The honest sentence:
+
+> At equal perturbation energy, purifier-in-the-loop crafting still protects
+> better than plain in 8 of 9 held-out cells, but the effect is roughly a
+> third smaller than the unmatched comparison suggested and only one cell
+> survives multiplicity correction.
+
+**n = speakers is the binding limit**, as §52 said: the primary interval
+[−0.0711, +0.0063] is wide enough that a real effect of the observed size
+would need roughly twice the cohort to resolve. This is an underpowered
+not-significant, not a null — the §48 distinction, and it must be written that
+way.
+
+### 64c. Where claim 2 now stands
+
+| evidence | budget | verdict |
+|---|---|---|
+| §60d/§61c — vary the **cloner**, matched ensemble | matched (0.093 dB) | F5-TTS 8/9 favourable, 5 significant; DiffVC 2/9, two significant *against* |
+| §64 — vary the **ensemble**, matched energy | matched (0.000 dB) | 8/9 favourable, 1 significant |
+
+Both budget-matched routes point the same way and neither is decisive alone.
+The cloner-varying evidence is the stronger of the two and should lead; §64 is
+the corroboration, reported with its interval and its power limitation rather
+than as a second positive.
+
+**Ledger:** never cite §59c's or §63c's held-out effect sizes without the
+2.878 dB caveat; §64's −0.0354 is the energy-matched estimate. Never call
+§64 a null.

@@ -1,0 +1,19 @@
+panel,variant,encoder,success_pct,n
+Encoder in the ensemble,unprotected,ECAPA-TDNN,48.275862068965516,29
+Encoder in the ensemble,unprotected,WavLM-SV,48.275862068965516,29
+Encoder in the ensemble,unprotected,Resemblyzer d-vector,86.20689655172413,29
+Encoder in the ensemble,plain_m30_f15_all,ECAPA-TDNN,6.896551724137931,29
+Encoder in the ensemble,plain_m30_f15_all,WavLM-SV,6.896551724137931,29
+Encoder in the ensemble,plain_m30_f15_all,Resemblyzer d-vector,41.37931034482759,29
+Encoder in the ensemble,fullnsT_m30_f15_all,ECAPA-TDNN,3.4482758620689653,29
+Encoder in the ensemble,fullnsT_m30_f15_all,WavLM-SV,13.793103448275861,29
+Encoder in the ensemble,fullnsT_m30_f15_all,Resemblyzer d-vector,37.93103448275862,29
+Encoder held out,unprotected,ECAPA-TDNN,48.275862068965516,29
+Encoder held out,unprotected,WavLM-SV,48.275862068965516,29
+Encoder held out,unprotected,Resemblyzer d-vector,86.20689655172413,29
+Encoder held out,plain_m30_f15_nodvec,ECAPA-TDNN,27.586206896551722,29
+Encoder held out,plain_m30_f15_nodvec,WavLM-SV,34.48275862068966,29
+Encoder held out,plain_m30_f15_nodvec,Resemblyzer d-vector,82.75862068965517,29
+Encoder held out,fullnsT_m30_f15_nodvec,ECAPA-TDNN,10.344827586206897,29
+Encoder held out,fullnsT_m30_f15_nodvec,WavLM-SV,20.689655172413794,29
+Encoder held out,fullnsT_m30_f15_nodvec,Resemblyzer d-vector,75.86206896551724,29

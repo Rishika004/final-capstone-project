@@ -1,0 +1,22 @@
+N1 confound check -- realised perceptual spend, and whether it
+explains the generalisation effect of RESULTS 59c.
+
+Realised spend per arm (LOWER snr_db = spends MORE of the budget):
+                        snr_db          pesq         rms_db       
+                          mean    std   mean    std    mean    std
+variant                                                           
+full_m30_seg_nodvec     15.677  0.801  2.298  0.278 -19.493  2.644
+fullnsT_m30_seg_nodvec  16.123  1.027  2.253  0.219 -19.424  2.643
+plain_m30_seg_nodvec    19.001  2.296  2.483  0.247 -19.387  2.611
+
+========================================================================
+(1) Are the arms at equal spend?  purifier-aware MINUS plain
+========================================================================
+  HELD-OUT-SEG  snr_db    -2.878  (sd 1.462)  p=2.61e-11  n=29  <- NOT equal
+  HELD-OUT-SEG  pesq      -0.231  (sd 0.129)  p=2.34e-10  n=29  <- NOT equal
+  HELD-OUT-SEG  rms_db    -0.037  (sd 0.056)  p=0.0015  n=29  <- NOT equal
+
+[budget] spend table -> experiments/results/n7_spend.csv
+
+(2a)/(2b) skipped: no cloning CSV given for these pairs.
+    The matching check in (1) is what the N7 gate reads.

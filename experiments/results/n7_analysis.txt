@@ -1,0 +1,54 @@
+N5' -- budget-matched attribution on the SHIPPING recipe, DiffVC
+   file cloning_heldout_seg_n7.csv   speakers 29   arms ['full_m30_seg_nodvec', 'fullnsT_m30_seg_nodvec', 'plain_m30_seg_nodvec', 'unprotected']
+   margin = clone similarity - threshold; NEGATIVE = clone fails
+
+==========================================================================
+THE MATCHING CHECK (prereg 4; tolerance 0.5 dB) -- from 60d
+==========================================================================
+  plain_m30_seg_nodvec   SNR 19.001 dB   PESQ 2.483
+  fullnsT_m30_seg_nodvec SNR 16.123 dB   PESQ 2.253
+  gap 2.878 dB -> MATCH FAILED (prereg 5-D)
+  The paired significance test lives in analyse_n1_budget.py (1);
+  this line checks the 0.5 dB tolerance only. Read both.
+  NOTE: the purifier-aware arm has WORSE PESQ (2.253 vs 2.483) -- equal SNR does not mean equal perceptual cost; say so beside any result.
+
+==========================================================================
+(a) sanity: does the defence work at all here? arm MINUS unprotected
+==========================================================================
+  none     ECAPA-TDNN             -0.1292  [-0.1763,-0.0912]   48.3% ->   6.9%  26/29  p_holm=1.76e-05 ***
+  none     WavLM-SV               -0.0615  [-0.0877,-0.0453]   55.2% ->  20.7%  25/29  p_holm=3.14e-05 ***
+  none     Resemblyzer d-vector   -0.0510  [-0.0668,-0.0358]   93.1% ->  69.0%  26/29  p_holm=1.05e-05 ***
+  ours     ECAPA-TDNN             -0.1292  [-0.1623,-0.0936]   37.9% ->   6.9%  26/29  p_holm=7.61e-07 ***
+  ours     WavLM-SV               -0.0487  [-0.0662,-0.0280]   51.7% ->  13.8%  23/29  p_holm=0.000206 ***
+  ours     Resemblyzer d-vector   -0.0367  [-0.0509,-0.0223]   82.8% ->  62.1%  25/29  p_holm=0.000102 ***
+  diffwave ECAPA-TDNN             -0.0731  [-0.1009,-0.0424]   34.5% ->   0.0%  24/29  p_holm=0.000206 ***
+  diffwave WavLM-SV               -0.0311  [-0.0484,-0.0165]   51.7% ->  24.1%  21/29  p_holm=0.0011 **
+  diffwave Resemblyzer d-vector   -0.0069  [-0.0251,+0.0092]   72.4% ->  72.4%  15/29  p_holm=0.467 
+
+==========================================================================
+(b) PRIMARY: fullnsT_m30_seg_nodvec MINUS plain_m30_seg_nodvec, at MATCHED budget
+    negative = purifier-in-the-loop earns its place
+==========================================================================
+  none     ECAPA-TDNN             -0.0548  [-0.0906,-0.0236]   13.8% ->   6.9%  23/29  p_holm=0.0202 *
+  none     WavLM-SV               -0.0356  [-0.0561,-0.0103]   31.0% ->  20.7%  22/29  p_holm=0.0295 *
+  none     Resemblyzer d-vector   -0.0165  [-0.0272,-0.0045]   79.3% ->  69.0%  21/29  p_holm=0.056 
+  ours     ECAPA-TDNN             -0.0483  [-0.0779,-0.0165]   13.8% ->   6.9%  22/29  p_holm=0.0304 *  <== PRIMARY
+  ours     WavLM-SV               -0.0334  [-0.0475,-0.0208]   34.5% ->  13.8%  22/29  p_holm=0.000716 ***
+  ours     Resemblyzer d-vector   -0.0175  [-0.0344,-0.0026]   69.0% ->  62.1%  18/29  p_holm=0.112 
+  diffwave ECAPA-TDNN             -0.0351  [-0.0659,-0.0039]   13.8% ->   0.0%  18/29  p_holm=0.112 
+  diffwave WavLM-SV               -0.0213  [-0.0379,-0.0047]   37.9% ->  24.1%  19/29  p_holm=0.0699 
+  diffwave Resemblyzer d-vector   -0.0136  [-0.0303,+0.0036]   72.4% ->  72.4%  20/29  p_holm=0.146 
+
+  4 of 9 cells significant and above the floor; 0 not identifiable.
+  largest |delta| 0.0548 (above the 0.0247 noise floor, RESULTS 34)
+
+==========================================================================
+(c) THE BRANCH (prereg 5), read on the primary cell
+==========================================================================
+  ECAPA-TDNN at `ours`: delta -0.0483 [-0.0779,-0.0165]  p_holm=0.0304
+  clone success 13.8 % -> 6.9 %
+
+  => 5-A: the effect SURVIVES at matched budget
+
+  Secondary cells decide nothing on their own; the prereg named
+  one primary cell precisely so the branch could not be shopped.
