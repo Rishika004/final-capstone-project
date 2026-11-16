@@ -70,6 +70,21 @@ added — same voice. Then hear what an attacker gets when they try to clone it.
   <div class="row"><button id="b1" class="rec">● Record</button>
    <audio id="a1" controls class="hide"></audio></div></div></div>
 
+ <div class="step"><div class="num" style="background:var(--accent2)">2</div><div style="flex:1">
+  <h2>What should the attacker make you say?</h2>
+  <div class="row" style="margin-bottom:8px">
+   <label><input type="radio" name="gt" value="same" checked> The same words I just said
+    <span class="muted">— easiest to judge: only the voice differs</span></label></div>
+  <div class="row" style="margin-bottom:8px">
+   <label><input type="radio" name="gt" value="scam"> A scam line
+    <span class="muted">— shows the danger</span></label></div>
+  <div class="row">
+   <label><input type="radio" name="gt" value="custom"> Something else:</label>
+   <input id="gtext" type="text" placeholder="type what the clone should say"
+    style="flex:1;min-width:240px;font:inherit;padding:7px 10px;border-radius:7px;
+    border:1px solid var(--line);background:var(--card);color:var(--ink)"></div>
+ </div></div>
+
  <details style="margin:4px 0 14px">
   <summary class="muted" style="cursor:pointer">Optional: add a second recording
    for a rigorous score</summary>
@@ -166,11 +181,16 @@ function est(){ const d=+$("dur").value;
  $("est").textContent="about "+Math.floor(tot/60)+" min "+(tot%60)+" s per run";
  for(const [b,k] of [["b1","publish"],["b2","enrol"]])
   if(!clips[k+"_b64"]) $(b).textContent="● Record "+d+"s";}
+$("gtext").oninput=()=>{document.querySelector('input[name=gt][value=custom]').checked=true;};
 $("dur").onchange=()=>{clips={};["a1","a2"].forEach(a=>$(a).classList.add("hide"));
  ["n1","n2"].forEach((n,i)=>{$(n).classList.remove("done");$(n).textContent=i+1;});
  est(); ready();};
 est();
 
+function genText(){ const v=document.querySelector('input[name=gt]:checked').value;
+ if(v==="same") return "same";
+ if(v==="custom") return $("gtext").value.trim() || "same";
+ return "SCAM";}   // the server's own default line
 const LBL={load:"Loading the models",prepare:"Reading your recordings",
  attack_control:"Attacker clones your UNPROTECTED voice",
  protect:"Crafting the protection",purify:"Attacker purifies the protected clip",
@@ -186,7 +206,8 @@ $("go").onclick=async()=>{
  try{ r=await (await fetch("/api/run",{method:"POST",
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify({publish:clips.publish_b64,enrol:clips.enrol_b64||"",
-    steps:60,pub_sec:+$("dur").value,enr_sec:+$("dur").value})
+    steps:60,pub_sec:+$("dur").value,enr_sec:+$("dur").value,
+    gen_text:genText()})
   })).json(); }
  catch(e){ r={error:String(e)}; }
  clearInterval(poll); $("running").classList.add("hide");

@@ -138,19 +138,20 @@ def _wav_write(path, wav):
     sf.write(path, wav.detach().cpu().reshape(-1).numpy(), SR)
 
 
-def _clone(ref_wav_path, ref_text, out_path):
+def _clone(ref_wav_path, ref_text, out_path, gen_text=None):
     """Attacker's step: F5-TTS, in its own venv."""
     if not os.path.isfile(F5PY):
         raise RuntimeError("F5-TTS venv missing; run external/install_f5tts.sh")
     r = subprocess.run([F5PY, os.path.join(HERE, "f5_once.py"),
                         "--ref", ref_wav_path, "--ref-text", ref_text,
-                        "--gen-text", SENTENCE_ATTACK, "--out", out_path],
+                        "--gen-text", gen_text or SENTENCE_ATTACK, "--out", out_path],
                        capture_output=True, text=True, cwd=PROJ)
     if r.returncode != 0 or not os.path.isfile(out_path):
         raise RuntimeError("cloner failed: " + (r.stderr or "")[-600:])
 
 
-def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
+def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec,
+                 gen_text=None):
     """enr_path may be None: then the clones are scored against the recorded
     clip itself. That is the flattering comparison (the clone was built from
     it), so the result says so and the page labels those numbers indicative.
@@ -173,6 +174,15 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
     if not said:
         said = SENTENCE_PUBLISH          # silence or an unusable clip
     _say("prepare", 14, "heard: " + said[:60])
+    # What the attacker makes you say. "" or "same" -> your own words, which
+    # makes the voice comparison much easier to judge by ear: identical text,
+    # so the only thing that differs between the two clips is the voice.
+    if not gen_text or gen_text == "same":
+        attack = said                       # your own words
+    elif gen_text == "SCAM":
+        attack = SENTENCE_ATTACK            # the stock scam line
+    else:
+        attack = gen_text                   # typed by the presenter
     e_enr = real_embed_all(encs, wav_e)
 
     # ---- our protection --------------------------------------------------
@@ -203,7 +213,7 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
     # is no less essential for coming second.
     _say("attack_control", 70, "attacker clones your unprotected voice")
     p_c0 = os.path.join(run_dir, "clone_unprotected.wav")
-    _clone(p_orig, said, p_c0)
+    _clone(p_orig, said, p_c0, attack)
     e_c0 = real_embed_all(encs, _wav_read(p_c0).to(dev))
 
     # ---- the attacker, on the PROTECTED clip -----------------------------
@@ -216,7 +226,7 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
 
     _say("attack_protected", 85, "attacker clones the protected voice")
     p_c1 = os.path.join(run_dir, "clone_protected.wav")
-    _clone(p_pur, said, p_c1)
+    _clone(p_pur, said, p_c1, attack)
     e_c1 = real_embed_all(encs, _wav_read(p_c1).to(dev))
 
     _say("score", 95, "scoring both clones against your second recording")
@@ -234,9 +244,9 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
                      stoi=round(float(stoi_v), 4)),
         craft_s=round(craft_s, 1), steps=steps, rows=rows, paper=PAPER,
         pub_sec=pub_sec, enr_sec=enr_sec, scored_against_source=bool(solo),
-        said=said,
+        said=said, attack_text=attack,
         sentences=dict(publish=SENTENCE_PUBLISH, enrol=SENTENCE_ENROL,
-                       attack=SENTENCE_ATTACK),
+                       attack=attack),
         audio={k: f"/runs/{os.path.basename(run_dir)}/{k}.wav" for k in
                ("original", "protected", "purified",
                 "clone_unprotected", "clone_protected")})
@@ -294,7 +304,8 @@ class H(http.server.SimpleHTTPRequestHandler):
             out = run_pipeline(os.path.join(run_dir, "in_publish.wav"),
                                enr_p if os.path.isfile(enr_p) else None,
                                run_dir, int(body.get("steps", 60)),
-                               pub_sec, enr_sec)
+                               pub_sec, enr_sec,
+                               (body.get("gen_text") or "").strip()[:300])
             out["run_id"] = rid
             self._json(out)
         except Exception as e:                                   # noqa: BLE001

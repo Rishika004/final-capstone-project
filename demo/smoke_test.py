@@ -6,6 +6,7 @@ AP.add_argument("--pub-sec",type=float,default=4.0,dest="pub_sec")
 AP.add_argument("--enr-sec",type=float,default=6.0,dest="enr_sec")
 AP.add_argument("--steps",type=int,default=60)
 AP.add_argument("--solo",action="store_true",help="one recording only")
+AP.add_argument("--gen-text",default="same",dest="gen_text")
 A=AP.parse_args()
 rows=list(csv.DictReader(io.open("experiments/results/f5_prompts.csv",encoding="utf-8")))
 r=[x for x in rows if x["speaker"]=="61"][0]
@@ -19,7 +20,7 @@ def b64(path, sec):
 pub=b64(r["ref_path"],A.pub_sec)
 enr="" if A.solo else b64(r["enrol_path"],A.enr_sec)
 body=json.dumps({"publish":pub,"enrol":enr,"steps":A.steps,
-  "pub_sec":A.pub_sec,"enr_sec":A.enr_sec}).encode()
+  "pub_sec":A.pub_sec,"enr_sec":A.enr_sec,"gen_text":A.gen_text}).encode()
 t0=time.time()
 req=urllib.request.Request(f"http://127.0.0.1:{A.port}/api/run",data=body,
                            headers={"Content-Type":"application/json"})
@@ -35,5 +36,6 @@ for x in out.get("rows",[]):
         "CLONED" if x["cloned_unprotected"] else "failed",
         x["sim_protected"],"CLONED" if x["cloned_protected"] else "failed"))
 print("TRANSCRIBED:",repr(out.get("said")))
+print("CLONE SAYS :",repr(out.get("attack_text")))
 print("scored_against_source:",out.get("scored_against_source"))
 print("audio:",list(out.get("audio",{}).values()))
