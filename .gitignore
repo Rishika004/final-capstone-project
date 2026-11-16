@@ -63,3 +63,7 @@ __pycache__/
 # ── Downloaded papers and stray pages (third-party; not ours to redistribute) ──
 *.pdf
 safe.html
+
+# ── demo run outputs ──
+demo/runs/
+demo/_server*.log
