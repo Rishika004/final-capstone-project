@@ -162,15 +162,37 @@ function done(){
 needed. Otherwise please send the file or the text below to whoever asked you to
 take the test.</p>
 <textarea id="out" readonly>${csv}</textarea></div>`;
- // Hand the submission straight to experiments/serve_listening_test.py when
- // the page is being served by it. The download and copy buttons stay, because
- // the page is also openable as a plain file with no server behind it.
- fetch("submit",{method:"POST",headers:{"Content-Type":"text/csv"},body:csv})
-  .then(r=>{const el=document.getElementById("sent");
-   el.textContent=r.ok?"Your answers were saved. Thank you \u2014 you can close this tab."
-    :"Could not save automatically (status "+r.status+"). Please return the file below.";})
-  .catch(()=>{const el=document.getElementById("sent");
-   el.textContent="Not saved automatically (no server). Please return the file below.";})}
+ // Three ways home, tried in order, because the panel is small and a lost
+ // response is a large share of it:
+ //   1. the artifact `db`, when this is published as an Artifact and the
+ //      listener is signed in -- nothing for them to send;
+ //   2. POST to experiments/serve_listening_test.py, when served by it;
+ //   3. the download and copy buttons, which always stay visible.
+ const say=t=>{const el=document.getElementById('sent');if(el)el.textContent=t};
+ const record={listener:listener,headphones:headphones,naive:naive,
+  build_seed:BUILD.seed,screen_pass:s.pass?1:0,
+  anchor_hi_mean:isNaN(s.hi)?null:+s.hi.toFixed(3),
+  anchor_lo_mean:isNaN(s.lo)?null:+s.lo.toFixed(3),
+  submitted_at:new Date().toISOString(),
+  responses:results.map(r=>({stim_id:r.stim_id,rating:r.rating,block:r.block,
+   order:r.order,seed:r.seed})), csv:csv};
+ (async()=>{
+  try{
+   if(window.claude&&claude.use){
+    const [db,user]=await Promise.all([claude.use('db'),claude.use('user')]);
+    if(db&&user){
+     await db.collection('responses').doc(await user.id()).set(record);
+     say('Your answers were saved. Thank you — you can close this tab.');
+     return}}
+  }catch(e){/* fall through to the server, then to the file */}
+  try{
+   const r=await fetch('submit',{method:'POST',
+    headers:{'Content-Type':'text/csv'},body:csv});
+   say(r.ok?'Your answers were saved. Thank you — you can close this tab.'
+    :'Could not save automatically (status '+r.status+'). Please return the file below.');
+  }catch(e){
+   say('Not saved automatically. Please send the file or the text below to whoever asked you to take the test.')}
+ })()}
 
 function copy(){const t=document.getElementById("out");t.select();
  navigator.clipboard.writeText(t.value).then(()=>{},()=>{})}
