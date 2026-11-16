@@ -5,6 +5,7 @@ AP.add_argument("--port",type=int,default=8202)
 AP.add_argument("--pub-sec",type=float,default=4.0,dest="pub_sec")
 AP.add_argument("--enr-sec",type=float,default=6.0,dest="enr_sec")
 AP.add_argument("--steps",type=int,default=60)
+AP.add_argument("--solo",action="store_true",help="one recording only")
 A=AP.parse_args()
 rows=list(csv.DictReader(io.open("experiments/results/f5_prompts.csv",encoding="utf-8")))
 r=[x for x in rows if x["speaker"]=="61"][0]
@@ -15,7 +16,8 @@ def b64(path, sec):
     y=y[:int(sec*sr)]
     buf=io.BytesIO(); sf.write(buf,y,sr,format="WAV",subtype="PCM_16")
     return "data:audio/wav;base64,"+base64.b64encode(buf.getvalue()).decode()
-pub=b64(r["ref_path"],A.pub_sec); enr=b64(r["enrol_path"],A.enr_sec)
+pub=b64(r["ref_path"],A.pub_sec)
+enr="" if A.solo else b64(r["enrol_path"],A.enr_sec)
 body=json.dumps({"publish":pub,"enrol":enr,"steps":A.steps,
   "pub_sec":A.pub_sec,"enr_sec":A.enr_sec}).encode()
 t0=time.time()
@@ -32,4 +34,5 @@ for x in out.get("rows",[]):
         x["encoder"],x["threshold"],x["sim_unprotected"],
         "CLONED" if x["cloned_unprotected"] else "failed",
         x["sim_protected"],"CLONED" if x["cloned_protected"] else "failed"))
+print("scored_against_source:",out.get("scored_against_source"))
 print("audio:",list(out.get("audio",{}).values()))

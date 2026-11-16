@@ -145,6 +145,10 @@ def _clone(ref_wav_path, ref_text, out_path):
 
 
 def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
+    """enr_path may be None: then the clones are scored against the recorded
+    clip itself. That is the flattering comparison (the clone was built from
+    it), so the result says so and the page labels those numbers indicative.
+    The point of the one-clip mode is the THREE LISTENS, not the score."""
     import torch
     from experiments.exp_purifier_aware import craft, quality, real_embed_all, cs
     m = models()
@@ -156,7 +160,8 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
     # is only embedded once, so extra seconds there are free and give the
     # verifier a better reference.
     wav_o = _wav_read(pub_path, pub_sec).to(dev)
-    wav_e = _wav_read(enr_path, enr_sec).to(dev)
+    solo = not enr_path or not os.path.isfile(enr_path)
+    wav_e = wav_o if solo else _wav_read(enr_path, enr_sec).to(dev)
     p_orig = os.path.join(run_dir, "original.wav"); _wav_write(p_orig, wav_o)
     e_enr = real_embed_all(encs, wav_e)
 
@@ -218,7 +223,7 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
         quality=dict(snr_db=round(snr, 2), pesq=round(float(pesq_v), 3),
                      stoi=round(float(stoi_v), 4)),
         craft_s=round(craft_s, 1), steps=steps, rows=rows, paper=PAPER,
-        pub_sec=pub_sec, enr_sec=enr_sec,
+        pub_sec=pub_sec, enr_sec=enr_sec, scored_against_source=bool(solo),
         sentences=dict(publish=SENTENCE_PUBLISH, enrol=SENTENCE_ENROL,
                        attack=SENTENCE_ATTACK),
         audio={k: f"/runs/{os.path.basename(run_dir)}/{k}.wav" for k in
@@ -267,12 +272,16 @@ class H(http.server.SimpleHTTPRequestHandler):
             run_dir = os.path.join(RUNS, rid)
             os.makedirs(run_dir, exist_ok=True)
             for key, fn in (("publish", "in_publish.wav"), ("enrol", "in_enrol.wav")):
+                blob = body.get(key)
+                if not blob:          # enrol is optional: one-clip mode
+                    continue
                 with open(os.path.join(run_dir, fn), "wb") as fh:
-                    fh.write(base64.b64decode(body[key].split(",")[-1]))
+                    fh.write(base64.b64decode(blob.split(",")[-1]))
             pub_sec = max(2.0, min(12.0, float(body.get("pub_sec", MAX_SEC))))
             enr_sec = max(2.0, min(20.0, float(body.get("enr_sec", 6.0))))
+            enr_p = os.path.join(run_dir, "in_enrol.wav")
             out = run_pipeline(os.path.join(run_dir, "in_publish.wav"),
-                               os.path.join(run_dir, "in_enrol.wav"),
+                               enr_p if os.path.isfile(enr_p) else None,
                                run_dir, int(body.get("steps", 60)),
                                pub_sec, enr_sec)
             out["run_id"] = rid

@@ -46,8 +46,8 @@ th{color:var(--mut);font-weight:600}
 </style></head><body><div class="wrap">
 
 <h1>Can a protected voice still be cloned?</h1>
-<p class="sub">Record two short clips. We add the protection, then let an attacker
-purify it and clone you with a current text-to-speech model. You hear every step.</p>
+<p class="sub">Record your voice once. Hear it. Hear it again with the protection
+added — same voice. Then hear what an attacker gets when they try to clone it.</p>
 
 <div class="card" id="rec">
  <div class="row" style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)">
@@ -56,30 +56,35 @@ purify it and clone you with a current text-to-speech model. You hear every step
     border:1px solid var(--line);background:var(--card);color:var(--ink);margin-left:6px">
     <option value="4">4 s — the paper's condition (fastest)</option>
     <option value="6">6 s</option>
-    <option value="8" selected>8 s — recommended for a demo</option>
+    <option value="8" selected>8 s — recommended</option>
     <option value="10">10 s</option>
     <option value="12">12 s (slowest)</option>
    </select></label>
   <span class="muted" id="est"></span></div>
+
  <div class="step"><div class="num" id="n1">1</div><div style="flex:1">
-  <h2>Record the clip you would publish</h2>
+  <h2>Record your voice</h2>
   <p class="muted">Read this aloud, normally:</p>
   <div class="say" id="s1">…</div>
-  <div class="row"><button id="b1" class="rec">● Record 4s</button>
+  <div class="row"><button id="b1" class="rec">● Record</button>
    <audio id="a1" controls class="hide"></audio></div></div></div>
 
- <div class="step"><div class="num" id="n2">2</div><div style="flex:1">
-  <h2>Record a second clip</h2>
-  <p class="muted">This one is never published. It is what the verifier compares
-   the clone against, so the clone is never scored against the clip it was built
-   from. Read this one:</p>
-  <div class="say" id="s2">…</div>
-  <div class="row"><button id="b2" class="rec">● Record 4s</button>
-   <audio id="a2" controls class="hide"></audio></div></div></div>
+ <details style="margin:4px 0 14px">
+  <summary class="muted" style="cursor:pointer">Optional: add a second recording
+   for a rigorous score</summary>
+  <div class="step" style="margin-top:12px"><div class="num" id="n2">2</div><div style="flex:1">
+   <p class="muted">With only one recording, the clone is scored against the very
+    clip it was built from, which flatters the score — fine for hearing the
+    difference, not for a number you would publish. A second recording acts as
+    the "voice on file" an attacker has to fool, the way a bank would hold it.</p>
+   <div class="say" id="s2">…</div>
+   <div class="row"><button id="b2" class="rec">● Record</button>
+    <audio id="a2" controls class="hide"></audio></div></div></div>
+ </details>
 
  <div class="row" style="margin-top:6px">
-  <button id="go" class="primary" disabled>Run the attack</button>
-  <span class="muted" id="hint">Record both clips first.</span></div>
+  <button id="go" class="primary" disabled>Protect it, then let the attacker try</button>
+  <span class="muted" id="hint">Record your voice first.</span></div>
 </div>
 
 <div class="card hide" id="running">
@@ -142,8 +147,8 @@ function wire(btn,aud,num,key){ $(btn).onclick=async()=>{
  }catch(e){ alert("Could not use the microphone: "+e.message); }
  clearInterval(tick); b.disabled=false; b.textContent="● Re-record "+SEC+"s"; ready();};}
 
-function ready(){ const ok=clips.publish_b64&&clips.enrol_b64;
- $("go").disabled=!ok; $("hint").textContent=ok?"":"Record both clips first.";}
+function ready(){ const ok=!!clips.publish_b64;
+ $("go").disabled=!ok; $("hint").textContent=ok?"":"Record your voice first.";}
 wire("b1","a1","n1","publish"); wire("b2","a2","n2","enrol");
 
 // Fitted to two measured runs on this machine, not guessed: crafting took
@@ -175,7 +180,7 @@ $("go").onclick=async()=>{
  let r;
  try{ r=await (await fetch("/api/run",{method:"POST",
    headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({publish:clips.publish_b64,enrol:clips.enrol_b64,
+   body:JSON.stringify({publish:clips.publish_b64,enrol:clips.enrol_b64||"",
     steps:60,pub_sec:+$("dur").value,enr_sec:+$("dur").value})
   })).json(); }
  catch(e){ r={error:String(e)}; }
@@ -196,51 +201,57 @@ function render(r){
  const rows=r.rows.map(x=>`<tr><td>${x.encoder}</td>
   <td>${x.sim_unprotected.toFixed(3)}</td><td>${x.sim_protected.toFixed(3)}</td>
   <td>${x.threshold.toFixed(3)}</td>
-  <td>${x.cloned_unprotected?'<span class="v-bad verdict">cloned</span>':'<span class="v-ok verdict">failed</span>'}</td>
-  <td>${x.cloned_protected?'<span class="v-bad verdict">cloned</span>':'<span class="v-ok verdict">failed</span>'}</td></tr>`).join("");
+  <td>${x.cloned_protected?'<span class="v-bad verdict">cloned anyway</span>':'<span class="v-ok verdict">clone failed</span>'}</td></tr>`).join("");
  const prim=r.rows.find(x=>/ECAPA/i.test(x.encoder))||r.rows[0];
+ const warn = r.scored_against_source
+  ? `<p class="muted">Scored against the same clip the clone was built from, so
+     these numbers flatter the attacker and are indicative only. Add the second
+     recording for a score you could quote.</p>` : "";
  $("out").innerHTML=`
- <div class="card"><h2>1 · What you publish</h2>
-  <div class="grid">
-   <div><p class="muted">Your original recording</p><audio controls src="${r.audio.original}"></audio></div>
-   <div><p class="muted">With the protection added</p><audio controls src="${r.audio.protected}"></audio></div></div>
-  <p style="margin:12px 0 0">
-   <span class="chip">PESQ ${q.pesq}</span><span class="chip">SNR ${q.snr_db} dB</span>
+ <div class="card"><h2>1 · This is you</h2>
+  <audio controls src="${r.audio.original}"></audio>
+  <p class="muted">Your recording, untouched.</p></div>
+
+ <div class="card"><h2>2 · This is you, protected</h2>
+  <audio controls src="${r.audio.protected}"></audio>
+  <p>Same voice. This is the file you would publish.</p>
+  <p><span class="chip">PESQ ${q.pesq}</span><span class="chip">SNR ${q.snr_db} dB</span>
    <span class="chip">STOI ${q.stoi}</span>
-   <span class="chip">crafted in ${r.craft_s}s / ${r.steps} steps</span></p>
-  <p class="muted">They should sound close to identical. The paper measures the
-   cost on 29 speakers as ${P.utmos_orig} → ${P.utmos_prot} on a 1–5 naturalness
-   scale, with word error rate unchanged.</p></div>
+   <span class="chip">protected in ${r.craft_s}s</span></p>
+  <p class="muted">Not identical — there is a cost, and the paper measures it on
+   ${P.n_speakers} speakers as ${P.utmos_orig} → ${P.utmos_prot} on a 1–5
+   naturalness scale, with intelligibility unchanged.</p></div>
 
- <div class="card"><h2>2 · The attacker</h2>
-  <p class="muted">The attacker purifies what you published, then clones you saying
-   something you never said:</p>
+ <div class="card"><h2>3 · What the attacker gets</h2>
+  <p class="muted">They take your published clip and make you say something you
+   never said:</p>
   <div class="say">${r.sentences.attack}</div>
-  <div class="grid" style="margin-top:12px">
-   <div><p class="muted"><b>Clone from your UNPROTECTED clip</b></p>
+  <div class="grid" style="margin-top:14px">
+   <div><p><b>If you had NOT protected it</b></p>
     <audio controls src="${r.audio.clone_unprotected}"></audio>
-    ${bar(prim.sim_unprotected,prim.threshold)}
-    <span class="muted">similarity ${prim.sim_unprotected.toFixed(3)} · threshold ${prim.threshold.toFixed(3)}</span><br>
-    <span class="verdict ${prim.cloned_unprotected?'v-bad':'v-ok'}">${prim.cloned_unprotected?'✗ CLONED — the attacker wins':'✓ failed'}</span></div>
-   <div><p class="muted"><b>Clone from your PROTECTED clip</b></p>
+    <p style="margin:8px 0 0"><span class="verdict ${prim.cloned_unprotected?'v-bad':'v-ok'}">
+     ${prim.cloned_unprotected?'✗ That is your voice':'✓ failed'}</span></p></div>
+   <div><p><b>Because you protected it</b></p>
     <audio controls src="${r.audio.clone_protected}"></audio>
-    ${bar(prim.sim_protected,prim.threshold)}
-    <span class="muted">similarity ${prim.sim_protected.toFixed(3)} · threshold ${prim.threshold.toFixed(3)}</span><br>
-    <span class="verdict ${prim.cloned_protected?'v-bad':'v-ok'}">${prim.cloned_protected?'✗ cloned anyway':'✓ CLONE FAILED — you are protected'}</span></div>
+    <p style="margin:8px 0 0"><span class="verdict ${prim.cloned_protected?'v-bad':'v-ok'}">
+     ${prim.cloned_protected?'✗ cloned anyway':'✓ That is not you'}</span></p></div>
   </div>
-  <p class="muted" style="margin-top:10px">The marker on each bar is the verifier's
-   decision threshold. Above it, the clone passes as you.</p>
-  <table><tr><th>verifier</th><th>sim. unprotected</th><th>sim. protected</th>
-   <th>threshold</th><th>unprotected</th><th>protected</th></tr>${rows}</table>
-  <p class="muted">You can also hear what the purifier left behind:
-   <audio controls src="${r.audio.purified}"></audio></p></div>
+  <p class="muted" style="margin-top:12px"><b>Listen to both.</b> The attacker ran
+   the same cloner on both clips. The only difference is the protection.</p></div>
 
- <div class="card"><h2>3 · What the paper measures</h2>
-  <p class="muted">${P.n_speakers} speakers, not one, and a threshold calibrated on
-   that corpus:</p>
-  <p><span class="chip">F5-TTS clone success ${P.f5_unprot_pct}% → <b>${P.f5_prot_pct}%</b></span>
-   <span class="chip">DiffVC ${P.diffvc_unprot_pct}% → <b>${P.diffvc_prot_pct}%</b></span></p>
-  <p class="muted">And the limit the paper states itself: against a verifier that was
-   never in the crafting ensemble, behind a purifier we never trained against,
-   protection is 72.4% → 72.4% — none at all.</p></div>`;}
+ <details class="card"><summary style="cursor:pointer"><b>The numbers behind the verdict</b></summary>
+  ${warn}
+  <p class="muted">Each clone is scored by three speaker-verification systems
+   against ${r.scored_against_source?"your recording":"your second recording"}.
+   Above the threshold, the clone passes as you.</p>
+  <table><tr><th>verifier</th><th>unprotected</th><th>protected</th>
+   <th>threshold</th><th>result</th></tr>${rows}</table>
+  <p class="muted" style="margin-top:12px">You can also hear what the attacker's
+   purifier left behind after trying to wash the protection off:
+   <audio controls src="${r.audio.purified}"></audio></p>
+  <p class="muted">On ${P.n_speakers} speakers the paper measures clone success at
+   <b>${P.f5_unprot_pct}% → ${P.f5_prot_pct}%</b> for this cloner, and
+   ${P.diffvc_unprot_pct}% → ${P.diffvc_prot_pct}% for a second one. The limit it
+   also states: against a verifier never used in crafting, behind a purifier never
+   trained against, protection is 72.4% → 72.4% — none at all.</p></details>`;}
 </script></body></html>
