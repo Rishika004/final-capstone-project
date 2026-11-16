@@ -42,6 +42,36 @@ instrument, which this paper no longer uses.
 > An AntiPure for voice — a protective perturbation that survives diffusion
 > purification and stops at least some diffusion-based voice cloning.
 
+### Method name — DEFERRED (2026-11-16)
+
+Not decided; decide before the draft's abstract is written, not after.
+
+**One hard constraint whatever is chosen: the word "nullspace" must not appear
+in the paper, and neither must the repository name.** `nullspace_voice_protection`
+names the programme §54–§58 closed — there is no null space in this paper and
+no α number survives. The folder keeps its name (renaming it mid-project would
+break paths across the scripts, the run logs and RESULTS_ICASSP.md for no
+scientific gain), but the paper must not inherit it.
+
+Candidates discussed, with the objection to each recorded so it is not
+re-litigated from scratch:
+
+| name | for | against |
+|---|---|---|
+| **Indelible** | names the property C1 demonstrates — a mark that cannot be washed out; sits beside AntiFake / AntiPure / ClearMask without being derivative | mildly overclaims against C3 (72.4 % → 72.4 % held out), as every name in this field does |
+| **PILOT** (Purifier-In-the-LOop proTection) | names the mechanism exactly, which is C2 | fits C2, and C1 leads; the acronym is heavily used elsewhere |
+| **StillMine** | captures both halves — the listener still hears you, the cloner does not | unconventional for the venue |
+| **Phantom** | already the project's informal name (the workspace folder) | names the defence after the *attack* — the phantom is the clone; and the reading that justifies it, "imperceptible mark", is the paper's **weakest** axis (PESQ 2.07, ~1 MOS below original, listeners 4.38 vs 5.00). Heavy collision risk in security (Phantom Cyber / Splunk) |
+
+**A workable split if no single name wins:** keep **Phantom** as the project
+and repository name, and give the *method* its own name in the paper. Projects
+and methods routinely differ and nothing is lost.
+
+Whatever is chosen, run the novelty check on the name before the abstract is
+written (the standing rule in [[research-novelty-and-citations-workflow]]), and
+if the name leans on imperceptibility, state the quality cost in the abstract's
+first lines so the name is not promising what the paper then walks back.
+
 ### C1 — the defence holds, across purifiers and across cloners
 
 A perturbation crafted with the purifier in the loop, at a psychoacoustic
