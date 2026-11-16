@@ -140,8 +140,12 @@ function wire(btn,aud,num,key){ $(btn).onclick=async()=>{
  const tick=setInterval(()=>{b.textContent="● "+(--t>0?t+"s":"…")},1000);
  b.textContent="● "+SEC+"s";
  try{ const {blob}=await record(SEC);
-  clips[key]=blob; const fr=new FileReader();
-  fr.onload=()=>{clips[key+"_b64"]=fr.result;}; fr.readAsDataURL(blob);
+  clips[key]=blob;
+  // AWAIT the encode. readAsDataURL is async, so the previous version called
+  // ready() before clips[key+"_b64"] existed and the Run button never enabled.
+  clips[key+"_b64"]=await new Promise((res,rej)=>{const fr=new FileReader();
+   fr.onload=()=>res(fr.result); fr.onerror=()=>rej(fr.error);
+   fr.readAsDataURL(blob);});
   $(aud).src=URL.createObjectURL(blob); $(aud).classList.remove("hide");
   $(num).classList.add("done"); $(num).textContent="✓";
  }catch(e){ alert("Could not use the microphone: "+e.message); }
