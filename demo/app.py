@@ -103,7 +103,13 @@ def models():
     _t = read_csv(THR_FILE)          # utils.csvio returns a DataFrame
     thr = {str(r.encoder): float(r.threshold) for r in _t.itertuples()}
     craft_encs, _ = select_craft(encs, "all")
-    _M.update(dev=dev, dp=dp, encs=encs, thr=thr, craft_encs=craft_encs,
+    # Whisper, so the speaker may say ANYTHING. F5-TTS has to be told what the
+    # reference clip says; hard-coding that to a sentence on screen breaks the
+    # moment someone speaks their own words, and it fails SILENTLY -- the clone
+    # just comes out weaker, which understates the attacker.
+    from experiments.eval_quality_nr import load_asr
+    asr = load_asr(dev, "openai/whisper-small")
+    _M.update(dev=dev, dp=dp, encs=encs, thr=thr, craft_encs=craft_encs, asr=asr,
               masker=PsychoacousticMasker(margin_db=30.0, device=dev,
                                           local_snr_floor_db=15.0))
     _say("load", 8, "models ready")
@@ -163,6 +169,10 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
     solo = not enr_path or not os.path.isfile(enr_path)
     wav_e = wav_o if solo else _wav_read(enr_path, enr_sec).to(dev)
     p_orig = os.path.join(run_dir, "original.wav"); _wav_write(p_orig, wav_o)
+    said = (m["asr"](wav_o.squeeze(0).cpu().numpy()) or "").strip()
+    if not said:
+        said = SENTENCE_PUBLISH          # silence or an unusable clip
+    _say("prepare", 14, "heard: " + said[:60])
     e_enr = real_embed_all(encs, wav_e)
 
     # ---- our protection --------------------------------------------------
@@ -193,7 +203,7 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
     # is no less essential for coming second.
     _say("attack_control", 70, "attacker clones your unprotected voice")
     p_c0 = os.path.join(run_dir, "clone_unprotected.wav")
-    _clone(p_orig, SENTENCE_PUBLISH, p_c0)
+    _clone(p_orig, said, p_c0)
     e_c0 = real_embed_all(encs, _wav_read(p_c0).to(dev))
 
     # ---- the attacker, on the PROTECTED clip -----------------------------
@@ -206,7 +216,7 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
 
     _say("attack_protected", 85, "attacker clones the protected voice")
     p_c1 = os.path.join(run_dir, "clone_protected.wav")
-    _clone(p_pur, SENTENCE_PUBLISH, p_c1)
+    _clone(p_pur, said, p_c1)
     e_c1 = real_embed_all(encs, _wav_read(p_c1).to(dev))
 
     _say("score", 95, "scoring both clones against your second recording")
@@ -224,6 +234,7 @@ def run_pipeline(pub_path, enr_path, run_dir, steps, pub_sec, enr_sec):
                      stoi=round(float(stoi_v), 4)),
         craft_s=round(craft_s, 1), steps=steps, rows=rows, paper=PAPER,
         pub_sec=pub_sec, enr_sec=enr_sec, scored_against_source=bool(solo),
+        said=said,
         sentences=dict(publish=SENTENCE_PUBLISH, enrol=SENTENCE_ENROL,
                        attack=SENTENCE_ATTACK),
         audio={k: f"/runs/{os.path.basename(run_dir)}/{k}.wav" for k in

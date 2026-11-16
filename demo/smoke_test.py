@@ -34,5 +34,6 @@ for x in out.get("rows",[]):
         x["encoder"],x["threshold"],x["sim_unprotected"],
         "CLONED" if x["cloned_unprotected"] else "failed",
         x["sim_protected"],"CLONED" if x["cloned_protected"] else "failed"))
+print("TRANSCRIBED:",repr(out.get("said")))
 print("scored_against_source:",out.get("scored_against_source"))
 print("audio:",list(out.get("audio",{}).values()))

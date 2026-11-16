@@ -64,8 +64,9 @@ added — same voice. Then hear what an attacker gets when they try to clone it.
 
  <div class="step"><div class="num" id="n1">1</div><div style="flex:1">
   <h2>Record your voice</h2>
-  <p class="muted">Read this aloud, normally:</p>
-  <div class="say" id="s1">…</div>
+  <p class="muted">Say anything you like — your name, what you had for lunch.
+   Just speak normally and keep talking for the whole clip.</p>
+  <p class="muted" style="font-size:13px">Stuck for words? “<span id="s1">…</span>”</p>
   <div class="row"><button id="b1" class="rec">● Record</button>
    <audio id="a1" controls class="hide"></audio></div></div></div>
 
@@ -227,8 +228,9 @@ function render(r){
    naturalness scale, with intelligibility unchanged.</p></div>
 
  <div class="card"><h2>3 · What the attacker gets</h2>
-  <p class="muted">They take your published clip and make you say something you
-   never said:</p>
+  <p class="muted">A cloner does not replay your recording — it takes <b>how you
+   sound</b> and says <b>whatever the attacker wants</b>. That is the danger.
+   You said “<i>${(r.said||"").replace(/</g,"&lt;")}</i>”. They make you say:</p>
   <div class="say">${r.sentences.attack}</div>
   <div class="grid" style="margin-top:14px">
    <div><p><b>If you had NOT protected it</b></p>
