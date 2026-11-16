@@ -148,46 +148,15 @@ def t_mcadams(wav, alpha, win, frame_len=320, hop=160, order=16, **kw):
     filter. Unlike `t_warp` (which warps the STFT magnitude and keeps the
     original phase, introducing artefacts) this stays a valid source-filter
     speech signal, so it is the fair test of whether formant shifting can be
-    both purification-invariant and natural."""
-    import numpy as np, scipy.signal, librosa
-    x = wav.squeeze(0).detach().cpu().numpy().astype(np.float64)
-    n = x.shape[0]
-    w = np.hanning(frame_len)
-    out = np.zeros(n + frame_len)
-    nrm = np.zeros(n + frame_len) + 1e-12
-    for st in range(0, max(n - frame_len, 1), hop):
-        seg = x[st:st + frame_len] * w
-        if seg.shape[0] < frame_len or np.abs(seg).max() < 1e-7:
-            out[st:st + frame_len] += seg
-            nrm[st:st + frame_len] += w ** 2
-            continue
-        try:
-            a = librosa.lpc(seg, order=order)
-        except Exception:
-            out[st:st + frame_len] += seg
-            nrm[st:st + frame_len] += w ** 2
-            continue
-        res = scipy.signal.lfilter(a, [1.0], seg)           # LPC residual
-        poles = np.roots(a)
-        newp = []
-        for pz in poles:
-            if abs(np.imag(pz)) > 1e-12:
-                phi = np.angle(pz)
-                newp.append(np.abs(pz) * np.exp(1j * np.sign(phi) * (np.abs(phi) ** alpha)))
-            else:
-                newp.append(pz)
-        a_new = np.real(np.poly(np.array(newp)))
-        if not np.all(np.abs(np.roots(a_new)) < 1.0):        # keep it stable
-            a_new = a
-        seg_new = scipy.signal.lfilter([1.0], a_new, res)
-        out[st:st + frame_len] += seg_new * w
-        nrm[st:st + frame_len] += w ** 2
-    y = (out / nrm)[:n]
-    y = np.nan_to_num(y, nan=0.0, posinf=0.0, neginf=0.0)
-    peak = np.abs(y).max()
-    if peak > 1e-8:
-        y = y / peak * float(wav.abs().max())
-    return torch.from_numpy(y).float().unsqueeze(0).to(wav.device)
+    both purification-invariant and natural.
+
+    2026-10-10: the implementation moved to `utils/onmanifold.py` so that the
+    Step 0 listening stimuli and the Step 1 arms are produced by the SAME code
+    (PLAN_V4). This wrapper keeps the probe's signature and behaviour; the
+    silent / failed / unstable frame counts are available through `stats=`.
+    """
+    from utils.onmanifold import t_mcadams as _mc
+    return _mc(wav, alpha, win, frame_len=frame_len, hop=hop, order=order, **kw)
 
 
 def t_pitch(wav, semitones, win, **kw):
