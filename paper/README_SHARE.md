@@ -1,7 +1,7 @@
 # Voice protection that survives diffusion purification
 
 Everything behind the paper: code, results, the full lab record, and the one
-model checkpoint you cannot download. Built for Interspeech 2027 (9 Feb 2027).
+model checkpoint you cannot download. Target submission date: 9 February 2027.
 
 ---
 

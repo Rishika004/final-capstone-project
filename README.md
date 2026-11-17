@@ -2,7 +2,7 @@
 
 Protecting a published voice recording against **diffusion-based voice
 cloning**, when the attacker uses **diffusion purification** to try to wash the
-protection off. Research code for an Interspeech 2027 submission.
+protection off. Research code for a paper under preparation.
 
 > **About the repository name.** The directory and the early commits say
 > *null-space*. That was the project's founding hypothesis and **it was
