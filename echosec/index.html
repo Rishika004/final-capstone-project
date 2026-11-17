@@ -176,6 +176,11 @@ footer{border-top:1px solid var(--line);padding:38px 0;color:var(--dim);font-siz
    <span id="goHint" class="sm mut" style="margin-left:10px">Record or upload first.</span>
   </div>
 
+  <div id="err" class="hide" style="margin-top:18px;border-left:3px solid var(--bad);
+   background:rgba(251,113,133,.08);padding:13px 17px;border-radius:0 10px 10px 0">
+   <b style="color:var(--bad)">That did not work</b>
+   <p class="sm mut" id="errmsg" style="margin:6px 0 0"></p></div>
+
   <div id="prog" class="hide" style="margin-top:22px">
    <div class="bar"><i id="pbar"></i></div>
    <p class="sm mut" id="pmsg">Starting…</p>
@@ -344,6 +349,9 @@ footer{border-top:1px solid var(--line);padding:38px 0;color:var(--dim);font-siz
 
 <script>
 const $=i=>document.getElementById(i);
+function showErr(m){$("errmsg").textContent=m;$("err").classList.remove("hide");
+ $("err").scrollIntoView({behavior:"smooth",block:"center"})}
+function clearErr(){$("err").classList.add("hide")}
 
 /* hero waveform */
 (()=>{const c=$("wave"),x=c.getContext("2d");let t=0,raf;
@@ -405,7 +413,8 @@ $("btnRec").onclick=async()=>{
  let st;
  try{ st=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,
    echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); }
- catch(e){ alert("Could not use the microphone: "+e.message); b.disabled=false; return; }
+ catch(e){ showErr("Could not use the microphone. Allow microphone access in your "+
+   "browser, or use the Upload tab instead. ("+e.message+")"); b.disabled=false; return; }
  const ac=new AudioContext(),src=ac.createMediaStreamSource(st),
   node=ac.createScriptProcessor(4096,1,1),chunks=[];
  src.connect(node);node.connect(ac.destination);
@@ -425,7 +434,7 @@ const LBL={prepare:"Reading your audio",protect:"Building the protection",
  quality:"Measuring the cost",purify:"Simulating the attacker's clean-up",
  attack:"Attempting the clone",score:"Scoring",done:"Done"};
 $("go").onclick=async()=>{
- $("prog").classList.remove("hide");$("out").classList.add("hide");$("go").disabled=true;
+ clearErr();$("prog").classList.remove("hide");$("out").classList.add("hide");$("go").disabled=true;
  const poll=setInterval(async()=>{try{const s=await (await fetch("/api/state")).json();
   $("pbar").style.width=s.pct+"%";$("pmsg").textContent=(LBL[s.stage]||s.stage)+
    (s.msg?" — "+s.msg:"")}catch(e){}},900);
@@ -435,8 +444,8 @@ $("go").onclick=async()=>{
    body:JSON.stringify({audio:b64,sec:+$("dur").value})})).json(); }
  catch(e){ r={error:String(e)} }
  clearInterval(poll);$("prog").classList.add("hide");$("go").disabled=false;
- if(r.error){alert("It did not finish: "+r.error);return}
- LAST=r;
+ if(r.error){showErr(r.error);return}
+ clearErr(); LAST=r;
  $("aOrig").src=r.audio.original;$("aProt").src=r.audio.protected;
  $("dl").href=r.audio.protected;
  $("chips").innerHTML=`<span class="chip">PESQ <b>${r.quality.pesq}</b></span>
@@ -457,7 +466,8 @@ $("verify").onclick=async()=>{
  catch(e){ r={error:String(e)} }
  clearInterval(poll);$("prog").classList.add("hide");
  b.disabled=false;b.textContent="Prove it — try to clone me";
- if(r.error){alert(r.error);return}
+ if(r.error){showErr(r.error);return}
+ clearErr();
  const p=r.rows.find(x=>/ECAPA/i.test(x.encoder))||r.rows[0];
  $("vout").innerHTML=`<h3>What an attacker gets</h3>
   <p class="mut sm">The same cloner was run on both versions. Only the protection differs.</p>

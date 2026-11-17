@@ -257,12 +257,22 @@ class H(http.server.SimpleHTTPRequestHandler):
                 sec = max(2.0, min(12.0, float(body.get("sec", 8))))
                 rid = time.strftime("%Y%m%d-%H%M%S")
                 run_dir = os.path.join(RUNS, rid); os.makedirs(run_dir, exist_ok=True)
-                raw = base64.b64decode(str(body["audio"]).split(",")[-1])
+                blob = body.get("audio")
+                if not blob:
+                    raise ValueError("No audio was sent. Record a clip or "
+                                     "choose a file first.")
+                try:
+                    raw = base64.b64decode(str(blob).split(",")[-1])
+                except Exception:
+                    raise ValueError("That audio could not be decoded.")
                 src = os.path.join(run_dir, "upload.bin")
                 with open(src, "wb") as fh:
                     fh.write(raw)
                 return self._json(protect(src, run_dir, sec))
-            run_dir = os.path.join(RUNS, os.path.basename(str(body["run_id"])))
+            rid = body.get("run_id")
+            if not rid:
+                raise ValueError("Protect a clip before asking for the demo.")
+            run_dir = os.path.join(RUNS, os.path.basename(str(rid)))
             if not os.path.isdir(run_dir):
                 return self._json({"error": "that result has expired"}, 404)
             return self._json(verify(run_dir))
