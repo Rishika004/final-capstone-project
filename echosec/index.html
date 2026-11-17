@@ -1,0 +1,480 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>EchoSec — protect your voice from cloning</title>
+<style>
+:root{
+ --bg:#070b12; --bg2:#0c131f; --card:#111a28; --line:#1e2b3d;
+  --ink:#e8f0fa; --mut:#8ba0bb; --dim:#5d7490;
+ --tl:#2dd4bf; --tl2:#5eead4; --vi:#818cf8; --am:#fbbf24;
+ --ok:#34d399; --bad:#fb7185;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif;
+ -webkit-font-smoothing:antialiased}
+a{color:var(--tl2);text-decoration:none}
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+h1,h2,h3{line-height:1.2;margin:0 0 14px;letter-spacing:-.02em}
+h1{font-size:clamp(34px,6vw,60px);font-weight:800}
+h2{font-size:clamp(25px,3.4vw,36px);font-weight:750}
+h3{font-size:19px;font-weight:700}
+p{margin:0 0 14px}
+.lead{font-size:clamp(17px,2.1vw,20px);color:var(--mut);max-width:62ch}
+.mut{color:var(--mut)} .sm{font-size:14px}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+ background:rgba(7,11,18,.82);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:26px;height:62px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;
+ letter-spacing:-.02em;margin-right:auto;color:var(--ink)}
+.brand i{width:11px;height:11px;border-radius:50%;background:var(--tl);
+ box-shadow:0 0 0 4px rgba(45,212,191,.16),0 0 18px var(--tl);display:block}
+nav a.link{color:var(--mut);font-size:14.5px;font-weight:500}
+nav a.link:hover{color:var(--ink)}
+@media(max-width:820px){nav a.link{display:none}}
+
+/* hero */
+header{position:relative;overflow:hidden;padding:84px 0 70px;
+ background:radial-gradient(1100px 460px at 18% -10%,rgba(45,212,191,.13),transparent 62%),
+            radial-gradient(900px 420px at 88% 8%,rgba(129,140,248,.13),transparent 60%)}
+.tag{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);
+ background:var(--bg2);border-radius:999px;padding:6px 15px;font-size:13px;
+ color:var(--mut);margin-bottom:22px}
+.tag b{color:var(--tl2);font-weight:650}
+.grad{background:linear-gradient(100deg,var(--tl2),var(--vi));
+ -webkit-background-clip:text;background-clip:text;color:transparent}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.btn{display:inline-flex;align-items:center;gap:9px;border-radius:11px;padding:13px 22px;
+ font:inherit;font-weight:650;font-size:15px;cursor:pointer;border:1px solid var(--line);
+ background:var(--card);color:var(--ink);transition:.18s}
+.btn:hover{border-color:var(--tl);transform:translateY(-1px)}
+.btn.p{background:linear-gradient(100deg,var(--tl),#22b8a6);border-color:transparent;color:#04201d}
+.btn.p:hover{box-shadow:0 10px 30px -10px rgba(45,212,191,.6)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+canvas#wave{width:100%;height:120px;display:block;margin-top:46px;opacity:.95}
+
+/* sections */
+section{padding:76px 0;border-top:1px solid var(--line)}
+.eyebrow{font-size:12.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+ color:var(--tl);margin-bottom:12px}
+.grid{display:grid;gap:18px}
+.g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:860px){.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:22px}
+.card.hl{border-color:rgba(45,212,191,.4);
+ background:linear-gradient(170deg,rgba(45,212,191,.07),var(--card))}
+.step{display:flex;gap:15px;align-items:flex-start}
+.step .n{flex:0 0 32px;height:32px;border-radius:9px;display:grid;place-items:center;
+ font-weight:800;font-size:14px;background:rgba(45,212,191,.13);color:var(--tl2);
+ border:1px solid rgba(45,212,191,.3)}
+.stat{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-.03em;line-height:1}
+.stat.good{color:var(--tl2)} .stat.bad{color:var(--bad)}
+.arrow{color:var(--dim);margin:0 7px}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:650;font-size:13px;letter-spacing:.03em}
+td b{color:var(--tl2)}
+details{border:1px solid var(--line);border-radius:12px;background:var(--card);
+ padding:16px 20px;margin-bottom:11px}
+details summary{cursor:pointer;font-weight:650;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"+";color:var(--tl);font-weight:800;margin-right:11px}
+details[open] summary::before{content:"\2212"}
+details p{margin:12px 0 0;color:var(--mut)}
+
+/* tool */
+.tool{background:linear-gradient(170deg,rgba(129,140,248,.08),var(--card));
+ border:1px solid var(--line);border-radius:18px;padding:26px}
+.tabs{display:flex;gap:7px;background:var(--bg2);padding:5px;border-radius:11px;
+ margin-bottom:20px;width:fit-content}
+.tabs button{border:none;background:transparent;color:var(--mut);font:inherit;
+ font-weight:600;font-size:14px;padding:8px 18px;border-radius:8px;cursor:pointer}
+.tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 8px rgba(0,0,0,.35)}
+.drop{border:1.5px dashed var(--line);border-radius:13px;padding:34px 20px;text-align:center;
+ transition:.18s;cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--tl);background:rgba(45,212,191,.05)}
+audio{width:100%;height:38px;margin-top:12px;filter:invert(.92) hue-rotate(180deg)}
+.bar{height:6px;border-radius:4px;background:#17243a;overflow:hidden;margin:14px 0 8px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--tl),var(--vi));
+ width:0;transition:width .4s}
+.chip{display:inline-block;background:var(--bg2);border:1px solid var(--line);
+ border-radius:999px;padding:4px 13px;font-size:13px;margin:4px 6px 4px 0;color:var(--mut)}
+.chip b{color:var(--ink)}
+.note{border-left:3px solid var(--am);background:rgba(251,191,36,.07);
+ padding:13px 17px;border-radius:0 10px 10px 0;font-size:14.5px;color:var(--mut)}
+.note b{color:var(--am)}
+.hide{display:none}
+footer{border-top:1px solid var(--line);padding:38px 0;color:var(--dim);font-size:14px}
+</style></head><body>
+
+<nav><div class="wrap">
+ <span class="brand"><i></i>EchoSec</span>
+ <a class="link" href="#protect">Protect</a>
+ <a class="link" href="#how">How it works</a>
+ <a class="link" href="#evidence">Evidence</a>
+ <a class="link" href="#limits">Limits</a>
+ <a class="link" href="#faq">FAQ</a>
+ <a class="link" href="#research">Research</a>
+</div></nav>
+
+<header><div class="wrap">
+ <span class="tag"><b>Research preview</b> · built on a peer-reviewed method</span>
+ <h1>Your voice is a password<br>you <span class="grad">can't change</span>.</h1>
+ <p class="lead">Three seconds of your voice is enough for someone to clone it. EchoSec
+  adds a layer to your recordings that survives an attacker's clean-up — so what they
+  publish still sounds like you, and what a cloner steals does not.</p>
+ <div class="cta">
+  <a class="btn p" href="#protect">Protect my voice →</a>
+  <a class="btn" href="#evidence">See the evidence</a>
+ </div>
+ <canvas id="wave"></canvas>
+</div></header>
+
+<section id="protect"><div class="wrap">
+ <div class="eyebrow">Protect</div>
+ <h2>Record or upload. Get a protected file back.</h2>
+ <p class="lead" style="margin-bottom:26px">Your audio never leaves this machine.
+  Protecting an 8-second clip takes about 40 seconds.</p>
+
+ <div class="tool">
+  <div class="tabs">
+   <button id="tRec" class="on">Record</button>
+   <button id="tUp">Upload a file</button>
+  </div>
+
+  <div id="paneRec">
+   <p class="mut sm">Say anything — your name, what you did today. Speak normally for
+    the whole clip.</p>
+   <div style="display:flex;gap:11px;align-items:center;flex-wrap:wrap">
+    <label class="sm mut">Length
+     <select id="dur" style="font:inherit;padding:7px 10px;border-radius:9px;
+      border:1px solid var(--line);background:var(--bg2);color:var(--ink);margin-left:7px">
+      <option value="4">4 s — fastest</option>
+      <option value="8" selected>8 s — recommended</option>
+      <option value="12">12 s</option>
+     </select></label>
+    <button id="btnRec" class="btn">● Record</button>
+    <span id="recHint" class="sm mut"></span>
+   </div>
+  </div>
+
+  <div id="paneUp" class="hide">
+   <div class="drop" id="drop">
+    <div style="font-size:30px;margin-bottom:8px">🎙</div>
+    <b>Drop an audio file here</b>
+    <p class="mut sm" style="margin:7px 0 0">or click to choose · WAV, MP3, FLAC, OGG ·
+     the first few seconds are used</p>
+    <input id="file" type="file" accept="audio/*" class="hide">
+   </div>
+  </div>
+
+  <audio id="aIn" controls class="hide"></audio>
+  <div style="margin-top:18px">
+   <button id="go" class="btn p" disabled>Protect this voice</button>
+   <span id="goHint" class="sm mut" style="margin-left:10px">Record or upload first.</span>
+  </div>
+
+  <div id="prog" class="hide" style="margin-top:22px">
+   <div class="bar"><i id="pbar"></i></div>
+   <p class="sm mut" id="pmsg">Starting…</p>
+  </div>
+
+  <div id="out" class="hide" style="margin-top:24px">
+   <h3 style="color:var(--tl2)">✓ Protected</h3>
+   <div class="grid g2" style="margin-top:14px">
+    <div><p class="sm mut">Your original</p><audio id="aOrig" controls></audio></div>
+    <div><p class="sm mut">Protected — the file to publish</p>
+     <audio id="aProt" controls></audio></div>
+   </div>
+   <p style="margin-top:14px" id="chips"></p>
+   <a id="dl" class="btn p" download="protected.wav" style="margin-top:6px">↓ Download protected audio</a>
+   <button id="verify" class="btn" style="margin-left:8px">Prove it — try to clone me</button>
+   <div id="vout" class="hide" style="margin-top:22px"></div>
+  </div>
+ </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+ <div class="eyebrow">How it works</div>
+ <h2>Not noise. A perturbation built against the attacker's own tools.</h2>
+ <div class="grid g3" style="margin-top:28px">
+  <div class="card"><div class="step"><div class="n">1</div><div>
+   <h3>You publish</h3><p class="mut sm">EchoSec adds a signal shaped to sit under the
+   parts of your speech the ear is least sensitive to. You still sound like you.</p>
+  </div></div></div>
+  <div class="card"><div class="step"><div class="n">2</div><div>
+   <h3>They clean it</h3><p class="mut sm">A serious attacker runs a diffusion purifier
+   first to strip protections. Ours is built <i>through</i> that purifier, so it survives
+   the wash.</p></div></div></div>
+  <div class="card"><div class="step"><div class="n">3</div><div>
+   <h3>The clone fails</h3><p class="mut sm">What the cloner reads is no longer your
+   voiceprint. The fake it produces does not pass as you.</p></div></div></div>
+ </div>
+ <div class="card hl" style="margin-top:22px">
+  <h3>The part that is actually new</h3>
+  <p class="mut">Most voice protections are optimised against a speaker-recognition model
+   and stop there. An attacker who purifies the audio first removes them. EchoSec puts the
+   purifier <b>inside</b> the optimisation loop, so the perturbation is chosen to be one
+   that survives purification rather than one that merely exists before it.</p>
+  <p class="mut" style="margin:0">Measured result: that step does not make protection
+   <i>stronger</i> against a model it already targets — it makes protection <b>carry over
+   to attackers it never saw</b>. That distinction is the finding, and it is stated
+   honestly in the paper rather than smoothed over.</p>
+ </div>
+</div></section>
+
+<section id="evidence"><div class="wrap">
+ <div class="eyebrow">Evidence</div>
+ <h2>Measured, not asserted.</h2>
+ <p class="lead">29 speakers, two different cloners, two purifiers, every number traced
+  to a file you can read.</p>
+ <div class="grid g3" style="margin-top:26px">
+  <div class="card"><p class="sm mut">Clone success, modern zero-shot cloner</p>
+   <div><span class="stat bad">86.2%</span><span class="arrow">→</span><span class="stat good">10.3%</span></div>
+   <p class="sm mut" style="margin:10px 0 0">F5-TTS, through a diffusion purifier</p></div>
+  <div class="card"><p class="sm mut">Clone success, voice-conversion cloner</p>
+   <div><span class="stat bad">48.3%</span><span class="arrow">→</span><span class="stat good">0.0%</span></div>
+   <p class="sm mut" style="margin:10px 0 0">DiffVC, through the same purifier</p></div>
+  <div class="card"><p class="sm mut">Protection kept against a purifier we never trained on</p>
+   <div><span class="stat good">89–128%</span></div>
+   <p class="sm mut" style="margin:10px 0 0">of the matched-purifier result</p></div>
+ </div>
+ <div class="card" style="margin-top:20px">
+  <table>
+   <tr><th>Verifier</th><th>Unprotected clone</th><th>Protected clone</th><th>Cloner</th></tr>
+   <tr><td>ECAPA-TDNN</td><td>86.2 %</td><td><b>10.3 %</b></td><td>F5-TTS</td></tr>
+   <tr><td>WavLM-SV</td><td>79.3 %</td><td><b>27.6 %</b></td><td>F5-TTS</td></tr>
+   <tr><td>ECAPA-TDNN</td><td>48.3 %</td><td><b>0.0 %</b></td><td>DiffVC</td></tr>
+   <tr><td>WavLM-SV</td><td>48.3 %</td><td><b>6.9 %</b></td><td>DiffVC</td></tr>
+  </table>
+  <p class="sm mut" style="margin:14px 0 0">Nine of nine cells significant for each
+   cloner after correction for multiple comparisons.</p>
+ </div>
+</div></section>
+
+<section id="limits"><div class="wrap">
+ <div class="eyebrow">Limits</div>
+ <h2>What EchoSec does <span class="grad">not</span> do.</h2>
+ <p class="lead">Every protection of this kind has edges. Here are ours, measured with
+  the same protocol as the results above.</p>
+ <div class="grid g2" style="margin-top:26px">
+  <div class="card"><h3>It is not invisible</h3><p class="mut sm">Protected audio is
+   measurably less natural — about one point on a five-point scale. Speech remains fully
+   intelligible; word error rate is unchanged. If you need untouched audio, this is not
+   for you.</p></div>
+  <div class="card"><h3>A verifier we never targeted can still be fooled</h3>
+   <p class="mut sm">Against a speaker model held out of our optimisation, behind a
+   purifier we never trained on, protection measured <b>72.4% → 72.4%</b> — none at all.
+   This is the honest ceiling.</p></div>
+  <div class="card"><h3>A learned restorer reduces it</h3><p class="mut sm">A
+   phoneme-guided restoration model recovers part of the speaker. Protection is reduced,
+   not removed — but reduced.</p></div>
+  <div class="card"><h3>Tested on read English speech</h3><p class="mut sm">29 speakers,
+   one corpus, clean recordings. A phone mic in a noisy room is outside what we measured,
+   and may protect less well.</p></div>
+ </div>
+ <div class="note" style="margin-top:20px"><b>Why we publish this.</b> A protection tool
+  that only reports its wins teaches you nothing about when to trust it. These numbers come
+  from the same experiments as the ones above, including the ones that went against us.</div>
+</div></section>
+
+<section id="faq"><div class="wrap">
+ <div class="eyebrow">FAQ</div>
+ <h2>Questions worth asking.</h2>
+ <div style="margin-top:24px">
+  <details><summary>Does my voice get uploaded anywhere?</summary>
+   <p>No. Everything runs on the machine serving this page — recording, protection,
+    and the verification demo. Nothing is sent to a third party and no account is needed.</p></details>
+  <details><summary>Will people notice the protection?</summary>
+   <p>Probably, if they listen closely. It costs roughly one point of naturalness on a
+    five-point scale. Your words stay perfectly clear — measured word error rate is
+    unchanged — and listeners still identify you as the speaker. We are collecting formal
+    listening data now and will publish it either way.</p></details>
+  <details><summary>Does it stop every voice cloner?</summary>
+   <p>No, and anyone claiming otherwise is overselling. We tested two: a diffusion
+    voice-conversion model and a 2024 zero-shot text-to-speech model that has no speaker
+    encoder at all. Both failed against protected audio. A cloner built on a speaker model
+    we never targeted, behind a restoration step, can still succeed — see Limits.</p></details>
+  <details><summary>Why does it take 40 seconds rather than being instant?</summary>
+   <p>Because it is not a filter. The protection is searched for — sixty optimisation
+    steps against your specific recording, each one passed through a simulated
+    attacker's purifier — so that what comes out is a perturbation which survives
+    being cleaned. A fixed filter would be instant and would also be removed instantly.
+    The optional “prove it” step takes about two minutes more, because it has to
+    generate two clones.</p></details>
+  <details><summary>What if an attacker already has my old recordings?</summary>
+   <p>Then those recordings are not protected, and nothing retroactive can fix that.
+    EchoSec protects what you publish from now on. This is the same limitation every tool
+    in this space has.</p></details>
+  <details><summary>Is this a finished product?</summary>
+   <p>No — it is a research preview built alongside an academic paper. The method is
+    measured and the numbers are real, but it has not been through the engineering,
+    security review or scale testing a shipped product needs.</p></details>
+ </div>
+</div></section>
+
+<section id="research"><div class="wrap">
+ <div class="eyebrow">Research</div>
+ <h2>The work behind it.</h2>
+ <div class="grid g2" style="margin-top:24px">
+  <div class="card"><h3>The paper</h3><p class="mut sm">
+   <i>Voice protection that survives diffusion purification.</i> Under preparation for
+   Interspeech 2027. Covers the method, the two-cloner evaluation, the budget-matched
+   attribution, and the measured limit.</p></div>
+  <div class="card"><h3>Code and data</h3><p class="mut sm">Every experiment script,
+   every result file and the full lab record — 67 numbered sections, including the
+   hypotheses that were refuted along the way.</p></div>
+ </div>
+ <div class="note" style="margin-top:20px"><b>Built on prior work.</b> Diffusion
+  purification comes from DiffPure (ICML 2022); adaptive attacks on it from DiffAttack and
+  DiffHammer; the idea of a purification-resistant protective perturbation was shown for
+  images by AntiPure (ICCV 2025). EchoSec is the speech counterpart, evaluated against
+  speech cloners with speech-specific constraints.</div>
+</div></section>
+
+<footer><div class="wrap">
+ <b style="color:var(--ink)">EchoSec</b> · research preview · runs entirely on your own
+ machine<br>
+ <span class="sm">Not a commercial product. No warranty. Read the Limits section before
+ relying on it.</span>
+</div></footer>
+
+<script>
+const $=i=>document.getElementById(i);
+
+/* hero waveform */
+(()=>{const c=$("wave"),x=c.getContext("2d");let t=0,raf;
+ function size(){c.width=c.offsetWidth*devicePixelRatio;c.height=120*devicePixelRatio;
+  x.scale(1,1)}
+ size();addEventListener("resize",size);
+ function draw(){const w=c.width,h=c.height,mid=h/2;x.clearRect(0,0,w,h);
+  for(let k=0;k<3;k++){x.beginPath();
+   const g=x.createLinearGradient(0,0,w,0);
+   g.addColorStop(0,"rgba(45,212,191,0)");g.addColorStop(.5,k===0?"rgba(94,234,212,.85)":
+    k===1?"rgba(129,140,248,.45)":"rgba(45,212,191,.25)");
+   g.addColorStop(1,"rgba(129,140,248,0)");
+   x.strokeStyle=g;x.lineWidth=(k===0?2.2:1.4)*devicePixelRatio;
+   for(let i=0;i<w;i+=2){const p=i/w;
+    const env=Math.sin(p*Math.PI);
+    const y=mid+Math.sin(p*18+t+k*1.7)*28*devicePixelRatio*env
+            +Math.sin(p*41-t*1.6+k)*11*devicePixelRatio*env;
+    i?x.lineTo(i,y):x.moveTo(i,y);}
+   x.stroke();}
+  t+=.025;raf=requestAnimationFrame(draw);}
+ draw();})();
+
+/* tabs */
+let mode="rec";
+$("tRec").onclick=()=>{mode="rec";$("tRec").classList.add("on");$("tUp").classList.remove("on");
+ $("paneRec").classList.remove("hide");$("paneUp").classList.add("hide")};
+$("tUp").onclick=()=>{mode="up";$("tUp").classList.add("on");$("tRec").classList.remove("on");
+ $("paneUp").classList.remove("hide");$("paneRec").classList.add("hide")};
+
+let blobIn=null,b64=null;
+function ready(ok){$("go").disabled=!ok;$("goHint").textContent=ok?"":"Record or upload first."}
+async function setInput(blob){
+ blobIn=blob; $("aIn").src=URL.createObjectURL(blob); $("aIn").classList.remove("hide");
+ b64=await new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(blob)});
+ ready(true);}
+
+/* upload */
+$("drop").onclick=()=>$("file").click();
+$("file").onchange=e=>{if(e.target.files[0])setInput(e.target.files[0])};
+["dragenter","dragover"].forEach(ev=>$("drop").addEventListener(ev,e=>{
+ e.preventDefault();$("drop").classList.add("over")}));
+["dragleave","drop"].forEach(ev=>$("drop").addEventListener(ev,e=>{
+ e.preventDefault();$("drop").classList.remove("over")}));
+$("drop").addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f)setInput(f)});
+
+/* record */
+function wavBlob(buf,sr){const n=buf.length,b=new ArrayBuffer(44+n*2),v=new DataView(b);
+ const W=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+ W(0,"RIFF");v.setUint32(4,36+n*2,true);W(8,"WAVEfmt ");v.setUint32(16,16,true);
+ v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);
+ v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);
+ W(36,"data");v.setUint32(40,n*2,true);
+ for(let i=0;i<n;i++){let s=Math.max(-1,Math.min(1,buf[i]));
+  v.setInt16(44+i*2,s<0?s*0x8000:s*0x7fff,true)}
+ return new Blob([b],{type:"audio/wav"})}
+
+$("btnRec").onclick=async()=>{
+ const sec=+$("dur").value,b=$("btnRec");b.disabled=true;
+ let st;
+ try{ st=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,
+   echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); }
+ catch(e){ alert("Could not use the microphone: "+e.message); b.disabled=false; return; }
+ const ac=new AudioContext(),src=ac.createMediaStreamSource(st),
+  node=ac.createScriptProcessor(4096,1,1),chunks=[];
+ src.connect(node);node.connect(ac.destination);
+ node.onaudioprocess=e=>chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+ let left=sec; b.textContent="● "+left+"s";
+ const tick=setInterval(()=>{b.textContent="● "+(--left>0?left+"s":"…")},1000);
+ await new Promise(r=>setTimeout(r,sec*1000));
+ clearInterval(tick);node.disconnect();src.disconnect();st.getTracks().forEach(t=>t.stop());
+ const sr=ac.sampleRate; await ac.close();
+ let len=chunks.reduce((a,c)=>a+c.length,0),all=new Float32Array(len),o=0;
+ for(const c of chunks){all.set(c,o);o+=c.length}
+ await setInput(wavBlob(all,sr));
+ b.disabled=false;b.textContent="● Record again";};
+
+/* protect */
+const LBL={prepare:"Reading your audio",protect:"Building the protection",
+ quality:"Measuring the cost",purify:"Simulating the attacker's clean-up",
+ attack:"Attempting the clone",score:"Scoring",done:"Done"};
+$("go").onclick=async()=>{
+ $("prog").classList.remove("hide");$("out").classList.add("hide");$("go").disabled=true;
+ const poll=setInterval(async()=>{try{const s=await (await fetch("/api/state")).json();
+  $("pbar").style.width=s.pct+"%";$("pmsg").textContent=(LBL[s.stage]||s.stage)+
+   (s.msg?" — "+s.msg:"")}catch(e){}},900);
+ let r;
+ try{ r=await (await fetch("/api/protect",{method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({audio:b64,sec:+$("dur").value})})).json(); }
+ catch(e){ r={error:String(e)} }
+ clearInterval(poll);$("prog").classList.add("hide");$("go").disabled=false;
+ if(r.error){alert("It did not finish: "+r.error);return}
+ LAST=r;
+ $("aOrig").src=r.audio.original;$("aProt").src=r.audio.protected;
+ $("dl").href=r.audio.protected;
+ $("chips").innerHTML=`<span class="chip">PESQ <b>${r.quality.pesq}</b></span>
+  <span class="chip">SNR <b>${r.quality.snr_db} dB</b></span>
+  <span class="chip">intelligibility <b>${r.quality.stoi}</b></span>
+  <span class="chip">built in <b>${r.craft_s}s</b></span>`;
+ $("out").classList.remove("hide");$("out").scrollIntoView({behavior:"smooth",block:"center"});};
+
+let LAST=null;
+$("verify").onclick=async()=>{
+ if(!LAST)return; const b=$("verify");b.disabled=true;b.textContent="Cloning…";
+ $("prog").classList.remove("hide");
+ const poll=setInterval(async()=>{try{const s=await (await fetch("/api/state")).json();
+  $("pbar").style.width=s.pct+"%";$("pmsg").textContent=LBL[s.stage]||s.stage}catch(e){}},900);
+ let r; try{ r=await (await fetch("/api/verify",{method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({run_id:LAST.run_id})})).json(); }
+ catch(e){ r={error:String(e)} }
+ clearInterval(poll);$("prog").classList.add("hide");
+ b.disabled=false;b.textContent="Prove it — try to clone me";
+ if(r.error){alert(r.error);return}
+ const p=r.rows.find(x=>/ECAPA/i.test(x.encoder))||r.rows[0];
+ $("vout").innerHTML=`<h3>What an attacker gets</h3>
+  <p class="mut sm">The same cloner was run on both versions. Only the protection differs.</p>
+  <div class="grid g2" style="margin-top:14px">
+   <div class="card"><p class="sm mut">From your <b>unprotected</b> audio</p>
+    <audio controls src="${r.audio.clone_unprotected}"></audio>
+    <p style="margin:10px 0 0"><span class="stat ${p.cloned_unprotected?'bad':'good'}"
+     style="font-size:19px">${p.cloned_unprotected?'✗ passes as you':'✓ failed'}</span></p></div>
+   <div class="card hl"><p class="sm mut">From your <b>protected</b> audio</p>
+    <audio controls src="${r.audio.clone_protected}"></audio>
+    <p style="margin:10px 0 0"><span class="stat ${p.cloned_protected?'bad':'good'}"
+     style="font-size:19px">${p.cloned_protected?'✗ passes as you':'✓ not you'}</span></p></div>
+  </div>
+  <table style="margin-top:16px"><tr><th>Verifier</th><th>Unprotected</th><th>Protected</th>
+   <th>Threshold</th></tr>${r.rows.map(x=>`<tr><td>${x.encoder}</td>
+   <td>${x.sim_unprotected.toFixed(3)}</td><td><b>${x.sim_protected.toFixed(3)}</b></td>
+   <td>${x.threshold.toFixed(3)}</td></tr>`).join("")}</table>
+  <p class="sm mut" style="margin-top:12px">Scored against your own recording, which
+   flatters the attacker slightly — the paper uses a separate reference.</p>`;
+ $("vout").classList.remove("hide");};
+</script></body></html>
